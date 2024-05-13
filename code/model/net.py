@@ -15,7 +15,7 @@ class Individual():
     self.P = set()
     self.logs = []
     self.rpp = N.D['rng']['ptr'].poisson
-    self.inpop = True
+    self.active = True
 
   def __str__(self):
     return '<I:{}>'.format(self.i)
@@ -28,14 +28,15 @@ class Individual():
     for P in [*self.P]:
       P.end(k)
     self.N.I.remove(self)
-    self.inpop = False
+    self.N.J.append(self)
+    self.active = False
 
   def get_ptr_rate(self,k):
     return self.ptr_r0
 
   def n_begin_ptr(self,k):
     n = self.rpp(self.get_ptr_rate(k)*model.dtk)
-    return min(self.ptr_max-len(self.P),n)*self.inpop
+    return min(self.ptr_max-len(self.P),n)*self.active
 
   def begin_ptr(self,k,P):
     self.logs.append({'k':k,'e':'begin_ptr'})
@@ -78,10 +79,11 @@ class Partnership():
 
 class Network():
   def __init__(self,D):
-    self.D = D
-    self.E = {}
-    self.I = []
-    self.imax = 0
+    self.D = D  # distrs
+    self.E = {} # events
+    self.I = [] # active
+    self.J = [] # exited
+    self.imax = 0 # next I.i
     self.rip = D['rng']['ind'].poisson
     self.add_evt(0,self.begin_ptrs)
     self.add_evt(0,self.age_inds)
