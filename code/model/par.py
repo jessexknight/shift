@@ -18,10 +18,10 @@ def get_n_sample(seeds,**kwds):
   Ps = stats.lhs(D,len(seeds),seed=seeds[0])
   return [get_depend(P,seed=seed,**kwds) for P,seed in zip(Ps,seeds)]
 
-def get_depend(P,**kwds):
+def get_depend(P,seed=None,**kwds):
   P['n'] = 1000
-  P.update(get_net_distrs(P))
-  P.update(**kwds)
+  P.update(get_net_distrs(P,seed=seed))
+  P.update(seed=seed,**kwds)
   return P
 
 def get_net_distrs(P,seed=None,states=None):
