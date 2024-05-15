@@ -1,5 +1,21 @@
 import numpy as np
+import pandas as pd
 import model
+
+class Survey():
+  def __init__(self,Is):
+    self.I = Is
+    self.X = pd.DataFrame(
+      {k:[getattr(I,k) for I in Is] for k in model.ind_attrs})
+
+  def __getitem__(self,k):
+    return self.X[k]
+
+  def __setitem__(self,k,v):
+    self.X[k] = v
+
+  def __str__(self):
+    return str(self.X)
 
 def nz(z,z0=-np.Inf,zf=np.Inf):
   # count length of z with values: z0 <= z < zf
