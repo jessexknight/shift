@@ -1,22 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from model import net,par
-import model
+from model import net,par,out,z1y,z3mf
 
-n = 1000
-zs = np.arange(0,52*model.adur)
-D = par.distrs(seed=0)
-N = net.Network(D)
-N.add_inds(n=n,ages=par.init_ages(D,n))
-N.run(zs)
-
-# print(N.I[0].logs)
-# print(np.mean([len(I.P)/I.ptr_max for I in N.I]))
-# print(np.mean([len(I.logs['vio']) for I in N.I]))
-# print(np.mean([I.depressed for I in N.I]))
-# plt.hist([len(I.P) for I in N.I])
-# plt.hist([P.cdm for I in N.I for P in I.P])
-# plt.hist([I.age for I in N.I])
-# p3m_ptr = lambda I: len(I.P) + sum(z+model.z3m > zs[-1] for z in I.logs['end_ptr'])
-# plt.hist([p3m_ptr(I) for I in N.I])
-# plt.savefig('pyplots.pdf')
+zs = np.arange(0,z1y*2)
+Ps = par.get_n_sample(range(7))
+Ns = net.run_n(Ps,zs)
+for N in Ns:
+  plt.hist(out.n_ptr(N.I,'new',**z3mf(zs[-1])),
+    bins=range(25),alpha=.2,color='black')
+plt.savefig('pyplots.pdf')

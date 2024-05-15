@@ -36,6 +36,10 @@ def drng(dfun):
     return d
   return deco
 
+def lhs(D,n,seed=None):
+  qs = ss.qmc.LatinHypercube(len(D),seed=seed).random(n)
+  return [{k:D[k].ppf(qk) for k,qk in zip(D,q)} for q in qs]
+
 # discrete distrs
 
 @drng

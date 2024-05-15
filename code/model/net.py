@@ -1,4 +1,4 @@
-from utils import stats
+from utils import stats,ppool
 import model
 
 class Individual():
@@ -14,8 +14,8 @@ class Individual():
     self.vio_r0 = vio_r0
     self.P = set()
     self.logs = {y:[] for y in model.logs}
-    self.rpp = N.D['rng']['ptr'].poisson
-    self.rpi = N.D['rng']['ind'].poisson
+    self.rpp = N.P['rng']['ptr'].poisson
+    self.rpi = N.P['rng']['ind'].poisson
     self.depressed = False
     self.active = True
 
@@ -103,17 +103,15 @@ class Partnership():
       +.5*stats.qlogis(self.I2.cdm_p0))
 
 class Network():
-  def __init__(self,D):
-    self.D = D  # distrs
+  def __init__(self,P):
+    self.P = P  # params
     self.E = {} # events
     self.I = [] # active
     self.J = [] # exited
     self.imax = 0 # next I.i
-    self.rpi = D['rng']['ind'].poisson
-
-  def attrs(self,attr,fun=None):
-    if fun is None: fun = lambda x: x
-    return [fun(getattr(I,attr)) for I in self.I]
+    self.rpi = P['rng']['ind'].poisson
+    self.add_inds(P['n'],
+      ages=model.amin+model.adur*P['rng']['ind'].random(P['n']))
 
   def add_evt(self,z,evt,**kwds):
     if z not in self.E: self.E[z] = []
@@ -128,6 +126,7 @@ class Network():
       self.age_inds(z)
       self.update_inds(z)
       self.begin_ptrs(z)
+    return self
 
   def begin_ptrs(self,z):
     I = [J for I in self.I for J in [I]*I.n_begin_ptr(z)]
@@ -136,7 +135,7 @@ class Network():
     n = int(len(I)/2)
     list(map(Partnership,
       I[:n],I[n:],[z]*n,
-      self.D['ptr_dur'].rvs(n)//model.dtz+1,
+      self.P['ptr_dur'].rvs(n)//model.dtz+1,
     ))
 
   def add_inds(self,n,z=0,ages=None):
@@ -145,12 +144,12 @@ class Network():
       range(self.imax-n,self.imax),
       [self]*n,
       [model.amin]*n if ages is None else ages,
-      self.D['ptr_max'].rvs(n),
-      self.D['ptr_r0'].rvs(n),
-      self.D['cdm_p0'].rvs(n),
-      self.D['dep_r0'].rvs(n),
-      self.D['dep_x0'].rvs(n),
-      self.D['vio_r0'].rvs(n),
+      self.P['ptr_max'].rvs(n),
+      self.P['ptr_r0'].rvs(n),
+      self.P['cdm_p0'].rvs(n),
+      self.P['dep_r0'].rvs(n),
+      self.P['dep_x0'].rvs(n),
+      self.P['vio_r0'].rvs(n),
     ))
 
   def age_inds(self,z):
@@ -165,3 +164,8 @@ class Network():
     for I in self.I:
       I.set_dep(z)
       I.set_vio(z)
+
+def run_n(Ps,zs,para=True):
+  frun = lambda P: Network(P).run(zs)
+  fmap = ppool().map if para else map
+  return list(fmap(frun,Ps))
