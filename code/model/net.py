@@ -2,6 +2,7 @@ from utils import stats,ppool
 import model
 
 class Individual():
+  #@profile
   def __init__(self,i,N,age,ptr_max,ptr_r0,cdm_p0,dep_r0,dep_x0,vio_r0):
     self.i = i
     self.N = N
@@ -25,6 +26,7 @@ class Individual():
   def __repr__(self):
     return '<I:{}>'.format(self.i)
 
+  #@profile
   def exit(self,z):
     self.logs['exit'].append(z)
     for P in [*self.P]:
@@ -36,14 +38,17 @@ class Individual():
   def get_ptr_rate(self,z):
     return self.ptr_r0
 
+  #@profile
   def n_begin_ptr(self,z):
     n = self.rpp(self.get_ptr_rate(z)*model.dtz)
     return min(self.ptr_max-len(self.P),n)*self.active
 
+  #@profile
   def begin_ptr(self,z,P):
     self.logs['begin_ptr'].append(z)
     self.P.add(P)
 
+  #@profile
   def end_ptr(self,z,P):
     self.logs['end_ptr'].append(z)
     self.P.remove(P)
@@ -54,6 +59,7 @@ class Individual():
   def get_dep_reco(self,z):
     return self.dep_x0
 
+  #@profile
   def set_dep(self,z):
     if self.depressed:
       if self.rpi(self.get_dep_reco(z)*model.dtz)>0:
@@ -67,11 +73,13 @@ class Individual():
   def get_vio_rate(self,z):
     return self.vio_r0
 
+  #@profile
   def set_vio(self,z):
     n = self.rpi(self.get_vio_rate(z)*model.dtz)
     self.logs['vio'] += [z]*n
 
 class Partnership():
+  #@profile
   def __init__(self,I1,I2,z0,dur):
     if I1 == I2: return None # HACK
     self.N  = I1.N
@@ -91,12 +99,14 @@ class Partnership():
   def __repr__(self):
     return '<P:{}:{}>'.format(self.I1.i,self.I2.i)
 
+  #@profile
   def end(self,z):
     if not self.active: return
     self.I1.end_ptr(z,self)
     self.I2.end_ptr(z,self)
     self.active = False
 
+  #@profile
   def set_cdm(self,z):
     self.cdm = stats.plogis(0
       +.5*stats.qlogis(self.I1.cdm_p0)
@@ -113,10 +123,12 @@ class Network():
     self.add_inds(P['n'],
       ages=model.amin+model.adur*P['rng']['ind'].random(P['n']))
 
+  #@profile
   def add_evt(self,z,evt,**kwds):
     if z not in self.E: self.E[z] = []
     self.E[z].append((evt,kwds))
 
+  #@profile
   def run(self,zs):
     for z in zs:
       # scheduled events
@@ -128,6 +140,7 @@ class Network():
       self.begin_ptrs(z)
     return self
 
+  #@profile
   def begin_ptrs(self,z):
     I = [J for I in self.I for J in [I]*I.n_begin_ptr(z)]
     if len(I) % 2:
@@ -138,6 +151,7 @@ class Network():
       self.P['ptr_dur'].rvs(n)//model.dtz+1,
     ))
 
+  #@profile
   def add_inds(self,n,z=0,ages=None):
     self.imax += n
     self.I.extend(map(Individual,
@@ -152,6 +166,7 @@ class Network():
       self.P['vio_r0'].rvs(n),
     ))
 
+  #@profile
   def age_inds(self,z):
     n = self.rpi(len(self.I)*model.dtz/365/model.adur)
     self.add_inds(n=n,z=z)
@@ -160,6 +175,7 @@ class Network():
       if I.age > 50:
         I.exit(z)
 
+  #@profile
   def update_inds(self,z):
     for I in self.I:
       I.set_dep(z)
