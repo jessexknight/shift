@@ -32,7 +32,7 @@ class Individual():
     for P in [*self.P]:
       P.end(z)
     self.N.I.remove(self)
-    self.N.J.append(self)
+    self.N.Ix.append(self)
     self.active = False
 
   def get_ptr_rate(self,z):
@@ -114,14 +114,11 @@ class Partnership():
 
 class Network():
   def __init__(self,P):
-    self.P = P  # params
+    self.P = P # params
     self.E = {} # events
     self.I = [] # active
-    self.J = [] # exited
-    self.imax = 0 # next I.i
-    self.rpi = P['rng']['ind'].poisson
-    self.add_inds(P['n'],
-      ages=model.amin+model.adur*P['rng']['ind'].random(P['n']))
+    self.Iq = [] # queued
+    self.Ix = [] # exited
 
   #@profile
   def add_evt(self,z,evt,**kwds):
@@ -130,6 +127,9 @@ class Network():
 
   #@profile
   def run(self,zs):
+    # initialize individuals
+    self.gen_inds(len(zs))
+    self.add_inds(self.P['n'])
     for z in zs:
       # scheduled events
       for evt,kwds in self.E.get(z,()):
@@ -152,12 +152,15 @@ class Network():
     ))
 
   #@profile
-  def add_inds(self,n,z=0,ages=None):
-    self.imax += n
-    self.I.extend(map(Individual,
-      range(self.imax-n,self.imax),
+  def gen_inds(self,nz):
+    # pre-generate all individuals for speed
+    ni0 = self.P['n']
+    niz = int(stats.pois(nz*self.P['new_ind_m']).ppf(.999))
+    n = ni0 + niz
+    self.Iq.extend(map(Individual,
+      range(n),
       [self]*n,
-      [model.amin]*n if ages is None else ages,
+      self.P['age'].rvs(ni0).tolist() + [model.amin]*niz,
       self.P['ptr_max'].rvs(n),
       self.P['ptr_r0'].rvs(n),
       self.P['cdm_p0'].rvs(n),
@@ -167,9 +170,13 @@ class Network():
     ))
 
   #@profile
+  def add_inds(self,n):
+    self.I.extend(self.Iq[:n])
+    self.Iq = self.Iq[n:]
+
+  #@profile
   def age_inds(self,z):
-    n = self.rpi(len(self.I)*model.dtz/365/model.adur)
-    self.add_inds(n=n,z=z)
+    self.add_inds(self.P['new_ind'].rvs())
     for I in self.I:
       I.age += model.dtz/365
       if I.age > 50:

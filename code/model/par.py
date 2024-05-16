@@ -20,8 +20,9 @@ def get_n_sample(seeds,**kwds):
 
 def get_depend(P,seed=None,**kwds):
   P['n'] = 1000
-  P.update(get_net_distrs(P,seed=seed))
   P.update(seed=seed,**kwds)
+  P['new_ind_m'] = P['n']*model.dtz/365/model.adur
+  P.update(get_net_distrs(P,seed=seed))
   return P
 
 def get_net_distrs(P,seed=None,states=None):
@@ -30,7 +31,8 @@ def get_net_distrs(P,seed=None,states=None):
   return {
   'rng': rng,
   # individual-level
-  'new_ind': stats.pois(rng=rng['ind'],m=1/365/model.adur),
+  'age':     stats.unif(rng=rng['ind'],l=model.amin,u=model.amax),
+  'new_ind': stats.pois(rng=rng['ind'],m=P['new_ind_m']),
   'ptr_max': stats.geom(rng=rng['ind'],m=P['ptr_max_m']),
   'ptr_r0':  stats.exp (rng=rng['ind'],m=np.exp(P['ptr_r0_lm'])),
   'cdm_p0':  stats.unif(rng=rng['ind'],l=0,u=1),
@@ -40,6 +42,3 @@ def get_net_distrs(P,seed=None,states=None):
   # partnership-level
   'ptr_dur': stats.exp(rng=rng['ptr'],m=np.exp(P['dep_r0_lm'])),
   }
-
-def init_ages(P):
-  return model.amin + model.adur * P['rng']['ind'].random(P['n'])
