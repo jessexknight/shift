@@ -18,7 +18,6 @@ class Individual():
     self.rpp = N.P['rng']['ptr'].poisson
     self.rpi = N.P['rng']['ind'].poisson
     self.depressed = False
-    self.active = True
 
   def __str__(self):
     return '<I:{}>'.format(self.i)
@@ -33,7 +32,6 @@ class Individual():
       P.end(z)
     self.N.I.remove(self)
     self.N.Ix.append(self)
-    self.active = False
 
   def get_ptr_rate(self,z):
     return self.ptr_r0
@@ -41,7 +39,7 @@ class Individual():
   #@profile
   def n_begin_ptr(self,z):
     n = self.rpp(self.get_ptr_rate(z)*model.dtz)
-    return min(self.ptr_max-len(self.P),n)*self.active
+    return min(self.ptr_max-len(self.P),n)
 
   #@profile
   def begin_ptr(self,z,P):
@@ -80,17 +78,17 @@ class Individual():
 
 class Partnership():
   #@profile
-  def __init__(self,I1,I2,z0,dur):
+  def __init__(self,I1,I2,z0,zdur):
     if I1 == I2: return None # HACK
     self.N  = I1.N
     self.I1 = I1
     self.I2 = I2
     self.z0 = z0
-    self.dur = dur
+    self.zdur = zdur
     self.set_cdm(z0)
     self.I1.begin_ptr(z0,self)
     self.I2.begin_ptr(z0,self)
-    self.N.add_evt(z0+dur,self.end)
+    self.N.add_evt(z0+zdur,self.end)
     self.active = True
 
   def __str__(self):
@@ -146,6 +144,7 @@ class Network():
     if len(I) % 2:
       I.pop(-1)
     n = int(len(I)/2)
+    # TODO: add shuffle? (or proper mixing)
     list(map(Partnership,
       I[:n],I[n:],[z]*n,
       self.P['ptr_dur'].rvs(n)//model.dtz+1,
