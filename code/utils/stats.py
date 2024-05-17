@@ -85,3 +85,9 @@ def plogis(q):
 
 def qlogis(p):
   return -np.log(1/p-1)
+
+def copula(n,cov,*Ds):
+  if np.ndim(cov) < 2: cov = [[1,cov],[cov,1]]
+  N = ss.norm()
+  gs = ss.multivariate_normal(cov=cov).rvs(n).T
+  return np.array([D.ppf(N.cdf(g)) for g,D in zip(gs,Ds)])
