@@ -3,10 +3,10 @@ import pandas as pd
 import model
 
 class Survey():
-  def __init__(self,Is):
+  def __init__(self,Is,**kwds):
+    kwds.update({k:[getattr(I,k) for I in Is] for k in model.ind_attrs})
     self.I = Is
-    self.X = pd.DataFrame(
-      {k:[getattr(I,k) for I in Is] for k in model.ind_attrs})
+    self.X = pd.DataFrame(kwds)
 
   def __getitem__(self,k):
     return self.X[k]
@@ -16,6 +16,13 @@ class Survey():
 
   def __str__(self):
     return str(self.X)
+
+class Meta(Survey):
+  def __init__(self,Ns,pars=None):
+    pars = [] if pars is None else pars
+    self.I = [I for N in Ns for I in N.I]
+    self.S = [Survey(N.I,**{k:N.P[k] for k in pars}).X for N in Ns]
+    self.X = pd.concat(self.S)
 
 def nz(z,z0=-np.Inf,zf=np.Inf):
   # count length of z with values: z0 <= z < zf
@@ -52,3 +59,10 @@ def n_dep(Is,what,z0=-np.Inf,zf=np.Inf):
 
 def n_vio(Is,z0=-np.Inf,zf=np.Inf):
   return nze(Is,log='vio',z0=z0,zf=zf)
+
+def gist(X,var,b,g=None):
+  # grouped histogram for repeated measures
+  g = ['seed'] if g is None else g
+  f = lambda x: np.histogram(x,[*b,np.Inf])[0]
+  H = X.groupby(g)[var].apply(f).reset_index()
+  return H.explode(var).assign(b=[*b]*len(H))
