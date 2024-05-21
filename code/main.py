@@ -1,12 +1,17 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from model import net,par,out
 from model import adur,z1y,z3mf
+import seaborn as sb
 
-zs = np.arange(0,z1y*adur)
-Ps = par.get_n_sample(range(1))
+zs = np.arange(0,3*adur)
+seeds = range(7)
+Ps = par.get_n_all(seeds,n=100,case='high',ptr_r0_lm=-3,ptr_dur_lm=2)+\
+     par.get_n_all(seeds,n=100,case='low', ptr_r0_lm=-5,ptr_dur_lm=6)
 Ns = net.run_n(Ps,zs)
-Y = out.Survey(Ns[0].I)
-Y['ptr_tot'] = out.n_ptr(Y.I,'tot')
-plt.plot(Y['age'],Y['ptr_tot'],'.')
-plt.savefig('pyplots.pdf')
+M = out.Meta(Ns,['seed','case'])
+M['p3m_ptr'] = out.n_ptr(M.I,'tot',**z3mf(zs[-1]))
+
+H = out.gist(M.X,'p3m_ptr',range(15),['case','seed'])
+ax = sb.boxplot(H,y='p3m_ptr',x='b',hue='case',fill=False,dodge=False)
+ax.set(xlabel='Partners P3M',ylabel='Individuals')
+ax.figure.savefig('pyplots.pdf')
