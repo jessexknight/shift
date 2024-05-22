@@ -61,6 +61,9 @@ def n_dep(Is,what,z0=-np.Inf,zf=np.Inf):
 def n_vio(Is,z0=-np.Inf,zf=np.Inf):
   return nze(Is,log='vio',z0=z0,zf=zf)
 
+def b_cdm(Is,z):
+  return np.array([I.cdm for I in Is])
+
 def gist(X,var,b,g=None):
   # grouped histogram for repeated measures
   g = ['seed'] if g is None else g

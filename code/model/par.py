@@ -13,8 +13,12 @@ def def_cal_distrs(seed=None):
   'dep_x0_lm':  stats.unif(rng=rng,l=-7,u=-5),
   'vio_r0_lm':  stats.unif(rng=rng,l=-7,u=-4),
   'ptr_dur_lm': stats.unif(rng=rng,l= 6,u= 2),
-  'vio_a3m:dep_r0': stats.unif(rng=rng,l=0,u=6),
-  'dep_cur:ptr_r0': stats.unif(rng=rng,l=0,u=3),
+  'vio_a3m:dep_r': stats.unif(rng=rng,l= 0,u=6),
+  'vio_a3m:ptr_r': stats.unif(rng=rng,l=-2,u=2),
+  'vio_a3m:cdm_p': stats.unif(rng=rng,l=-1,u=1),
+  'dep_cur:ptr_r': stats.unif(rng=rng,l= 0,u=3),
+  'dep_cur:cdm_p': stats.unif(rng=rng,l=-4,u=0),
+  'ptr_dur:cdm_p': stats.unif(rng=rng,l=-0.1,u=0),
   }
 
 def get_cal_sample(seed=None):
@@ -30,8 +34,12 @@ def get_cal_fixed():
   'dep_x0_lm':     -4.0, # .02
   'vio_r0_lm':     -6.0, # .002
   'ptr_dur_lm':     4.0, # 55
-  'vio_a3m:dep_r0': 3.0, # 3.0
-  'dep_cur:ptr_r0': 2.0, # 2.0
+  'vio_a3m:dep_r':  3.0, # 3.0
+  'vio_a3m:ptr_r':  0.0, # 0.0
+  'vio_a3m:cdm_p':  0.0, # 0.0
+  'dep_cur:ptr_r':  2.0, # 2.0
+  'dep_cur:cdm_p': -2.0, # -2.0
+  'ptr_dur:cdm_p': -0.01, # -0.01
   }
 
 def get_n_all(seeds,Ps=None,**kwds):

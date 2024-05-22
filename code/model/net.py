@@ -14,11 +14,13 @@ class Individual():
     self.dep_r0 = dep_r0
     self.dep_x0 = dep_x0
     self.vio_r0 = vio_r0
-    self.P = set()
+    self.P = []
     self.logs = {y:[] for y in model.logs}
     self.rpp = N.P['rng']['ptr'].poisson
-    self.rpi = N.P['rng']['ind'].poisson
-    self.depressed = False
+    self.rip = N.P['rng']['ind'].poisson
+    self.rpi = N.P['rng']['ptr'].integers
+    self.dep = False
+    self.cdm = False
 
   def __str__(self):
     return '<I:{}>'.format(self.i)
@@ -29,25 +31,30 @@ class Individual():
   #@profile
   def exit(self,z):
     self.logs['exit'].append(z)
-    for P in [*self.P]:
+    for P in self.P:
       P.end(z)
     self.N.I.remove(self)
     self.N.Ix.append(self)
 
+  def set_cdm(self,z):
+    if self.P:
+      self.cdm = self.P[self.rpi(len(self.P))].cdm
+
   def get_ptr_rate(self,z):
     return self.ptr_r0 * np.exp(0
-      + self.N.P['dep_cur:ptr_r0'] * self.depressed
+      + self.N.P['vio_a3m:ptr_r'] * model.a3m(self.logs['vio'],z)
+      + self.N.P['dep_cur:ptr_r'] * self.dep
     )
 
   #@profile
   def n_begin_ptr(self,z):
-    n = self.rpp(self.get_ptr_rate(z)*model.dtz)
-    return min(self.ptr_max-len(self.P),n)
+    n = self.rpp(self.get_ptr_rate(z) * model.dtz)
+    return min(self.ptr_max - len(self.P), n)
 
   #@profile
   def begin_ptr(self,z,P):
     self.logs['begin_ptr'].append(z)
-    self.P.add(P)
+    self.P.append(P)
 
   #@profile
   def end_ptr(self,z,P):
@@ -56,7 +63,7 @@ class Individual():
 
   def get_dep_rate(self,z):
     return self.dep_r0 * np.exp(0
-      + self.N.P['vio_a3m:dep_r0'] * model.a3m(self.logs['vio'],z)
+      + self.N.P['vio_a3m:dep_r'] * model.a3m(self.logs['vio'],z)
     )
 
   def get_dep_reco(self,z):
@@ -65,14 +72,14 @@ class Individual():
 
   #@profile
   def set_dep(self,z):
-    if self.depressed:
-      if self.rpi(self.get_dep_reco(z)*model.dtz)>0:
+    if self.dep:
+      if self.rip(self.get_dep_reco(z) * model.dtz) > 0:
         self.logs['end_dep'].append(z)
-        self.depressed = False
+        self.dep = False
     else:
-      if self.rpi(self.get_dep_rate(z)*model.dtz)>0:
+      if self.rip(self.get_dep_rate(z) * model.dtz) > 0:
         self.logs['begin_dep'].append(z)
-        self.depressed = True
+        self.dep = True
 
   def get_vio_rate(self,z):
     return self.vio_r0 * np.exp(0
@@ -80,7 +87,7 @@ class Individual():
 
   #@profile
   def set_vio(self,z):
-    n = self.rpi(self.get_vio_rate(z)*model.dtz)
+    n = self.rip(self.get_vio_rate(z) * model.dtz)
     self.logs['vio'] += [z]*n
 
 class Partnership():
@@ -92,6 +99,7 @@ class Partnership():
     self.I2 = I2
     self.z0 = z0
     self.zdur = zdur
+    self.riu = self.N.P['rng']['ptr'].random
     self.set_cdm(z0)
     self.I1.begin_ptr(z0,self)
     self.I2.begin_ptr(z0,self)
@@ -113,9 +121,16 @@ class Partnership():
 
   #@profile
   def set_cdm(self,z):
-    self.cdm = stats.plogis(0
-      +.5*stats.qlogis(self.I1.cdm_p0)
-      +.5*stats.qlogis(self.I2.cdm_p0))
+    I1,I2 = self.I1,self.I2
+    p0      = .5 * I1.cdm_p0 + .5 * I2.cdm_p0
+    vio_a3m = model.a3m(I1.logs['vio'],z) + model.a3m(I2.logs['vio'],z)
+    dep_cur = I1.dep + I2.dep
+    self.cdm = self.riu() < stats.plogis(0
+      + stats.qlogis(p0)
+      + self.N.P['ptr_dur:cdm_p'] * self.zdur * model.dtz
+      + self.N.P['vio_a3m:cdm_p'] * vio_a3m
+      + self.N.P['dep_cur:cdm_p'] * dep_cur
+    )
 
 class Network():
   def __init__(self,P):
@@ -191,8 +206,9 @@ class Network():
   #@profile
   def update_inds(self,z):
     for I in self.I:
-      I.set_dep(z)
       I.set_vio(z)
+      I.set_dep(z)
+      I.set_cdm(z)
 
 def run_n(Ps,zs,para=True):
   frun = lambda P: Network(P).run(zs)
