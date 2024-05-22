@@ -1,0 +1,24 @@
+\newcommand{\rootpath}{../..}
+\input{\rootpath/docs/style}
+\input{colors}
+\usepackage{tikz}
+\tikzset{
+  > = latex,
+  every node/.style = {
+    line width = .2mm,
+  },
+  df/.style = {
+    draw = #1,
+    fill = #1!20,
+    inner sep = 0pt,
+  },
+  var/.style = {
+    df = #1,
+    inner sep = .25em,
+    rounded corners = .5em,
+    font = \strut\footnotesize,
+  },
+  dots/.style = {
+    densely dotted,
+  }
+}

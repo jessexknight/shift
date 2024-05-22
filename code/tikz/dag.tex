@@ -1,0 +1,17 @@
+\newcommand{\eff}[3]{\draw[->] (#1) edge[bend left=#3] (#2);}
+\begin{tikzpicture}[x=1.2cm,y=.6cm]
+  \node[var=grn] (vio) at (0, 0) {Violence};
+  \node[var=blu] (dep) at (2, 0) {Depression};
+  \node[var=vio] (ptr) at (3,+2) {Partner Rate};
+  \node[var=vio] (con) at (3,-2) {Condom Use};
+  \node[var=red,dots] (hiv) at (4, 0) {HIV Risk};
+  \eff{vio}{dep}{  0};
+  \eff{vio}{ptr}{+20};
+  \eff{dep}{ptr}{  0};
+  \eff{vio}{con}{-20};
+  \eff{dep}{con}{  0};
+  \eff{vio}{hiv}{+20,dots};
+  \eff{dep}{hiv}{  0,dots};
+  \eff{ptr}{hiv}{  0,dots};
+  \eff{con}{hiv}{  0,dots};
+\end{tikzpicture}
