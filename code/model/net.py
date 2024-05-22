@@ -1,3 +1,4 @@
+import numpy as np
 from utils import stats,ppool
 import model
 
@@ -34,7 +35,9 @@ class Individual():
     self.N.Ix.append(self)
 
   def get_ptr_rate(self,z):
-    return self.ptr_r0
+    return self.ptr_r0 * np.exp(0
+      + self.N.P['dep_cur:ptr_r0'] * self.depressed
+    )
 
   #@profile
   def n_begin_ptr(self,z):
@@ -52,10 +55,13 @@ class Individual():
     self.P.remove(P)
 
   def get_dep_rate(self,z):
-    return self.dep_r0
+    return self.dep_r0 * np.exp(0
+      + self.N.P['vio_a3m:dep_r0'] * model.a3m(self.logs['vio'],z)
+    )
 
   def get_dep_reco(self,z):
-    return self.dep_x0
+    return self.dep_x0 * np.exp(0
+    )
 
   #@profile
   def set_dep(self,z):
@@ -69,7 +75,8 @@ class Individual():
         self.depressed = True
 
   def get_vio_rate(self,z):
-    return self.vio_r0
+    return self.vio_r0 * np.exp(0
+    )
 
   #@profile
   def set_vio(self,z):
