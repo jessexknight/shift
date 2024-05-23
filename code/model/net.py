@@ -68,6 +68,7 @@ class Individual():
 
   def get_dep_reco(self,z):
     return self.dep_x0 * np.exp(0
+      + self.N.P['dep_dur:dep_x'] * model.dur(self.logs['begin_dep'],z)
     )
 
   #@profile

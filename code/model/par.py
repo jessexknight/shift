@@ -13,6 +13,7 @@ def def_cal_distrs(seed=None):
   'dep_x0_lm':  stats.unif(rng=rng,l=-7,u=-5),
   'vio_r0_lm':  stats.unif(rng=rng,l=-7,u=-4),
   'ptr_dur_lm': stats.unif(rng=rng,l= 6,u= 2),
+  'dep_dur:dep_x': stats.unif(rng=rng,l= 0,u=1),
   'vio_a3m:dep_r': stats.unif(rng=rng,l= 0,u=6),
   'vio_a3m:ptr_r': stats.unif(rng=rng,l=-2,u=2),
   'vio_a3m:cdm_p': stats.unif(rng=rng,l=-1,u=1),
@@ -34,6 +35,7 @@ def get_cal_fixed():
   'dep_x0_lm':     -4.0, # .02
   'vio_r0_lm':     -6.0, # .002
   'ptr_dur_lm':     4.0, # 55
+  'dep_dur:dep_x':  0.5, # 0.5
   'vio_a3m:dep_r':  3.0, # 3.0
   'vio_a3m:ptr_r':  0.0, # 0.0
   'vio_a3m:cdm_p':  0.0, # 0.0

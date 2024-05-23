@@ -41,3 +41,5 @@ def n3m(log,z): # how many in past 3 months from z
   return len(list(it.takewhile(lambda l: l >= (z - z3m), log[::-1])))
 def n1y(log,z): # how many in past 1 year from z
   return len(list(it.takewhile(lambda l: l >= (z - z1y), log[::-1])))
+def dur(log,z):
+  return z - log[-1] if log else 0
