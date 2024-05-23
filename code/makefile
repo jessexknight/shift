@@ -5,4 +5,6 @@ profile:
 	./profile/run.sh
 debug:
 	python3 debug.py
-.PHONY: model profile
+tikz:
+	cd tikz && make all
+.PHONY: model profile tikz
