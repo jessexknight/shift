@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-import model
+import sim
 from utils import sum1
 
 class Survey():
   def __init__(self,Is,**kwds):
-    kwds.update({k:[getattr(I,k) for I in Is] for k in model.ind_attrs})
+    kwds.update({k:[getattr(I,k) for I in Is] for k in sim.ind_attrs})
     self.I = Is
     self.X = pd.DataFrame(kwds)
 
@@ -61,8 +61,8 @@ def n_dep(Is,what,z0=-np.Inf,zf=np.Inf):
 def n_vio(Is,z0=-np.Inf,zf=np.Inf):
   return nze(Is,log='vio',z0=z0,zf=zf)
 
-def b_cdm(Is,z):
-  return np.array([I.cdm for I in Is])
+def attr(Is,what):
+  return np.array([getattr(I,what) for I in Is])
 
 def gist(X,var,b,g=None):
   # grouped histogram for repeated measures

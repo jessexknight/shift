@@ -1,6 +1,6 @@
 import numpy as np
 from copy import deepcopy
-import model
+import sim
 from utils import stats
 
 def def_cal_distrs(seed=None):
@@ -54,7 +54,7 @@ def get_all(P,seed=None,**kwds):
   P = deepcopy(P)
   P['n'] = 1000
   P.update(seed=seed,**kwds)
-  P['new_ind_m'] = P['n']*model.dtz/365/model.adur
+  P['new_ind_m'] = P['n']*sim.dtz/365/sim.adur
   P.update(get_net_distrs(P,seed=seed))
   return P
 
@@ -65,7 +65,7 @@ def get_net_distrs(P,seed=None,states=None):
   'rng': rng,
   # individual-level
   'new_ind': stats.pois(rng=rng['ind'],m=P['new_ind_m']),
-  'age':     stats.unif(rng=rng['ind'],l=model.amin,u=model.amax),
+  'age':     stats.unif(rng=rng['ind'],l=sim.amin,u=sim.amax),
   'ptr_max': stats.geom(rng=rng['ind'],m=P['ptr_max_m']),
   'ptr_r0':  stats.exp (rng=rng['ind'],m=np.exp(P['ptr_r0_lm'])),
   'cdm_p0':  stats.unif(rng=rng['ind'],l=0,u=1),

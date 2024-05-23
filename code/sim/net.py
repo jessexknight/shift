@@ -1,6 +1,6 @@
 import numpy as np
 from utils import stats,ppool
-import model
+import sim
 
 class Individual():
   #@profile
@@ -15,7 +15,7 @@ class Individual():
     self.dep_x0 = dep_x0
     self.vio_r0 = vio_r0
     self.P = []
-    self.logs = {y:[] for y in model.logs}
+    self.logs = {y:[] for y in sim.logs}
     self.rpp = N.P['rng']['ptr'].poisson
     self.rip = N.P['rng']['ind'].poisson
     self.rpi = N.P['rng']['ptr'].integers
@@ -42,13 +42,13 @@ class Individual():
 
   def get_ptr_rate(self,z):
     return self.ptr_r0 * np.exp(0
-      + self.N.P['vio_a3m:ptr_r'] * model.a3m(self.logs['vio'],z)
+      + self.N.P['vio_a3m:ptr_r'] * sim.a3m(self.logs['vio'],z)
       + self.N.P['dep_cur:ptr_r'] * self.dep
     )
 
   #@profile
   def n_begin_ptr(self,z):
-    n = self.rpp(self.get_ptr_rate(z) * model.dtz)
+    n = self.rpp(self.get_ptr_rate(z) * sim.dtz)
     return min(self.ptr_max - len(self.P), n)
 
   #@profile
@@ -63,22 +63,22 @@ class Individual():
 
   def get_dep_rate(self,z):
     return self.dep_r0 * np.exp(0
-      + self.N.P['vio_a3m:dep_r'] * model.a3m(self.logs['vio'],z)
+      + self.N.P['vio_a3m:dep_r'] * sim.a3m(self.logs['vio'],z)
     )
 
   def get_dep_reco(self,z):
     return self.dep_x0 * np.exp(0
-      + self.N.P['dep_dur:dep_x'] * model.dur(self.logs['begin_dep'],z)
+      + self.N.P['dep_dur:dep_x'] * sim.dur(self.logs['begin_dep'],z)
     )
 
   #@profile
   def set_dep(self,z):
     if self.dep:
-      if self.rip(self.get_dep_reco(z) * model.dtz) > 0:
+      if self.rip(self.get_dep_reco(z) * sim.dtz) > 0:
         self.logs['end_dep'].append(z)
         self.dep = False
     else:
-      if self.rip(self.get_dep_rate(z) * model.dtz) > 0:
+      if self.rip(self.get_dep_rate(z) * sim.dtz) > 0:
         self.logs['begin_dep'].append(z)
         self.dep = True
 
@@ -88,7 +88,7 @@ class Individual():
 
   #@profile
   def set_vio(self,z):
-    n = self.rip(self.get_vio_rate(z) * model.dtz)
+    n = self.rip(self.get_vio_rate(z) * sim.dtz)
     self.logs['vio'] += [z]*n
 
 class Partnership():
@@ -124,11 +124,11 @@ class Partnership():
   def set_cdm(self,z):
     I1,I2 = self.I1,self.I2
     p0      = .5 * I1.cdm_p0 + .5 * I2.cdm_p0
-    vio_a3m = model.a3m(I1.logs['vio'],z) + model.a3m(I2.logs['vio'],z)
+    vio_a3m = sim.a3m(I1.logs['vio'],z) + sim.a3m(I2.logs['vio'],z)
     dep_cur = I1.dep + I2.dep
     self.cdm = self.riu() < stats.plogis(0
       + stats.qlogis(p0)
-      + self.N.P['ptr_dur:cdm_p'] * self.zdur * model.dtz
+      + self.N.P['ptr_dur:cdm_p'] * self.zdur * sim.dtz
       + self.N.P['vio_a3m:cdm_p'] * vio_a3m
       + self.N.P['dep_cur:cdm_p'] * dep_cur
     )
@@ -170,7 +170,7 @@ class Network():
     # TODO: add shuffle? (or proper mixing)
     list(map(Partnership,
       I[:n],I[n:],[z]*n,
-      self.P['ptr_dur'].rvs(n)//model.dtz+1,
+      self.P['ptr_dur'].rvs(n)//sim.dtz+1,
     ))
 
   #@profile
@@ -182,7 +182,7 @@ class Network():
     self.Iq.extend(map(Individual,
       range(n),
       [self]*n,
-      self.P['age'].rvs(ni0).tolist() + [model.amin]*niz,
+      self.P['age'].rvs(ni0).tolist() + [sim.amin]*niz,
       self.P['ptr_max'].rvs(n),
       self.P['ptr_r0'].rvs(n),
       self.P['cdm_p0'].rvs(n),
@@ -200,7 +200,7 @@ class Network():
   def age_inds(self,z):
     self.add_inds(self.P['new_ind'].rvs())
     for I in self.I:
-      I.age += model.dtz/365
+      I.age += sim.dtz/365
       if I.age > 50:
         I.exit(z)
 
