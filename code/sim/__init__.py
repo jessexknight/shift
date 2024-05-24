@@ -16,6 +16,7 @@ logs = (  # types of logs
   'exit',
 )
 ind_attrs = ( # individual attributes
+  'i',
   'age',
   'ptr_max',
   'ptr_r0',
@@ -23,6 +24,8 @@ ind_attrs = ( # individual attributes
   'dep_r0',
   'dep_x0',
   'vio_r0',
+  'dep',
+  'cdm',
 )
 ptr_attrs = ( # partner attributes
   'z0',
