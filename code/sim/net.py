@@ -210,8 +210,3 @@ class Network():
       I.set_vio(z)
       I.set_dep(z)
       I.set_cdm(z)
-
-def run_n(Ps,zs,para=True):
-  frun = lambda P: Network(P).run(zs)
-  fmap = ppool().map if para else map
-  return list(fmap(frun,Ps))
