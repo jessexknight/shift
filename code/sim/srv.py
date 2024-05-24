@@ -4,10 +4,14 @@ import sim
 from utils import sum1
 
 class Survey():
-  def __init__(self,Is,**kwds):
-    kwds.update({k:[getattr(I,k) for I in Is] for k in sim.ind_attrs})
-    self.I = Is
-    self.X = pd.DataFrame(kwds)
+  def __init__(self,N,sfun,qfun,z0,zr=0):
+    self.N = N # network
+    self.sfun = sfun # sampling fun
+    self.qfun = qfun # questions fun
+    self.z0 = z0 # first survey
+    self.zr = zr # survey interval
+    self.X = pd.DataFrame() # data
+    self.N.add_evt(z0,self.run)
 
   def __getitem__(self,k):
     return self.X[k]
@@ -18,12 +22,26 @@ class Survey():
   def __str__(self):
     return str(self.X)
 
-class Meta(Survey):
-  def __init__(self,Ns,pars=None):
-    pars = [] if pars is None else pars
-    self.I = [I for N in Ns for I in N.I]
-    self.S = [Survey(N.I,**{k:N.P[k] for k in pars}).X for N in Ns]
-    self.X = pd.concat(self.S)
+  def run(self,z):
+    if self.zr: self.N.add_evt(z+self.zr,self.run)
+    self.X = pd.concat([self.X,
+      self.qfun(self.sfun(self.N.I),z=z) ])
+
+def concat(Qs):
+  return pd.concat((Q.X for Q in Qs))
+
+def sfun(Is):
+  # TODO
+  return Is
+
+def qfun(Is,z,pars=[],**kwds):
+  N = Is[0].N
+  kwds.update({k:N.P[k] for k in ['seed']+pars},z=z)
+  kwds.update({k:[getattr(I,k) for I in Is] for k in sim.ind_attrs})
+  X = pd.DataFrame(kwds)
+  X['vio_a3m'] = n_vio(Is,      **sim.k3m(z)) > 0
+  X['ptr_n3m'] = n_ptr(Is,'tot',**sim.k3m(z))
+  return X
 
 def nz(z,z0=-np.Inf,zf=np.Inf):
   # count length of z with values: z0 <= z < zf
