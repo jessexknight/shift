@@ -41,7 +41,9 @@ class Individual():
       self.cdm = self.P[self.rpi(len(self.P))].cdm
 
   def get_ptr_rate(self,z):
+    dage = np.abs(self.age - self.N.P['age_ptr_rmax'])
     return self.ptr_r0 * np.exp(0
+      + self.N.P['age_dm:ptr_r']  * dage
       + self.N.P['vio_a3m:ptr_r'] * sim.a3m(self.logs['vio'],z)
       + self.N.P['dep_cur:ptr_r'] * self.dep
     )
@@ -124,11 +126,12 @@ class Partnership():
   def set_cdm(self,z):
     I1,I2 = self.I1,self.I2
     p0      = .5 * I1.cdm_p0 + .5 * I2.cdm_p0
+    ddur    = self.zdur * sim.dtz - self.N.P['ptr_dur_m']
     vio_a3m = sim.a3m(I1.logs['vio'],z) + sim.a3m(I2.logs['vio'],z)
     dep_cur = I1.dep + I2.dep
     self.cdm = self.riu() < stats.plogis(0
       + stats.qlogis(p0)
-      + self.N.P['ptr_dur:cdm_p'] * self.zdur * sim.dtz
+      + self.N.P['ptr_dur:cdm_p'] * ddur
       + self.N.P['vio_a3m:cdm_p'] * vio_a3m
       + self.N.P['dep_cur:cdm_p'] * dep_cur
     )
