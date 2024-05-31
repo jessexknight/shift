@@ -31,7 +31,7 @@ class Individual():
   #@profile
   def exit(self,z):
     self.logs['exit'].append(z)
-    for P in self.P:
+    for P in [*self.P]: # BUGFIX
       P.end(z)
     self.N.I.remove(self)
     self.N.Ix.append(self)
