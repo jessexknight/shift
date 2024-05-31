@@ -40,6 +40,12 @@ def line(X,err='pi',**kwds):
   return sb.lineplot(X,**kwds)
 
 @clean
+def band(X,y1,y2,legend=False,**kwds):
+  X2 = pd.concat((X,X))
+  X2['.tmp'] = [*X[y1],*X[y2]]
+  return line(X2,y='.tmp',err=('pi',100),dashes=(0,1),legend=legend,**kwds)
+
+@clean
 def violin(X,**kwds):
   kwds.update(fill=False,inner='quart',inner_kws=dict(dashes=(1,0)))
   return sb.violinplot(X,**kwds)
