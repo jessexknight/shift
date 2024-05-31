@@ -10,6 +10,7 @@ sb.set(style='whitegrid',rc={
   'patch.linewidth': 0,
   'axes.edgecolor': '#000',
   'grid.color':'#eee',
+  'lines.solid_capstyle': 'butt',
 })
 c1 = '#990033'
 
@@ -40,10 +41,18 @@ def line(X,err='pi',**kwds):
   return sb.lineplot(X,**kwds)
 
 @clean
-def band(X,y1,y2,legend=False,**kwds):
-  X2 = pd.concat((X,X))
-  X2['.tmp'] = [*X[y1],*X[y2]]
-  return line(X2,y='.tmp',err=('pi',100),dashes=(0,1),legend=legend,**kwds)
+def point(X,**kwds):
+  return sb.scatterplot(X,**kwds)
+
+@clean
+def span(X,y1,y2,legend=False,**kwds):
+  X2 = pd.concat((X,X)).assign(_tmp=[*X[y1],*X[y2]])
+  return line(X2,y='_tmp',err=('pi',100),dashes=(0,1),legend=legend,**kwds)
+
+@clean
+def target(X,y,**kwds):
+  point(X,y=y,**kwds)
+  span(X,y1=y+'.lo',y2=y+'.up',**kwds,err_style='bars',err_kws=dict(capsize=3))
 
 @clean
 def violin(X,**kwds):
