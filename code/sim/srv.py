@@ -31,6 +31,9 @@ class Survey():
     self.X.replace({False: 0, True: 1}).to_csv(fname,
       index=False,na_rep='NA')
 
+  def reindex(self):
+    self.X = self.X.reset_index()
+
 class Meta(Survey):
   def __init__(self,Qs):
     self.X = pd.concat((Q.X for Q in Qs))

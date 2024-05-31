@@ -7,6 +7,7 @@ z1y  = 52 # timesteps per 1 year
 amin = 15 # age of model entry
 amax = 50 # age of model exit
 adur = 35 # years in model
+a5g  = [18,20,25,30,35,40,45,50]
 logs = (  # types of logs
   'begin_ptr',
   'end_ptr',

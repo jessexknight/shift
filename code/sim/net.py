@@ -204,7 +204,7 @@ class Network():
     self.add_inds(self.P['new_ind'].rvs())
     for I in self.I:
       I.age += sim.dtz/365
-      if I.age > 50:
+      if I.age >= 50:
         I.exit(z)
 
   #@profile
