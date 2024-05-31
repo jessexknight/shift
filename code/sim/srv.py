@@ -27,14 +27,23 @@ class Survey():
     self.X = pd.concat([self.X,
       self.qfun(self.sfun(self.N.I),z=z) ])
 
-def concat(Qs):
-  return pd.concat((Q.X for Q in Qs))
+  def save(self,fname):
+    self.X.replace({False: 0, True: 1}).to_csv(fname,
+      index=False,na_rep='NA')
+
+class Meta(Survey):
+  def __init__(self,Qs):
+    self.X = pd.concat((Q.X for Q in Qs))
+
+  def run(self,z):
+    pass
 
 def sfun(Is):
-  # TODO
+  # survey sampling function - TODO
   return Is
 
 def qfun(Is,z,pars=[],**kwds):
+  # survey question function
   N = Is[0].N
   kwds.update({k:N.P[k] for k in ['seed']+pars},z=z)
   kwds.update({k:[getattr(I,k) for I in Is] for k in sim.ind_attrs})
