@@ -12,12 +12,12 @@ def ci_aggr(Xg):
   Xi['y.up'] = np.average(Xg['y.up'],weights=Xg['n'])
   return Xi
 
-def pois_aggr(Xg,n=1000):
+def pois_aggr(Xg,n=10000):
   Xi = Xg.iloc[0]
   Xi['n'] = int(Xg['n'].mean())
   Xi['y'] = np.average(Xg['y'],weights=Xg['n'])
   Xi['y.lo'],Xi['y.up'] = np.quantile(
-    a=stats.pois(Xi['y']).rvs(Xi['n']*n).reshape((Xi['n'],n)).mean(axis=0),
+    a=stats.pois(Xi['y'],rng=R).rvs(Xi['n']*n).reshape((Xi['n'],n)).mean(axis=0),
     q=(.025,.975),axis=0)
   return Xi
 
@@ -33,6 +33,7 @@ def plots(X):
     plot.target(X[var],x='age.5',y='y',color=plot.c1)
     plot.save('cal','targ_'+var)
 
+R = stats.rng()
 vars = ['cdm_ls','ptr_3m_all','ptr_cur','ptr_life']
 X = {var:load(var) for var in vars}
-# plots(X)
+plots(X)

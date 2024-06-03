@@ -43,7 +43,7 @@ def lhs(D,n,seed=None):
 # discrete distrs
 
 @drng
-def bern(p):
+def bern(p,rng=RNG):
   return ss.bernoulli(p=p)
 
 @drng
@@ -77,6 +77,10 @@ def gamma(m,sd,z=0,rng=RNG):
 @drng
 def norm(m,sd,rng=RNG):
   return ss.norm(loc=m,scale=sd)
+
+@drng
+def bab(p,n,rng=RNG):
+  return ss.beta(a=p*n,b=(1-p)*n)
 
 # transformations
 
