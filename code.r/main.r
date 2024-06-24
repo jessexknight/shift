@@ -113,13 +113,16 @@ sim.run = function(P){
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
     i = ij[even.len(which(runif(ij) < (Js$ptr.n < Js$ptr.max) * Js$ptr.r0 * dtz * exp(0
+      + P$eff.dep.ptr * Js$dep.stat
     )))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
-    cdm = runif(nrow(Xs)) < Xs$cdm
+    cdm = runif(nrow(Xs)) < Xs$cdm * exp(0
+      + P$eff.dep.cdm * (Is$dep.stat[Xs$i1] + Is$dep.stat[Xs$i2])
+    )
     i = c(Xs$i1,Xs$i2)
     Es$sex[i] = lapply(Es$sex[i],append,z)
     Es$cdm[i] = mapply(append,Es$cdm[i],cdm)
@@ -169,6 +172,8 @@ P$vio.r0.m    = .002
 P$dep.o.r0.m  = .001
 P$dep.x.r0.m  = .01
 P$ptr.dz.m    = z1y
+P$eff.dep.ptr = +0.7
+P$eff.dep.cdm = -0.7
 P$eff.vio.dep.dz = get.eff.dz(loc=30,scale=6.53,e.tot=1)
 # run model
 Ps = lapply(1:7,function(s){ P$seed = s; P })
