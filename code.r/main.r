@@ -51,7 +51,8 @@ init.inds = function(P){
     vio.r0 = rexp(n=n,rate=1/P$vio.r0.m),
     dep.o.r0 = rexp(n=n,rate=1/P$dep.o.r0.m),
     dep.x.r0 = rexp(n=n,rate=1/P$dep.x.r0.m),
-    dep.stat = 0
+    dep.stat = 0,
+    dep.z0   = NA
   )
 }
 
@@ -104,9 +105,11 @@ sim.run = function(P){
       + eff.vio.dep
     ))]
     Is$dep.stat[i] = 1
+    Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # dep.x (recovery)
     i = ij[which(runif(ij) < (b.dep) * Js$dep.x.r0 * dtz * exp(0
+      + P$eff.dep.dur * (z - Js$dep.z0) * dtz
       - eff.vio.dep
     ))]
     Is$dep.stat[i] = 0
@@ -151,6 +154,7 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
 
 sim.runs = function(Ps){
   # run.sim in parallel for each (P)arameter set in Ps
+  # Is = do.call(rbind,lapply(Ps,sim.run)) # DEBUG
   Is = do.call(rbind,parallel::mclapply(Ps,sim.run,mc.cores=7))
 }
 
@@ -172,6 +176,7 @@ P$vio.r0.m    = .002
 P$dep.o.r0.m  = .001
 P$dep.x.r0.m  = .01
 P$ptr.dz.m    = z1y
+P$eff.dep.dur = -0.01
 P$eff.dep.ptr = +0.7
 P$eff.dep.cdm = -0.7
 P$eff.vio.dep.dz = get.eff.dz(loc=30,scale=6.53,e.tot=1)
