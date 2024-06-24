@@ -149,7 +149,7 @@ run.sim = function(P){
 sim.out = function(Is,Es,P,rm.dum=TRUE){
   # clean-up simulation output
   if (rm.dum){ # remove initial dummy population
-    i = which(Is$age < (P$zf/z1y-adur))
+    i = which(Is$age < (P$zf/z1y+amin))
     Is = Is[i,]
     Es = lapply(Es,`[`,i)
   }
