@@ -6,7 +6,7 @@ z1y  = 52 # timesteps in 1 year
 amin = 15 # age of cohort entry
 amax = 50 # age of cohort exit
 adur = amax - amin # duration in cohort
-evts = c('vio','dep.o','dep.x'); names(evts) = evts # event types
+evts = c('vio','dep.o','dep.x','ptr.o'); names(evts) = evts # event types
 
 even.len = function(i){
   # truncate vector i to have an even length
@@ -47,9 +47,9 @@ init.evts = function(Is){
   Es = lapply(evts,function(e){ E })
 }
 
-init.inds = function(P,zs){
-  # initialize all individuals needed for timesteps zs
-  ny = length(zs)/z1y/adur # num sim years
+init.inds = function(P){
+  # initialize all individuals needed for timesteps 1:zf
+  ny = P$zf/z1y/adur # num sim years
   n  = P$n * (1+ny)        # total inds needed
   Is = data.frame(
     i = seq(n),
@@ -87,12 +87,13 @@ gen.ptrs = function(P,Is,z){
 # =============================================================================
 # run simulation
 
-run.sim = function(P,zs){
+run.sim = function(P){
   # initialization ------------------------------------------------------------
-  Is = init.inds(P,zs) # individuals
-  Es = init.evts(Is)   # events
-  Ks = NULL            # partnerships
-  for (z in zs){
+  set.seed(P$seed)
+  Is = init.inds(P)  # individuals
+  Es = init.evts(Is) # events
+  Ks = NULL          # partnerships
+  for (z in 1:P$zf){
     # age inds ----------------------------------------------------------------
     Is$age = Is$age + 1/z1y
     # break ptrs --------------------------------------------------------------
@@ -126,10 +127,30 @@ run.sim = function(P,zs){
     i = ij[even.len(which(runif(ij) < (Js$ptr.n < Js$ptr.max) * Js$ptr.r0 * dtz * exp(0
     )))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
+    Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,gen.ptrs(P,Is[i,],z))
   }
   # lapply(Es,function(E){ e = sapply(E,length); hist(e,0:max(e)) }) # DEBUG
-  return(Is)
+  Is = sim.out(Is,Es,P)
+}
+
+sim.out = function(Is,Es,P,rm.dum=TRUE){
+  # clean-up simulation output
+  if (rm.dum){ # remove initial dummy population
+    i = which(Is$age < (P$zf/z1y-adur))
+    Is = Is[i,]
+    Es = lapply(Es,`[`,i)
+  }
+  # compute some extra
+  Is$age.1 = floor(Is$age)     # 1-year age bins
+  Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
+  Is$ptr.tot = sapply(Es$ptr.o,length) # lifetime ptrs
+  Is = cbind(seed=P$seed,Is)
+}
+
+run.sims = function(Ps){
+  # run.sim in parallel for each (P)arameter set in Ps
+  Is = do.call(rbind,parallel::mclapply(Ps,run.sim,mc.cores=7))
 }
 
 # -----------------------------------------------------------------------------
@@ -141,8 +162,9 @@ run.sim = function(P,zs){
 # main
 
 # parameters
-P = list()
+P = list(seed=0)
 P$n = 1000
+P$zf = z1y*adur*2
 P$ptr.r0.m    = .05
 P$ptr.max.m   = 1.25
 P$vio.r0.m    = .002
@@ -151,6 +173,5 @@ P$dep.x.r0.m  = .01
 P$ptr.dz.m    = z1y
 P$eff.vio.dep.dz = get.eff.dz(loc=30,scale=6.53,e.tot=1)
 # run model
-set.seed(0)
-zs = seq(z1y*adur)
-Is = run.sim(P,zs)
+Ps = lapply(1:7,function(s){ P$seed = s; P })
+Is = run.sims(Ps)
