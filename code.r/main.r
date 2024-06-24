@@ -1,26 +1,8 @@
-# =============================================================================
-# tiny utils
-
-dtz  =  7 # days in 1 timestep
-z1y  = 52 # timesteps in 1 year
-amin = 15 # age of cohort entry
-amax = 50 # age of cohort exit
-adur = amax - amin # duration in cohort
-evts = c('vio','dep.o','dep.x','ptr.o','sex','cdm')
-names(evts) = evts # event types
-
-even.len = function(i){
-  # truncate vector i to have an even length
-  length(i) = length(i) - (length(i) %% 2)
-  return(i)
-}
-
-last = function(i){
-  ifelse(length(i),tail(i,1),NA)
-}
+source('meta.r')
+source('utils.r')
 
 # =============================================================================
-# convolution effect utils
+# convolution effect funs
 
 fit.eff.dz = function(q.ref,t.ref){
   # fit decaying logistic kernel to reach q.ref by t.ref
@@ -44,7 +26,7 @@ get.eff.evt = function(ze,z,eff.dz){
 }
 
 # =============================================================================
-# initialization & generation utils
+# initialization funs
 
 init.evts = function(Is){
   # initialize event vectors for each event type & individual
@@ -73,7 +55,7 @@ init.inds = function(P){
   )
 }
 
-gen.ptrs = function(P,Is,z){
+init.ptrs = function(P,Is,z){
   # generate partners among Is
   # mixing is "random" by splitting into 1st/2nd half
   n = nrow(Is)/2
@@ -93,7 +75,7 @@ gen.ptrs = function(P,Is,z){
 # =============================================================================
 # run simulation
 
-run.sim = function(P){
+sim.run = function(P){
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
   Is = init.inds(P)  # individuals
@@ -134,7 +116,7 @@ run.sim = function(P){
     )))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
-    Ks = rbind(Ks,gen.ptrs(P,Is[i,],z))
+    Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
     cdm = runif(nrow(Xs)) < Xs$cdm
@@ -142,7 +124,7 @@ run.sim = function(P){
     Es$sex[i] = lapply(Es$sex[i],append,z)
     Es$cdm[i] = mapply(append,Es$cdm[i],cdm)
   }
-  # lapply(Es,function(E){ e = sapply(E,length); hist(e,0:max(e)) }) # DEBUG
+  # lapply(Es,function(E){ e = sapply(E,len); hist(e,0:max(e)) }) # DEBUG
   Is = sim.out(Is,Es,P)
 }
 
@@ -153,18 +135,20 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
     Is = Is[i,]
     Es = lapply(Es,`[`,i)
   }
-  # compute some extra
+  # compute some extra variables
   Is$age.1 = floor(Is$age)     # 1-year age bins
   Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
-  Is$ptr.tot = sapply(Es$ptr.o,length) # lifetime ptrs
+  Is$dep.any = sapply(Es$dep.o,alen) # dep ever
+  Is$ptr.tot = sapply(Es$ptr.o,len) # lifetime ptrs
+  Is$sex.tot = sapply(Es$sex,len) # lifetime sex
   Is$cdm.ls  = sapply(Es$cdm,last) # last sex cdm
   Is$cdm.m   = sapply(Es$cdm,mean) # lifetime cdm mean
   Is = cbind(seed=P$seed,Is)
 }
 
-run.sims = function(Ps){
+sim.runs = function(Ps){
   # run.sim in parallel for each (P)arameter set in Ps
-  Is = do.call(rbind,parallel::mclapply(Ps,run.sim,mc.cores=7))
+  Is = do.call(rbind,parallel::mclapply(Ps,sim.run,mc.cores=7))
 }
 
 # -----------------------------------------------------------------------------
@@ -188,4 +172,4 @@ P$ptr.dz.m    = z1y
 P$eff.vio.dep.dz = get.eff.dz(loc=30,scale=6.53,e.tot=1)
 # run model
 Ps = lapply(1:7,function(s){ P$seed = s; P })
-Is = run.sims(Ps)
+Is = sim.runs(Ps)
