@@ -6,12 +6,17 @@ z1y  = 52 # timesteps in 1 year
 amin = 15 # age of cohort entry
 amax = 50 # age of cohort exit
 adur = amax - amin # duration in cohort
-evts = c('vio','dep.o','dep.x','ptr.o'); names(evts) = evts # event types
+evts = c('vio','dep.o','dep.x','ptr.o','sex','cdm')
+names(evts) = evts # event types
 
 even.len = function(i){
   # truncate vector i to have an even length
   length(i) = length(i) - (length(i) %% 2)
   return(i)
+}
+
+last = function(i){
+  ifelse(length(i),tail(i,1),NA)
 }
 
 # =============================================================================
@@ -80,6 +85,7 @@ gen.ptrs = function(P,Is,z){
     i2 = Is$i[i2], # i of individual 2
     z0 = z, # timestep ptr starts
     zf = z + rweibull(n,shape=.5,scale=.5*P$ptr.dz.m), # timestep ptr ends
+    f.sex = runif(n,.1,.5), # freq of sex in ptr
     cdm = Is$cdm.p0[i1]/2 + Is$cdm.p0[i2]/2 # condom prob (average)
   )
 }
@@ -129,6 +135,12 @@ run.sim = function(P){
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,gen.ptrs(P,Is[i,],z))
+    # sex in ptrs -------------------------------------------------------------
+    Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
+    cdm = runif(nrow(Xs)) < Xs$cdm
+    i = c(Xs$i1,Xs$i2)
+    Es$sex[i] = lapply(Es$sex[i],append,z)
+    Es$cdm[i] = mapply(append,Es$cdm[i],cdm)
   }
   # lapply(Es,function(E){ e = sapply(E,length); hist(e,0:max(e)) }) # DEBUG
   Is = sim.out(Is,Es,P)
@@ -145,6 +157,8 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
   Is$age.1 = floor(Is$age)     # 1-year age bins
   Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
   Is$ptr.tot = sapply(Es$ptr.o,length) # lifetime ptrs
+  Is$cdm.ls  = sapply(Es$cdm,last) # last sex cdm
+  Is$cdm.m   = sapply(Es$cdm,mean) # lifetime cdm mean
   Is = cbind(seed=P$seed,Is)
 }
 
