@@ -54,6 +54,7 @@ init.inds = function(P,zs){
   Is = data.frame(
     i = seq(n),
     age = runif(n,min=amin-ny*adur,max=amax),
+    age.act = runif(n,min=amin,max=20),
     # partnerships
     ptr.n = 0,
     ptr.r0 = rexp(n=n,rate=1/P$ptr.r0.m),
@@ -100,7 +101,7 @@ run.sim = function(P,zs){
     Is$ptr.n[i.brk] = Is$ptr.n[i.brk] - 1
     Ks = Ks[!k.brk,]
     # select active inds ------------------------------------------------------
-    i.act = which(Is$age > amin & Is$age < amax)
+    i.act = which(Is$age > Is$age.act & Is$age < amax)
     Js = Is[i.act,]       # read only copy of active
     ij = match(Js$i,Is$i) # map j -> j
     # update vio --------------------------------------------------------------
@@ -127,7 +128,7 @@ run.sim = function(P,zs){
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Ks = rbind(Ks,gen.ptrs(P,Is[i,],z))
   }
-  # lapply(Es,function(E){ e = sapply(E,len); hist(e,0:max(e)) }) # DEBUG
+  # lapply(Es,function(E){ e = sapply(E,length); hist(e,0:max(e)) }) # DEBUG
   return(Is)
 }
 
