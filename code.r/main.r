@@ -51,7 +51,8 @@ init.inds = function(P){
     vio.r0 = rexp(n=n,rate=1/P$vio.r0.m),
     dep.o.r0 = rexp(n=n,rate=1/P$dep.o.r0.m),
     dep.x.r0 = rexp(n=n,rate=1/P$dep.x.r0.m),
-    dep.stat = 0,
+    dep.now  = FALSE,
+    dep.evr  = FALSE,
     dep.z0   = NA
   )
 }
@@ -98,25 +99,25 @@ sim.run = function(P){
     i = ij[which(runif(ij) < Js$vio.r0 * dtz * exp(0))]
     Es$vio[i] = lapply(Es$vio[i],append,z)
     # update dep --------------------------------------------------------------
-    b.dep = as.logical(Js$dep.stat)
     eff.vio.dep = sapply(Es$vio[i.act],get.eff.evt,z,P$eff.vio.dep.dz)
     # dep.o (onset)
-    i = ij[which(runif(ij) < (!b.dep) * Js$dep.o.r0 * dtz * exp(0
+    i = ij[which(runif(ij) < (!Js$dep.now) * Js$dep.o.r0 * dtz * exp(0
       + eff.vio.dep
     ))]
-    Is$dep.stat[i] = 1
+    Is$dep.now[i] = TRUE
+    Is$dep.evr[i] = TRUE
     Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # dep.x (recovery)
-    i = ij[which(runif(ij) < (b.dep) * Js$dep.x.r0 * dtz * exp(0
+    i = ij[which(runif(ij) < (Js$dep.now) * Js$dep.x.r0 * dtz * exp(0
       + P$eff.dep.dur * (z - Js$dep.z0) * dtz
       - eff.vio.dep
     ))]
-    Is$dep.stat[i] = 0
+    Is$dep.now[i] = FALSE
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
     i = ij[even.len(which(runif(ij) < (Js$ptr.n < Js$ptr.max) * Js$ptr.r0 * dtz * exp(0
-      + P$eff.dep.ptr * Js$dep.stat
+      + P$eff.dep.ptr * Js$dep.now
     )))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
@@ -124,7 +125,7 @@ sim.run = function(P){
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
     cdm = runif(nrow(Xs)) < Xs$cdm * exp(0
-      + P$eff.dep.cdm * (Is$dep.stat[Xs$i1] + Is$dep.stat[Xs$i2])
+      + P$eff.dep.cdm * (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2])
     )
     i = c(Xs$i1,Xs$i2)
     Es$sex[i] = lapply(Es$sex[i],append,z)
@@ -144,7 +145,6 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
   # compute some extra variables
   Is$age.1 = floor(Is$age)     # 1-year age bins
   Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
-  Is$dep.any = sapply(Es$dep.o,alen) # dep ever
   Is$ptr.tot = sapply(Es$ptr.o,len) # lifetime ptrs
   Is$sex.tot = sapply(Es$sex,len) # lifetime sex
   Is$cdm.ls  = sapply(Es$cdm,last) # last sex cdm
