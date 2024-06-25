@@ -2,9 +2,14 @@ source('meta.r')
 source('utils.r')
 
 # =============================================================================
-# convolution effect funs
+# effect funs
 
-fit.eff.dz = function(q.ref,t.ref){
+fit.rr.age = function(a.ref,rr.ref){
+  as = seq(amin,amax)
+  rr.a = splinefun(a.ref,rr.ref,method='monoH.FC')(as)
+}
+
+fit.rr.dz = function(t.ref,q.ref){
   # fit decaying logistic kernel to reach q.ref by t.ref
   err.fun = function(par){
     t.par = qlogis(1-q.ref,loc=par[1],scale=par[2])
@@ -12,17 +17,17 @@ fit.eff.dz = function(q.ref,t.ref){
   par = optim(c(loc=0,scale=1),err.fun,lower=c(NA,1e-3),method='L-BFGS-B')$par
 }
 
-get.eff.dz = function(loc,scale,e.tot,eps=1e-3){
+get.rr.dz = function(loc,scale,rr.tot,eps=1e-3){
   # pre-compute scaled decaying logistic kernel
   zs = 0:ceiling(qlogis(1-eps,loc=loc,scale=scale)/dtz)
-  eff.z = 1-plogis(zs*dtz,loc=loc,scale=scale)
-  # plot(0:z1y,1-plogis(0:z1y,loc=loc,scale=scale)); lines(zs*dtz,eff.z) # DEBUG
-  eff.z = eff.z * e.tot / sum(eff.z)
+  rr.z = 1-plogis(zs*dtz,loc=loc,scale=scale)
+  # plot(0:z1y,1-plogis(0:z1y,loc=loc,scale=scale)); lines(zs*dtz,rr.z) # DEBUG
+  rr.z = rr.z * rr.tot / sum(rr.z)
 }
 
-get.eff.evt = function(ze,z,eff.dz){
-  # lookup & sum effect kernel for today (z) given prior events (ze)
-  eff = sum(eff.dz[z+1-ze],na.rm=TRUE)
+get.rr.evt = function(ze,z,rr.dz){
+  # lookup & sum RR kernel for today (z) given prior events (ze)
+  rr = sum(rr.dz[z+1-ze],na.rm=TRUE)
 }
 
 # =============================================================================
@@ -95,14 +100,18 @@ sim.run = function(P){
     i.act = which(Is$age > Is$age.act & Is$age < amax)
     Js = Is[i.act,]       # read only copy of active
     ij = match(Js$i,Is$i) # map j -> j
+    aj = floor(Js$age-amin) # age vector for j
     # update vio --------------------------------------------------------------
-    i = ij[which(runif(ij) < Js$vio.r0 * dtz * exp(0))]
+    i = ij[which(runif(ij) < Js$vio.r0 * dtz * exp(0
+      + P$rr.vio.age[aj]
+    ))]
     Es$vio[i] = lapply(Es$vio[i],append,z)
     # update dep --------------------------------------------------------------
-    eff.vio.dep = sapply(Es$vio[i.act],get.eff.evt,z,P$eff.vio.dep.dz)
+    rr.dep.vio = sapply(Es$vio[i.act],get.rr.evt,z,P$eff.vio.dep.dz)
     # dep.o (onset)
     i = ij[which(runif(ij) < (!Js$dep.now) * Js$dep.o.r0 * dtz * exp(0
-      + eff.vio.dep
+      + P$rr.dep.age[aj]
+      + rr.dep.vio
     ))]
     Is$dep.now[i] = TRUE
     Is$dep.evr[i] = TRUE
@@ -110,14 +119,15 @@ sim.run = function(P){
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # dep.x (recovery)
     i = ij[which(runif(ij) < (Js$dep.now) * Js$dep.x.r0 * dtz * exp(0
-      + P$eff.dep.dur * (z - Js$dep.z0) * dtz
-      - eff.vio.dep
+      - rr.dep.vio
+      + P$rr.dep.dur * (z - Js$dep.z0) * dtz
     ))]
     Is$dep.now[i] = FALSE
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
     i = ij[even.len(which(runif(ij) < (Js$ptr.n < Js$ptr.max) * Js$ptr.r0 * dtz * exp(0
-      + P$eff.dep.ptr * Js$dep.now
+      + P$rr.ptr.age[aj]
+      + P$rr.ptr.dep * Js$dep.now
     )))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
@@ -125,7 +135,7 @@ sim.run = function(P){
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
     cdm = runif(nrow(Xs)) < Xs$cdm * exp(0
-      + P$eff.dep.cdm * (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2])
+      + P$rr.cdm.dep * (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2])
     )
     i = c(Xs$i1,Xs$i2)
     Es$sex[i] = lapply(Es$sex[i],append,z)
@@ -159,16 +169,21 @@ sim.runs = function(Ps){
 }
 
 # -----------------------------------------------------------------------------
-# fit conv effects
+# fit effects
 
-# print(fit.eff.dz(c(.5,.01),c(30,60)))
+# print(fit.eff.dz(c(30,60),c(.5,.01)))
+a.ref = c( 15, 20, 25, 30, 40, 50)
+rr.age = list(
+  vio = c(1.0,1.0,1.0,1.0,0.9,0.7),
+  dep = c(0.5,1.0,1.0,1.0,0.7,0.3),
+  ptr = c(1.0,1.0,1.0,1.0,0.8,0.5))
 
 # =============================================================================
 # main
 
 # parameters
 P = list(seed=0)
-P$n = 1000
+P$n = 100
 P$zf = z1y*adur*2
 P$ptr.r0.m    = .05
 P$ptr.max.m   = 1.25
@@ -176,10 +191,13 @@ P$vio.r0.m    = .002
 P$dep.o.r0.m  = .001
 P$dep.x.r0.m  = .01
 P$ptr.dz.m    = z1y
-P$eff.dep.dur = -0.01
-P$eff.dep.ptr = +0.7
-P$eff.dep.cdm = -0.7
-P$eff.vio.dep.dz = get.eff.dz(loc=30,scale=6.53,e.tot=1)
+P$rr.vio.age  = fit.rr.age(a.ref,rr.age$vio)
+P$rr.dep.age  = fit.rr.age(a.ref,rr.age$dep)
+P$rr.dep.vio.dz = get.rr.dz(loc=30,scale=6.53,rr.tot=1)
+P$rr.dep.dur  = -0.01
+P$rr.ptr.age  = fit.rr.age(a.ref,rr.age$ptr)
+P$rr.ptr.dep  = +0.7
+P$rr.cdm.dep  = -0.7
 # run model
 Ps = lapply(1:7,function(s){ P$seed = s; P })
 Is = sim.runs(Ps)
