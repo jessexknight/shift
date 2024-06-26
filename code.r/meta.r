@@ -7,6 +7,7 @@ z6m  = 26 # timesteps in 6 months
 amin = 15 # age of cohort entry
 amax = 50 # age of cohort exit
 adur = amax - amin # duration in cohort
+eps  = 1e-12 # a small number
 
 # event types
 evts = c('vio','dep.o','dep.x','ptr.o','sex','cdm')

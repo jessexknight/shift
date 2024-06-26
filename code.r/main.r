@@ -6,6 +6,8 @@ source('utils.r')
 
 fit.rr.age = function(a.ref,rr.ref){
   as = seq(amin,amax)
+  a.ref  = c(a.ref[1]-eps,a.ref) # pad for smooth start
+  rr.ref = c(rr.ref[1],rr.ref)
   rr.a = splinefun(a.ref,rr.ref,method='monoH.FC')(as)
 }
 
@@ -107,7 +109,7 @@ sim.run = function(P){
     ))]
     Es$vio[i] = lapply(Es$vio[i],append,z)
     # update dep --------------------------------------------------------------
-    rr.dep.vio = sapply(Es$vio[i.act],get.rr.evt,z,P$eff.vio.dep.dz)
+    rr.dep.vio = sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.vio.dz)
     # dep.o (onset)
     i = ij[which(runif(ij) < (!Js$dep.now) * Js$dep.o.r0 * dtz * exp(0
       + P$rr.dep.age[aj]
@@ -174,9 +176,9 @@ sim.runs = function(Ps){
 # print(fit.eff.dz(c(30,60),c(.5,.01)))
 a.ref = c( 15, 20, 25, 30, 40, 50)
 rr.age = list(
-  vio = c(1.0,1.0,1.0,1.0,0.9,0.7),
-  dep = c(0.5,1.0,1.0,1.0,0.7,0.3),
-  ptr = c(1.0,1.0,1.0,1.0,0.8,0.5))
+  vio = c(0.0,1.0,1.0,1.0,0.9,0.7),
+  dep = c(0.0,1.0,1.0,1.0,0.7,0.3),
+  ptr = c(NaN,1.0,1.0,1.0,0.8,0.5))
 
 # =============================================================================
 # main
