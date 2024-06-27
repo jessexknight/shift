@@ -4,32 +4,21 @@ source('utils.r')
 # =============================================================================
 # effect funs
 
-fit.rr.age = function(a.ref,rr.ref){
-  as = seq(amin,amax)
-  a.ref  = c(a.ref[1]-eps,a.ref) # pad for smooth start
-  rr.ref = c(rr.ref[1],rr.ref)
-  rr.a = splinefun(a.ref,rr.ref,method='monoH.FC')(as)
+fit.rr = function(.,t,flat=c(1,1)){
+  if (missing(t)){ t = seq(dtz,max(.$t),dtz) }
+  n = len(.$t)+flat[1]
+  if (flat[1]){ .$t = c(.$t[1]-eps,.$t); .$rr = c(.$rr[1],.$rr) }
+  if (flat[2]){ .$t = c(.$t,.$t[n]+eps); .$rr = c(.$rr,.$rr[n]) }
+  rr = list(t=t,rr=splinefun(.$t,.$rr,method='monoH.FC')(t))
 }
 
-fit.rr.dz = function(t.ref,q.ref){
-  # fit decaying logistic kernel to reach q.ref by t.ref
-  err.fun = function(par){
-    t.par = qlogis(1-q.ref,loc=par[1],scale=par[2])
-    err = sum((t.par-t.ref)^2) }
-  par = optim(c(loc=0,scale=1),err.fun,lower=c(NA,1e-3),method='L-BFGS-B')$par
+fit.rr.age = function(.){
+  rr.age = fit.rr(.,seq(amin,amax),flat=c(1,0))
 }
 
-get.rr.dz = function(loc,scale,rr.tot,eps=1e-3){
-  # pre-compute scaled decaying logistic kernel
-  zs = 0:ceiling(qlogis(1-eps,loc=loc,scale=scale)/dtz)
-  rr.z = 1-plogis(zs*dtz,loc=loc,scale=scale)
-  # plot(0:z1y,1-plogis(0:z1y,loc=loc,scale=scale)); lines(zs*dtz,rr.z) # DEBUG
-  rr.z = rr.z * rr.tot / sum(rr.z)
-}
-
-get.rr.evt = function(ze,z,rr.dz){
+get.rr.evt = function(ze,z,rr.z){
   # lookup & sum RR kernel for today (z) given prior events (ze)
-  rr = sum(rr.dz[z+1-ze],na.rm=TRUE)
+  rr = sum(rr.z[z+1-ze],na.rm=TRUE)
 }
 
 # =============================================================================
@@ -102,40 +91,46 @@ sim.run = function(P){
     i.act = which(Is$age > Is$age.act & Is$age < amax)
     Js = Is[i.act,]       # read only copy of active
     ij = match(Js$i,Is$i) # map j -> j
-    aj = floor(Js$age-amin) # age vector for j
+    aj = floor(Js$age-amin+1) # age vector for j
     # update vio --------------------------------------------------------------
-    i = ij[which(runif(ij) < Js$vio.r0 * dtz * exp(0
-      + P$rr.vio.age[aj]
-    ))]
+    i = ij[which(runif(ij) < dtz
+      * Js$vio.r0 # base rate
+      * P$rr.vio.age[aj] # RR age
+    )]
     Es$vio[i] = lapply(Es$vio[i],append,z)
-    # update dep --------------------------------------------------------------
-    rr.dep.vio = sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.vio.dz)
-    # dep.o (onset)
-    i = ij[which(runif(ij) < (!Js$dep.now) * Js$dep.o.r0 * dtz * exp(0
-      + P$rr.dep.age[aj]
-      + rr.dep.vio
-    ))]
+    # update dep onset --------------------------------------------------------
+    i = ij[which(runif(ij) < dtz
+      * (!Js$dep.now) # among not dep
+      * Js$dep.o.r0 # base rate
+      * P$rr.dep.o.age[aj] # RR age
+      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.o.vio.z) # RR vio
+    )]
     Is$dep.now[i] = TRUE
     Is$dep.evr[i] = TRUE
     Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
-    # dep.x (recovery)
-    i = ij[which(runif(ij) < (Js$dep.now) * Js$dep.x.r0 * dtz * exp(0
-      - rr.dep.vio
-      + P$rr.dep.dur * (z - Js$dep.z0) * dtz
-    ))]
+    # update dep recovery -----------------------------------------------------
+    i = ij[which(runif(ij) < dtz
+      * (Js$dep.now) # among dep
+      * Js$dep.x.r0 # base rate
+      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.x.vio.z) # RR vio
+      * 2^(dtz * (z - Js$dep.z0) / P$rr.dep.x.th) # RR dep dur
+    )]
     Is$dep.now[i] = FALSE
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
-    i = ij[even.len(which(runif(ij) < (Js$ptr.n < Js$ptr.max) * Js$ptr.r0 * dtz * exp(0
-      + P$rr.ptr.age[aj]
-      + P$rr.ptr.dep * Js$dep.now
-    )))]
+    i = ij[even.len(which(runif(ij) < dtz
+      * (Js$ptr.n < Js$ptr.max) # among avail
+      * Js$ptr.r0 # base rate
+      * P$rr.ptr.age[aj] # RR age
+      * (1 + P$arr.ptr.dep * Js$dep.now) # RR dep
+    ))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
+    # TODO: update cdm effects
     cdm = runif(nrow(Xs)) < Xs$cdm * exp(0
       + P$rr.cdm.dep * (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2])
     )
@@ -171,14 +166,16 @@ sim.runs = function(Ps){
 }
 
 # -----------------------------------------------------------------------------
-# fit effects
+# define rr splines
 
-# print(fit.eff.dz(c(30,60),c(.5,.01)))
-a.ref = c( 15, 20, 25, 30, 40, 50)
-rr.age = list(
-  vio = c(0.0,1.0,1.0,1.0,0.9,0.7),
-  dep = c(0.0,1.0,1.0,1.0,0.7,0.3),
-  ptr = c(NaN,1.0,1.0,1.0,0.8,0.5))
+rr.age. = list(
+  vio = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.7)),
+  dep = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.3)),
+  ptr = list(t=c(15,   30,50),rr=c(1.0,    1.0,0.5)))
+rr.vio. = list(
+  dep.o = list(t=14*(0:4),rr=1+1.0*c(1.0,0.95,0.5,0.05,0.0)),
+  dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0))
+)
 
 # =============================================================================
 # main
@@ -193,13 +190,14 @@ P$vio.r0.m    = .002
 P$dep.o.r0.m  = .001
 P$dep.x.r0.m  = .01
 P$ptr.dz.m    = z1y
-P$rr.vio.age  = fit.rr.age(a.ref,rr.age$vio)
-P$rr.dep.age  = fit.rr.age(a.ref,rr.age$dep)
-P$rr.dep.vio.dz = get.rr.dz(loc=30,scale=6.53,rr.tot=1)
-P$rr.dep.dur  = -0.01
-P$rr.ptr.age  = fit.rr.age(a.ref,rr.age$ptr)
-P$rr.ptr.dep  = +0.7
-P$rr.cdm.dep  = -0.7
+P$rr.vio.age = fit.rr.age(rr.age.$vio)$rr
+P$rr.dep.o.age = fit.rr.age(rr.age.$dep)$rr
+P$rr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr
+P$rr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr
+P$rr.dep.x.th = 364
+P$rr.ptr.age  = fit.rr.age(rr.age.$ptr)$rr
+P$arr.ptr.dep = 0.7
+P$rr.cdm.dep  = -0.7 # TODO
 # run model
 Ps = lapply(1:7,function(s){ P$seed = s; P })
 Is = sim.runs(Ps)
