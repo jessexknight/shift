@@ -70,7 +70,7 @@ init.ptrs = function(P,Is,z){
     i1 = Is$i[i1], # i of individual 1
     i2 = Is$i[i2], # i of individual 2
     z0 = z, # timestep ptr starts
-    zf = z + rweibull(n,shape=.5,scale=.5*P$ptr.dz.m), # timestep ptr ends
+    zf = z + rweibull(n,shape=.5,scale=.5*P$ptr.dt.m/dtz), # timestep ptr ends
     f.sex = runif(n,.1,.5), # freq of sex in ptr
     cdm = Is$cdm.p0[i1]/2 + Is$cdm.p0[i2]/2 # condom prob (average)
   )
@@ -195,9 +195,10 @@ sim.runs = function(Ps){
 # params
 
 get.pars = function(seed=0,...){
+  # all rates in 1/days, durations in days
   P = list(seed=seed)
   P$n = 100
-  P$zf = z1y*adur*2
+  P$zf = z1y*adur*2     # total timesteps
   P$ptr.r0.m    =  .05  # base rate of partner seeking (mean)
   P$ptr.max.m   = 1.25  # max num partners (mean)
   P$vio.r0.m    =  .002 # base rate of violence (mean)
@@ -205,7 +206,7 @@ get.pars = function(seed=0,...){
   P$dep.x.r0.m  =  .01  # base rate of depression recovery (mean)
   P$alc.o.r0.m  =  .001 # base rate of haz alcohol onset (mean)
   P$alc.x.r0.m  =  .01  # base rate of haz alcohol recovery (mean)
-  P$ptr.dz.m    = z1y   # duration of partnerships (mean)
+  P$ptr.dt.m    = 364   # duration of partnerships (mean)
   P$rr.dep.x.th = 364   # half-life of RR for depression tunnel
   P$rr.alc.x.th = 364   # half-life of RR for haz alcohol tunnel
   P$rr.alc.dep  = 2.0   # RR of haz alcohol if depressed
