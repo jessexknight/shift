@@ -131,9 +131,9 @@ sim.run = function(P){
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
-    # TODO: update cdm effects
-    cdm = runif(nrow(Xs)) < Xs$cdm * exp(0
-      + P$rr.cdm.dep * (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2])
+    cdm = (runif(nrow(Xs)) < 1
+      * Xs$cdm # base prob
+      * P$rr.cdm.dep ^ (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2]) # RR dep
     )
     i = c(Xs$i1,Xs$i2)
     Es$sex[i] = lapply(Es$sex[i],append,z)
@@ -177,8 +177,7 @@ rr.age. = list(
 #   plot.save('par','rr.age',h=2.5,w=5)
 rr.vio. = list(
   dep.o = list(t=14*(0:4),rr=1+1.0*c(1.0,0.95,0.5,0.05,0.0)),
-  dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0))
-)
+  dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0)))
 # plot.rr(rr.vio.,lapply(rr.vio.,fit.rr)) + scale_y_continuous(trans='log2')
 #   plot.save('par','rr.vio',h=2.5,w=5)
 
@@ -201,8 +200,8 @@ P$rr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr
 P$rr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr
 P$rr.dep.x.th = 364
 P$rr.ptr.age  = fit.rr.age(rr.age.$ptr)$rr
-P$arr.ptr.dep = 0.7
-P$rr.cdm.dep  = -0.7 # TODO
+P$arr.ptr.dep = 0.5
+P$rr.cdm.dep  = 0.75
 # run model
 Ps = lapply(1:7,function(s){ P$seed = s; P })
 Is = sim.runs(Ps)
