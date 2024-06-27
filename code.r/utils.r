@@ -22,3 +22,7 @@ last = function(x){
   # get the last element in x or NA if len(x) == 0
   ifelse(len(x),tail(x,1),NA)
 }
+
+rbind.lapply = function(...){
+  do.call(rbind,lapply(...))
+}

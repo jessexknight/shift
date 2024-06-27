@@ -1,5 +1,6 @@
 source('meta.r')
 source('utils.r')
+source('plot.r')
 
 # =============================================================================
 # effect funs
@@ -172,10 +173,14 @@ rr.age. = list(
   vio = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.7)),
   dep = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.3)),
   ptr = list(t=c(15,   30,50),rr=c(1.0,    1.0,0.5)))
+# plot.rr(rr.age.,lapply(rr.age.,fit.rr.age)) + xlab('Age') + ylim(c(0,1))
+#   plot.save('par','rr.age',h=2.5,w=5)
 rr.vio. = list(
   dep.o = list(t=14*(0:4),rr=1+1.0*c(1.0,0.95,0.5,0.05,0.0)),
   dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0))
 )
+# plot.rr(rr.vio.,lapply(rr.vio.,fit.rr)) + scale_y_continuous(trans='log2')
+#   plot.save('par','rr.vio',h=2.5,w=5)
 
 # =============================================================================
 # main
