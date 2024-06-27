@@ -166,42 +166,51 @@ sim.runs = function(Ps){
   Is = do.call(rbind,parallel::mclapply(Ps,sim.run,mc.cores=7))
 }
 
-# -----------------------------------------------------------------------------
-# define rr splines
+# =============================================================================
+# params
 
-rr.age. = list(
-  vio = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.7)),
-  dep = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.3)),
-  ptr = list(t=c(15,   30,50),rr=c(1.0,    1.0,0.5)))
-# plot.rr(rr.age.,lapply(rr.age.,fit.rr.age)) + xlab('Age') + ylim(c(0,1))
-#   plot.save('par','rr.age',h=2.5,w=5)
-rr.vio. = list(
-  dep.o = list(t=14*(0:4),rr=1+1.0*c(1.0,0.95,0.5,0.05,0.0)),
-  dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0)))
-# plot.rr(rr.vio.,lapply(rr.vio.,fit.rr)) + scale_y_continuous(trans='log2')
-#   plot.save('par','rr.vio',h=2.5,w=5)
+get.pars = function(seed=0,...){
+  P = list(seed=seed)
+  P$n = 100
+  P$zf = z1y*adur*2
+  P$ptr.r0.m    =  .05  # base rate of partner seeking (mean)
+  P$ptr.max.m   = 1.25  # max num partners (mean)
+  P$vio.r0.m    =  .002 # base rate of violence (mean)
+  P$dep.o.r0.m  =  .001 # base rate of depression onset (mean)
+  P$dep.x.r0.m  =  .01  # base rate of depression recovery (mean)
+  P$ptr.dz.m    = z1y   # duration of partnerships (mean)
+  P$rr.dep.x.th = 364   # half-life of RR for depression tunnel
+  P$rr.ptr.dep  = 1.5   # RR of partner seeking if depressed
+  P$rr.cdm.dep  = 0.75  # RR of condom use if depressed
+  P = list.update(P,...)
+  P = add.pars(P)
+}
+
+add.pars = function(P){
+  # define RR splines
+  rr.age. = list( # RR age
+    vio = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.7)),
+    dep = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.3)),
+    ptr = list(t=c(15,   30,50),rr=c(1.0,    1.0,0.5)))
+  # plot.rr(rr.age.,lapply(rr.age.,fit.rr.age)) + xlab('Age') + ylim(c(0,1))
+  #   plot.save('par','rr.age',h=2.5,w=5)
+  rr.vio. = list( # RR vio
+    dep.o = list(t=14*(0:4),rr=1+1.0*c(1.0,0.95,0.5,0.05,0.0)),
+    dep.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0)))
+  # plot.rr(rr.vio.,lapply(rr.vio.,fit.rr)) + scale_y_continuous(trans='log2')
+  #   plot.save('par','rr.vio',h=2.5,w=5)
+  P$rr.vio.age     = fit.rr.age(rr.age.$vio)$rr # RR of violence by age
+  P$rr.dep.o.age   = fit.rr.age(rr.age.$dep)$rr # RR of depression onset by age
+  P$rr.ptr.age     = fit.rr.age(rr.age.$ptr)$rr # RR of partner seeking by age
+  P$rr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr   # RR of dep onset per violence event
+  P$rr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr   # RR of dep recov per violence event
+  P$arr.ptr.dep    = P$rr.ptr.dep - 1 # pre-compute
+  return(P)
+}
 
 # =============================================================================
 # main
 
-# parameters
-P = list(seed=0)
-P$n = 100
-P$zf = z1y*adur*2
-P$ptr.r0.m    = .05
-P$ptr.max.m   = 1.25
-P$vio.r0.m    = .002
-P$dep.o.r0.m  = .001
-P$dep.x.r0.m  = .01
-P$ptr.dz.m    = z1y
-P$rr.vio.age = fit.rr.age(rr.age.$vio)$rr
-P$rr.dep.o.age = fit.rr.age(rr.age.$dep)$rr
-P$rr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr
-P$rr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr
-P$rr.dep.x.th = 364
-P$rr.ptr.age  = fit.rr.age(rr.age.$ptr)$rr
-P$arr.ptr.dep = 0.5
-P$rr.cdm.dep  = 0.75
 # run model
-Ps = lapply(1:7,function(s){ P$seed = s; P })
+Ps = lapply(1:7,get.pars)
 Is = sim.runs(Ps)

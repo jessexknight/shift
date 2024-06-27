@@ -23,6 +23,15 @@ last = function(x){
   ifelse(len(x),tail(x,1),NA)
 }
 
+list.update = function(x,xu=list(),...){
+  # e.g. list.update(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
+  args = c(xu,list(...))
+  for (name in names(args)){
+    x[[name]] = args[[name]]
+  }
+  return(x)
+}
+
 rbind.lapply = function(...){
   do.call(rbind,lapply(...))
 }
