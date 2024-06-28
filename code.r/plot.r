@@ -24,7 +24,8 @@ plot.rr = function(rr.,rr){
     geom_hline(yintercept=1,color='gray',linetype='33') +
     geom_line(alpha=.5) +
     geom_point(shape=16,size=1) +
-    geom_point(shape= 0,size=2,data=X.) +
-    labs(x='Days',y='Relative Rate',color='Event')
+    geom_point(aes(shape=e),size=2,data=X.) +
+    scale_shape_manual(values=c(0,1,2,5,6)) +
+    labs(x='Days',y='Relative Rate',color='Event',shape='Event')
   g = plot.clean(g)
 }
