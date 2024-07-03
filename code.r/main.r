@@ -17,9 +17,9 @@ fit.rr.age = function(.){
   rr.age = fit.rr(.,seq(amin,amax),flat=c(1,0))
 }
 
-get.rr.evt = function(ze,z,rr.z){
+get.rr.evt = function(ze,z,urr.z){
   # lookup & sum RR kernel for today (z) given prior events (ze)
-  rr = sum(rr.z[z+1-ze],na.rm=TRUE)
+  rr = 1 + sum(urr.z[z+1-ze],na.rm=TRUE)
 }
 
 # =============================================================================
@@ -89,28 +89,28 @@ rate.dep.o = function(P,Js,aj,z,e.vio){
   R.dep.o = ((!Js$dep.now) # among not dep
     * Js$dep.o.r0 # base rate
     * P$rr.dep.o.age[aj] # RR age
-    * sapply(e.vio,get.rr.evt,z,P$rr.dep.o.vio.z) # RR vio
+    * sapply(e.vio,get.rr.evt,z,P$urr.dep.o.vio.z) # RR vio
 )}
 
 rate.dep.x = function(P,Js,z,e.vio){
   R.dep.x = ((Js$dep.now) # among dep
     * Js$dep.x.r0 # base rate
     * sapply(e.vio,get.rr.evt,z,P$rr.dep.x.vio.z) # RR vio
-    * 2^(dtz * (z - Js$dep.z0) / P$rr.dep.x.th) # RR dep dur
+    * 2^(dtz * (z - Js$dep.z0) / P$urr.dep.x.th) # RR dep dur
 )}
 
 rate.alc.o = function(P,Js,aj,z,e.vio){
   R.alc.o = ((!Js$alc.now) # among not alc
     * Js$alc.o.r0 # base rate
     * P$rr.alc.o.age[aj] # RR age
-    * sapply(e.vio,get.rr.evt,z,P$rr.alc.o.vio.z) # RR vio
-    * (1 + P$arr.alc.dep * Js$dep.now) # RR dep
+    * sapply(e.vio,get.rr.evt,z,P$urr.alc.o.vio.z) # RR vio
+    * (1 + P$urr.alc.dep * Js$dep.now) # RR dep
 )}
 
 rate.alc.x = function(P,Js,z,e.vio){
   R.alc.x = ((Js$alc.now) # among alc
     * Js$alc.x.r0 # base rate
-    * sapply(e.vio,get.rr.evt,z,P$rr.alc.x.vio.z) # RR vio
+    * sapply(e.vio,get.rr.evt,z,P$urr.alc.x.vio.z) # RR vio
     * 2^(dtz * (z - Js$alc.z0) / P$rr.alc.x.th) # RR alc dur
 )}
 
@@ -118,11 +118,11 @@ rate.ptr = function(P,Js,aj){
   R.ptr = ((Js$ptr.n < Js$ptr.max) # among avail
     * Js$ptr.r0 # base rate
     * P$rr.ptr.age[aj] # RR age
-    * (1 + P$arr.ptr.dep * Js$dep.now) # RR dep
+    * (1 + P$urr.ptr.dep * Js$dep.now) # RR dep
 )}
 
 prob.cdm = function(P,Xs,Is){
-  P.cdm = (1
+  P.cdm = (1 # among all
     * Xs$cdm # base prob
     * P$rr.cdm.dep ^ (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2]) # RR dep)
 )}
@@ -257,12 +257,14 @@ add.pars = function(P){
   P$rr.dep.o.age   = fit.rr.age(rr.age.$dep)$rr # RR of depression onset by age
   P$rr.alc.o.age   = fit.rr.age(rr.age.$alc)$rr # RR of haz alcohol onset by age
   P$rr.ptr.age     = fit.rr.age(rr.age.$ptr)$rr # RR of partner seeking by age
-  P$rr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr   # RR of dep onset per violence event
-  P$rr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr   # RR of dep recov per violence event
-  P$rr.alc.o.vio.z = fit.rr(rr.vio.$alc.o)$rr   # RR of alc onset per violence event
-  P$rr.alc.x.vio.z = fit.rr(rr.vio.$alc.x)$rr   # RR of alc recov per violence event
-  P$arr.alc.dep    = P$rr.alc.dep - 1 # pre-compute
-  P$arr.ptr.dep    = P$rr.ptr.dep - 1 # pre-compute
+  P$urr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr - 1 # RR-1 of dep onset per violence event
+  P$urr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr - 1 # RR-1 of dep recov per violence event
+  P$urr.alc.o.vio.z = fit.rr(rr.vio.$alc.o)$rr - 1 # RR-1 of alc onset per violence event
+  P$urr.alc.x.vio.z = fit.rr(rr.vio.$alc.x)$rr - 1 # RR-1 of alc recov per violence event
+  P$urr.alc.dep     = P$rr.alc.dep - 1 # RR-1
+  P$urr.ptr.dep     = P$rr.ptr.dep - 1 # RR-1
+  # why pre-compute RR-1: "sum_z RR_z" should be computed as "1 + sum_z (RR_z - 1)"
+  # for RR_z < 1: this could yield RR_total < 0 (!) but this is rare & may be correct
   return(P)
 }
 
