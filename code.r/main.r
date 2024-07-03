@@ -77,6 +77,57 @@ init.ptrs = function(P,Is,z){
 }
 
 # =============================================================================
+# rate & prob funs
+
+rate.vio = function(P,Js,aj){
+  R.vio = (1 # among all
+    * Js$vio.r0 # base rate
+    * P$rr.vio.age[aj] # RR age
+)}
+
+rate.dep.o = function(P,Js,aj,z,e.vio){
+  R.dep.o = ((!Js$dep.now) # among not dep
+    * Js$dep.o.r0 # base rate
+    * P$rr.dep.o.age[aj] # RR age
+    * sapply(e.vio,get.rr.evt,z,P$rr.dep.o.vio.z) # RR vio
+)}
+
+rate.dep.x = function(P,Js,z,e.vio){
+  R.dep.x = ((Js$dep.now) # among dep
+    * Js$dep.x.r0 # base rate
+    * sapply(e.vio,get.rr.evt,z,P$rr.dep.x.vio.z) # RR vio
+    * 2^(dtz * (z - Js$dep.z0) / P$rr.dep.x.th) # RR dep dur
+)}
+
+rate.alc.o = function(P,Js,aj,z,e.vio){
+  R.alc.o = ((!Js$alc.now) # among not alc
+    * Js$alc.o.r0 # base rate
+    * P$rr.alc.o.age[aj] # RR age
+    * sapply(e.vio,get.rr.evt,z,P$rr.alc.o.vio.z) # RR vio
+    * (1 + P$arr.alc.dep * Js$dep.now) # RR dep
+)}
+
+rate.alc.x = function(P,Js,z,e.vio){
+  R.alc.x = ((Js$alc.now) # among alc
+    * Js$alc.x.r0 # base rate
+    * sapply(e.vio,get.rr.evt,z,P$rr.alc.x.vio.z) # RR vio
+    * 2^(dtz * (z - Js$alc.z0) / P$rr.alc.x.th) # RR alc dur
+)}
+
+rate.ptr = function(P,Js,aj){
+  R.ptr = ((Js$ptr.n < Js$ptr.max) # among avail
+    * Js$ptr.r0 # base rate
+    * P$rr.ptr.age[aj] # RR age
+    * (1 + P$arr.ptr.dep * Js$dep.now) # RR dep
+)}
+
+prob.cdm = function(P,Xs,Is){
+  P.cdm = (1
+    * Xs$cdm # base prob
+    * P$rr.cdm.dep ^ (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2]) # RR dep)
+)}
+
+# =============================================================================
 # run simulation
 
 sim.run = function(P){
@@ -99,67 +150,36 @@ sim.run = function(P){
     ij = match(Js$i,Is$i) # map j -> j
     aj = floor(Js$age-amin+1) # age vector for j
     # update vio --------------------------------------------------------------
-    i = ij[which(runif(ij) < dtz
-      * Js$vio.r0 # base rate
-      * P$rr.vio.age[aj] # RR age
-    )]
+    i = ij[which(runif(ij) < dtz * rate.vio(P,Js,aj))]
     Es$vio[i] = lapply(Es$vio[i],append,z)
+    e.vio = Es$vio[i.act]
     # update dep onset --------------------------------------------------------
-    i = ij[which(runif(ij) < dtz
-      * (!Js$dep.now) # among not dep
-      * Js$dep.o.r0 # base rate
-      * P$rr.dep.o.age[aj] # RR age
-      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.o.vio.z) # RR vio
-    )]
+    i = ij[which(runif(ij) < dtz * rate.dep.o(P,Js,aj,z,e.vio))]
     Is$dep.now[i] = TRUE
     Is$dep.evr[i] = TRUE
     Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # update dep recovery -----------------------------------------------------
-    i = ij[which(runif(ij) < dtz
-      * (Js$dep.now) # among dep
-      * Js$dep.x.r0 # base rate
-      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.dep.x.vio.z) # RR vio
-      * 2^(dtz * (z - Js$dep.z0) / P$rr.dep.x.th) # RR dep dur
-    )]
+    i = ij[which(runif(ij) < dtz * rate.dep.x(P,Js,z,e.vio))]
     Is$dep.now[i] = FALSE
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # update alc onset --------------------------------------------------------
-    i = ij[which(runif(ij) < dtz
-      * (!Js$alc.now) # among not alc
-      * Js$alc.o.r0 # base rate
-      * P$rr.alc.o.age[aj] # RR age
-      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.alc.o.vio.z) # RR vio
-      * (1 + P$arr.alc.dep * Js$dep.now) # RR dep
-    )]
+    i = ij[which(runif(ij) < dtz * rate.alc.o(P,Js,aj,z,e.vio))]
     Is$alc.now[i] = TRUE
     Is$alc.evr[i] = TRUE
     Is$alc.z0[i] = z
     # update alc recovery -----------------------------------------------------
-    i = ij[which(runif(ij) < dtz
-      * (Js$alc.now) # among alc
-      * Js$alc.x.r0 # base rate
-      * sapply(Es$vio[i.act],get.rr.evt,z,P$rr.alc.x.vio.z) # RR vio
-      * 2^(dtz * (z - Js$alc.z0) / P$rr.alc.x.th) # RR alc dur
-    )]
+    i = ij[which(runif(ij) < dtz * rate.alc.x(P,Js,z,e.vio))]
     Is$alc.now[i] = FALSE
     Es$alc.x[i] = lapply(Es$alc.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
-    i = ij[even.len(which(runif(ij) < dtz
-      * (Js$ptr.n < Js$ptr.max) # among avail
-      * Js$ptr.r0 # base rate
-      * P$rr.ptr.age[aj] # RR age
-      * (1 + P$arr.ptr.dep * Js$dep.now) # RR dep
-    ))]
+    i = ij[even.len(which(runif(ij) < dtz * rate.ptr(P,Js,aj)))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
     Xs = Ks[runif(nrow(Ks)) < Ks$f.sex,]
-    cdm = (runif(nrow(Xs)) < 1
-      * Xs$cdm # base prob
-      * P$rr.cdm.dep ^ (Is$dep.now[Xs$i1] + Is$dep.now[Xs$i2]) # RR dep
-    )
+    cdm = runif(nrow(Xs)) < prob.cdm(P,Xs,Is)
     i = c(Xs$i1,Xs$i2)
     Es$sex[i] = lapply(Es$sex[i],append,z)
     Es$cdm[i] = mapply(append,Es$cdm[i],cdm)
@@ -251,4 +271,4 @@ add.pars = function(P){
 
 # run model
 Ps = lapply(1:7,get.pars)
-Is = sim.runs(Ps,.par=FALSE)
+Is = sim.runs(Ps,.par=TRUE)
