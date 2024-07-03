@@ -32,6 +32,14 @@ list.update = function(x,xu=list(),...){
   return(x)
 }
 
+par.lapply = function(...,.par=TRUE){
+  if (.par){
+    parallel::mclapply(...,mc.cores=7)
+  } else {
+    lapply(...)
+  }
+}
+
 rbind.lapply = function(...){
-  do.call(rbind,lapply(...))
+  do.call(rbind,par.lapply(...))
 }

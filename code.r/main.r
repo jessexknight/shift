@@ -50,12 +50,12 @@ init.inds = function(P){
     dep.x.r0 = rexp(n=n,rate=1/P$dep.x.r0.m),
     dep.now  = FALSE,
     dep.evr  = FALSE,
-    dep.z0   = NA,
+    dep.z0   = -Inf,
     alc.o.r0 = rexp(n=n,rate=1/P$alc.o.r0.m),
     alc.x.r0 = rexp(n=n,rate=1/P$alc.x.r0.m),
     alc.now  = FALSE,
     alc.evr  = FALSE,
-    alc.z0   = NA
+    alc.z0   = -Inf
   )
 }
 
@@ -185,10 +185,9 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
   Is = cbind(seed=P$seed,Is)
 }
 
-sim.runs = function(Ps){
+sim.runs = function(Ps,.par=TRUE){
   # run.sim in parallel for each (P)arameter set in Ps
-  # Is = do.call(rbind,lapply(Ps,sim.run)) # DEBUG
-  Is = do.call(rbind,parallel::mclapply(Ps,sim.run,mc.cores=7))
+  Is = rbind.lapply(Ps,sim.run,.par=.par)
 }
 
 # =============================================================================
@@ -252,4 +251,4 @@ add.pars = function(P){
 
 # run model
 Ps = lapply(1:7,get.pars)
-Is = sim.runs(Ps)
+Is = sim.runs(Ps,.par=FALSE)
