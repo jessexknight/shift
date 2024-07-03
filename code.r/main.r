@@ -37,15 +37,15 @@ init.inds = function(P){
   n  = P$n * (1+ny)        # total inds needed
   Is = data.frame(
     i = seq(n),
-    age = runif(n,min=amin-ny*adur,max=amax),
-    age.act = runif(n,min=amin,max=20),
+    age      = runif(n,min=amin-ny*adur,max=amax),
+    age.act  = runif(n,min=amin,max=20),
     # partnerships
-    ptr.n = 0,
-    ptr.r0 = rexp(n=n,rate=1/P$ptr.r0.m),
-    ptr.max = pmin(3,1+rgeom(n=n,prob=1/P$ptr.max.m)),
-    cdm.p0 = runif(n=n,min=0,max=1),
+    ptr.n    = 0,
+    ptr.r0   = rexp(n=n,rate=1/P$ptr.r0.m),
+    ptr.max  = pmin(3,1+rgeom(n=n,prob=1/P$ptr.max.m)),
+    cdm.p0   = runif(n=n,min=0,max=1),
     # structural factors & mediators
-    vio.r0 = rexp(n=n,rate=1/P$vio.r0.m),
+    vio.r0   = rexp(n=n,rate=1/P$vio.r0.m),
     dep.o.r0 = rexp(n=n,rate=1/P$dep.o.r0.m),
     dep.x.r0 = rexp(n=n,rate=1/P$dep.x.r0.m),
     dep.now  = FALSE,
