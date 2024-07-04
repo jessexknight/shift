@@ -240,10 +240,10 @@ get.pars = function(seed=0,...){
 add.pars = function(P){
   # define RR splines
   rr.age. = list( # RR age
-    vio = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.7)),
-    dep = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,0.3)),
-    alc = list(t=c(15,20,30,50),rr=c(0.0,1.0,1.0,1.0)),
-    ptr = list(t=c(15,20,30,50),rr=c(1.0,1.0,1.0,0.5)))
+    vio = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.5)),
+    dep = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.0)),
+    alc = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,1.0)),
+    ptr = list(t=c(15,20,30,60),rr=c(1.0,1.0,1.0,0.0)))
   # plot.rr(rr.age.,lapply(rr.age.,fit.rr.age)) + xlab('Age') + ylim(c(0,1))
   #   plot.save('par','rr.age',h=2.5,w=5)
   rr.vio. = list( # RR vio
