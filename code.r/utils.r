@@ -1,3 +1,5 @@
+options(width=180)
+
 len = length
 lens = lengths
 

@@ -11,9 +11,9 @@ eps  = 1e-12 # a small number
 
 # event types
 evts = c(
-  'vio',
+  'vio.e',
   'dep.o','dep.x',
   'alc.o','alc.x',
   'ptr.o','ptr.x',
-  'sex','cdm')
+  'sex.e','cdm.b')
 names(evts) = evts
