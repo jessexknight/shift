@@ -46,20 +46,20 @@ init.inds = function(P){
     age.act  = runif(n,min=amin,max=20),
     # partnerships
     ptr.n    = 0,
-    ptr.r0   = rexp(n=n,rate=1/P$ptr.r0.m),
+    ptr.o.r0 = rexp(n=n,rate=1/P$ptr.o.r0.m),
     ptr.max  = pmin(3,1+rgeom(n=n,prob=1/P$ptr.max.m)),
     cdm.p0   = runif(n=n,min=0,max=1),
     # structural factors & mediators
-    vio.r0   = rexp(n=n,rate=1/P$vio.r0.m),
+    vio.e.r0 = rexp(n=n,rate=1/P$vio.e.r0.m),
     dep.o.r0 = rexp(n=n,rate=1/P$dep.o.r0.m),
     dep.x.r0 = rexp(n=n,rate=1/P$dep.x.r0.m),
     dep.now  = FALSE,
-    dep.evr  = FALSE,
+    dep.past = FALSE,
     dep.z0   = -Inf,
     alc.o.r0 = rexp(n=n,rate=1/P$alc.o.r0.m),
     alc.x.r0 = rexp(n=n,rate=1/P$alc.x.r0.m),
     alc.now  = FALSE,
-    alc.evr  = FALSE,
+    alc.past = FALSE,
     alc.z0   = -Inf
   )
 }
@@ -84,10 +84,10 @@ init.ptrs = function(P,Is,z){
 # =============================================================================
 # rate & prob funs
 
-rate.vio = function(P,Js,aj){
+rate.vio.e = function(P,Js,aj){
   R = ( # among all
-      Js$vio.r0 # base rate
-    * P$rr.vio.age[aj] # RR age
+      Js$vio.e.r0 # base rate
+    * P$rr.vio.e.age[aj] # RR age
 ); return(R) }
 
 rate.dep.o = function(P,Js,R,aj,z,e.vio){
@@ -95,7 +95,7 @@ rate.dep.o = function(P,Js,R,aj,z,e.vio){
   R[j] = ( # among not dep
       Js$dep.o.r0[j] # base rate
     * P$rr.dep.o.age[aj[j]] # RR age
-    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.dep.o.vio.z) # RR vio
+    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.dep.o.vio.z) # RR vio recent
 ); return(R) }
 
 rate.dep.x = function(P,Js,R,z,e.vio){
@@ -103,7 +103,7 @@ rate.dep.x = function(P,Js,R,z,e.vio){
   R[j] = ( # among dep
       Js$dep.x.r0[j] # base rate
     * 2^(dtz * (z - Js$dep.z0[j]) / P$rr.dep.x.th) # RR dep dur
-    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.dep.x.vio.z) # RR vio
+    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.dep.x.vio.z) # RR vio recent
 ); return(R) }
 
 rate.alc.o = function(P,Js,R,aj,z,e.vio){
@@ -111,8 +111,8 @@ rate.alc.o = function(P,Js,R,aj,z,e.vio){
   R[j] = ( # among not alc
       Js$alc.o.r0[j] # base rate
     * P$rr.alc.o.age[aj[j]] # RR age
-    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.o.vio.z) # RR vio
-    * (1 + P$urr.alc.dep * Js$dep.now[j]) # RR dep
+    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.o.vio.z) # RR vio recent
+    * (1 + P$urr.alc.o.dep.n * Js$dep.now[j]) # RR dep now
 ); return(R) }
 
 rate.alc.x = function(P,Js,R,z,e.vio){
@@ -120,22 +120,22 @@ rate.alc.x = function(P,Js,R,z,e.vio){
   R[j] = ( # among alc
       Js$alc.x.r0[j] # base rate
     * 2^(dtz * (z - Js$alc.z0[j]) / P$rr.alc.x.th) # RR alc dur
-    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.x.vio.z) # RR vio
+    * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.x.vio.z) # RR vio recent
 ); return(R) }
 
 rate.ptr = function(P,Js,R,aj){
   j = which(Js$ptr.n < Js$ptr.max)
   R[j] = ( # among avail
-      Js$ptr.r0[j] # base rate
-    * P$rr.ptr.age[aj[j]] # RR age
-    * (1 + P$urr.ptr.dep * Js$dep.now[j]) # RR dep
+      Js$ptr.o.r0[j] # base rate
+    * P$rr.ptr.o.age[aj[j]] # RR age
+    * (1 + P$urr.ptr.o.dep.n * Js$dep.now[j]) # RR dep now
 ); return(R) }
 
-prob.cdm = function(P,Ks,x,Is){
+prob.cdm = function(P,Ks,k,Is){
   R = ( # among all
-      Ks$cdm[x] # base prob
-    * P$rr.cdm.dep ^ (Is$dep.now[Ks$i1[x]] + Is$dep.now[Ks$i2[x]]) # RP dep
-    * P$rr.cdm.alc ^ (Is$alc.now[Ks$i1[x]] + Is$alc.now[Ks$i2[x]]) # RP alc
+      Ks$cdm[k] # base prob
+    * P$rr.cdm.b.dep.n ^ (Is$dep.now[Ks$i1[k]] + Is$dep.now[Ks$i2[k]]) # RP dep
+    * P$rr.cdm.b.alc.n ^ (Is$alc.now[Ks$i1[k]] + Is$alc.now[Ks$i2[k]]) # RP alc
 ); return(R) }
 
 # =============================================================================
@@ -151,24 +151,24 @@ sim.run = function(P){
     # age inds ----------------------------------------------------------------
     Is$age = Is$age + 1/z1y
     # break ptrs --------------------------------------------------------------
-    k.brk = Ks$zf < z
-    i.brk = c(Ks$i1[k.brk],Ks$i2[k.brk])
-    Is$ptr.n[i.brk] = Is$ptr.n[i.brk] - 1
-    Ks = Ks[!k.brk,]
+    b = Ks$zf < z
+    i = c(Ks$i1[b],Ks$i2[b])
+    Is$ptr.n[i] = Is$ptr.n[i] - 1
+    Ks = Ks[!b,]
     # select active inds ------------------------------------------------------
-    i.act = which(Is$age > Is$age.act & Is$age < amax)
-    Js = Is[i.act,]       # read only copy of active
+    i = which(Is$age > Is$age.act & Is$age < amax)
+    Js = Is[i,]       # read only copy of active
     ij = match(Js$i,Is$i) # map j -> j
     aj = floor(Js$age-amin+1) # age vector for j
     R0 = numeric(nrow(Js)) # init rate = 0 for j
-    # update vio --------------------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.vio(P,Js,aj))]
-    Es$vio[i] = lapply(Es$vio[i],append,z)
-    e.vio = Es$vio[i.act]
+    e.vio = Es$vio.e[i]
+    # update vio events -------------------------------------------------------
+    i = ij[which(runif(ij) < dtz * rate.vio.e(P,Js,aj))]
+    Es$vio.e[i] = lapply(Es$vio.e[i],append,z)
     # update dep onset --------------------------------------------------------
     i = ij[which(runif(ij) < dtz * rate.dep.o(P,Js,R0,aj,z,e.vio))]
     Is$dep.now[i] = TRUE
-    Is$dep.evr[i] = TRUE
+    Is$dep.past[i] = TRUE
     Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # update dep recovery -----------------------------------------------------
@@ -178,7 +178,7 @@ sim.run = function(P){
     # update alc onset --------------------------------------------------------
     i = ij[which(runif(ij) < dtz * rate.alc.o(P,Js,R0,aj,z,e.vio))]
     Is$alc.now[i] = TRUE
-    Is$alc.evr[i] = TRUE
+    Is$alc.past[i] = TRUE
     Is$alc.z0[i] = z
     # update alc recovery -----------------------------------------------------
     i = ij[which(runif(ij) < dtz * rate.alc.x(P,Js,R0,z,e.vio))]
@@ -190,11 +190,11 @@ sim.run = function(P){
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
-    x = which(runif(nrow(Ks)) < Ks$f.sex)
-    cdm = runif(x) < prob.cdm(P,Ks,x,Is)
-    i = c(Ks$i1[x],Ks$i2[x])
-    Es$sex[i] = lapply(Es$sex[i],append,z)
-    Es$cdm[i] = mapply(append,Es$cdm[i],cdm)
+    k = which(runif(nrow(Ks)) < Ks$f.sex)
+    cdm.b = runif(k) < prob.cdm(P,Ks,k,Is)
+    i = c(Ks$i1[k],Ks$i2[k])
+    Es$sex.e[i] = lapply(Es$sex.e[i],append,z)
+    Es$cdm.b[i] = mapply(append,Es$cdm.b[i],cdm.b)
   }
   # lapply(Es,function(E){ e = sapply(E,len); hist(e,0:max(e)) }) # DEBUG
   Is = sim.out(Is,Es,P)
@@ -211,9 +211,9 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
   Is$age.1 = floor(Is$age)     # 1-year age bins
   Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
   Is$ptr.tot = sapply(Es$ptr.o,len) # lifetime ptrs
-  Is$sex.tot = sapply(Es$sex,len) # lifetime sex
-  Is$cdm.ls  = sapply(Es$cdm,last) # last sex cdm
-  Is$cdm.m   = sapply(Es$cdm,mean) # lifetime cdm mean
+  Is$sex.tot = sapply(Es$sex.e,len) # lifetime sex
+  Is$cdm.ls  = sapply(Es$cdm.b,last) # last sex cdm
+  Is$cdm.m   = sapply(Es$cdm.b,mean) # lifetime cdm mean
   Is = cbind(seed=P$seed,Is)
 }
 
@@ -230,21 +230,23 @@ get.pars = function(seed=0,...){
   P = list(seed=seed)
   P$n = 100
   P$zf = z1y*adur*2     # total timesteps
-  P$ptr.r0.m    =  .05  # base rate of partner seeking (mean)
-  P$ptr.max.m   = 1.25  # max num partners (mean)
-  P$vio.r0.m    =  .002 # base rate of violence (mean)
-  P$dep.o.r0.m  =  .001 # base rate of depression onset (mean)
-  P$dep.x.r0.m  =  .01  # base rate of depression recovery (mean)
-  P$alc.o.r0.m  =  .001 # base rate of haz alcohol onset (mean)
-  P$alc.x.r0.m  =  .01  # base rate of haz alcohol recovery (mean)
-  P$ptr.dt.m    = 364   # duration of partnerships (mean)
-  P$rr.dep.x.th = 364   # half-life of RR for depression tunnel
-  P$rr.alc.x.th = 364   # half-life of RR for haz alcohol tunnel
-  P$rr.alc.dep  = 2.0   # RR of haz alcohol if depressed
-  P$rr.ptr.dep  = 1.0   # RR of partner seeking if depressed
-  P$rr.ptr.alc  = 1.5   # RR of partner seeking if haz alcohol
-  P$rr.cdm.dep  = 1.0   # RR of condom use if depressed
-  P$rr.cdm.alc  =  .50  # RR of condom use if haz alcohol
+  P$ptr.o.r0.m     =  .05  # base rate of partner seeking (mean)
+  P$ptr.max.m      = 1.25  # max num partners (mean)
+  P$vio.e.r0.m     =  .002 # base rate of violence event (mean)
+  P$dep.o.r0.m     =  .001 # base rate of depression onset (mean)
+  P$dep.x.r0.m     =  .01  # base rate of depression recovery (mean)
+  P$alc.o.r0.m     =  .001 # base rate of alcohol onset (mean)
+  P$alc.x.r0.m     =  .01  # base rate of alcohol recovery (mean)
+  P$ptr.dt.m       = 364   # duration of partnerships (mean)
+  P$rr.dep.x.th    = 364   # half-life of RR for depression tunnel
+  P$rr.alc.x.th    = 364   # half-life of RR for alcohol tunnel
+  P$rr.dep.o.dep.p = 1.0   # RR of depression onset if depressed in past
+  P$rr.alc.o.alc.p = 1.0   # RR of alcohol onset if alcohol in past
+  P$rr.alc.o.dep.n = 2.0   # RR of alcohol onset if depressed now
+  P$rr.ptr.o.dep.n = 1.0   # RR of partner seeking if depressed now
+  P$rr.ptr.o.alc.n = 1.5   # RR of partner seeking if alcohol now
+  P$rr.cdm.b.dep.n = 1.0   # RR of condom use if depressed now
+  P$rr.cdm.b.alc.n =  .50  # RR of condom use if alcohol now
   P = list.update(P,...)
   P = add.pars(P)
 }
@@ -252,10 +254,10 @@ get.pars = function(seed=0,...){
 add.pars = function(P){
   # define RR splines
   rr.age. = list( # RR age
-    vio = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.5)),
-    dep = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.0)),
-    alc = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,1.0)),
-    ptr = list(t=c(15,20,30,60),rr=c(1.0,1.0,1.0,0.0)))
+    vio.e = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.5)),
+    dep.o = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.0)),
+    alc.o = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,1.0)),
+    ptr.o = list(t=c(15,20,30,60),rr=c(1.0,1.0,1.0,0.0)))
   # plot.rr(rr.age.,lapply(rr.age.,fit.rr.age)) + xlab('Age') + ylim(c(0,1))
   #   plot.save('par','rr.age',h=2.5,w=5)
   rr.vio. = list( # RR vio
@@ -265,16 +267,16 @@ add.pars = function(P){
     alc.x = list(t=14*(0:4),rr=1-0.5*c(1.0,0.95,0.5,0.05,0.0)))
   # plot.rr(rr.vio.,lapply(rr.vio.,fit.rr)) + scale_y_continuous(trans='log2')
   #   plot.save('par','rr.vio',h=2.5,w=5)
-  P$rr.vio.age     = fit.rr.age(rr.age.$vio)$rr # RR of violence by age
-  P$rr.dep.o.age   = fit.rr.age(rr.age.$dep)$rr # RR of depression onset by age
-  P$rr.alc.o.age   = fit.rr.age(rr.age.$alc)$rr # RR of haz alcohol onset by age
-  P$rr.ptr.age     = fit.rr.age(rr.age.$ptr)$rr # RR of partner seeking by age
+  P$rr.vio.e.age    = fit.rr.age(rr.age.$vio.e)$rr # RR of violence event by age
+  P$rr.dep.o.age    = fit.rr.age(rr.age.$dep.o)$rr # RR of depression onset by age
+  P$rr.alc.o.age    = fit.rr.age(rr.age.$alc.o)$rr # RR of alcohol onset by age
+  P$rr.ptr.o.age    = fit.rr.age(rr.age.$ptr.o)$rr # RR of partner seeking by age
   P$urr.dep.o.vio.z = fit.rr(rr.vio.$dep.o)$rr - 1 # RR-1 of dep onset per violence event
   P$urr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr - 1 # RR-1 of dep recov per violence event
   P$urr.alc.o.vio.z = fit.rr(rr.vio.$alc.o)$rr - 1 # RR-1 of alc onset per violence event
   P$urr.alc.x.vio.z = fit.rr(rr.vio.$alc.x)$rr - 1 # RR-1 of alc recov per violence event
-  P$urr.alc.dep     = P$rr.alc.dep - 1 # RR-1
-  P$urr.ptr.dep     = P$rr.ptr.dep - 1 # RR-1
+  P$urr.alc.o.dep.n = P$rr.alc.o.dep.n - 1         # RR-1 of alcohol onset if depressed now
+  P$urr.ptr.o.dep.n = P$rr.ptr.o.dep.n - 1         # RR-1 of partner seeking if depressed now
   # why pre-compute RR-1: "sum_z RR_z" should be computed as "1 + sum_z (RR_z - 1)"
   # for RR_z < 1: this could yield RR_total < 0 (!) but this is rare & may be correct
   return(P)
