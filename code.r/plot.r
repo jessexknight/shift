@@ -17,7 +17,7 @@ plot.clean = function(g,...){
 plot.rr = function(rr.,rr){
   melt.rr = function(rr){
     melt(rbind.lapply(names(rr.),function(e){
-      cbind(e=e,as.data.frame(rr[[e]])) }),id=c('e','t')) }
+      cbind(e=e,as.data.frame(rr[[e]])) }),id=c('e','t'),measure='rr') }
   X. = melt.rr(rr.)
   X  = melt.rr(rr)
   g = ggplot(X,aes(x=t,y=value,color=e)) +

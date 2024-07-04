@@ -6,15 +6,21 @@ source('plot.r')
 # effect funs
 
 fit.rr = function(.,t,flat=c(1,1)){
+  # .$t: RR time control point "x" (days); .$rr: RR control point "y"
+  # .$rrt: (optional) total RR-days -> re-scales final rr to match
+  # t: time (days) to evaluate the RR spline at
   if (missing(t)){ t = seq(dtz,max(.$t),dtz) }
   n = len(.$t)+flat[1]
   if (flat[1]){ .$t = c(.$t[1]-eps,.$t); .$rr = c(.$rr[1],.$rr) }
   if (flat[2]){ .$t = c(.$t,.$t[n]+eps); .$rr = c(.$rr,.$rr[n]) }
-  rr = list(t=t,rr=splinefun(.$t,.$rr,method='monoH.FC')(t))
+  rr = splinefun(.$t,.$rr,method='monoH.FC')(t)
+  if (!is.null(.$rrt)){ rr = 1 + (rr-1) * (.$rrt-1) / (dtz*sum(rr-1)) }
+  list(t=t,rr=rr,rrt=1+dtz*sum(rr-1))
 }
 
 fit.rr.age = function(.){
-  rr.age = fit.rr(.,seq(amin,amax),flat=c(1,0))
+  # convenience function
+  rr.age = fit.rr(.,seq(amin,amax),flat=c(1,1))
 }
 
 get.rr.evt = function(ze,z,urr.z){
