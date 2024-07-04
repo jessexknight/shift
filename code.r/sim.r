@@ -95,6 +95,7 @@ rate.dep.o = function(P,Js,R,aj,z,e.vio){
   R[j] = ( # among not dep
       Js$dep.o.r0[j] # base rate
     * P$rr.dep.o.age[aj[j]] # RR age
+    * (1 + P$urr.dep.o.dep.p * Js$dep.past[j]) # RR dep past
     * vapply(e.vio[j],get.rr.evt,0,z,P$urr.dep.o.vio.z) # RR vio recent
 ); return(R) }
 
@@ -111,6 +112,7 @@ rate.alc.o = function(P,Js,R,aj,z,e.vio){
   R[j] = ( # among not alc
       Js$alc.o.r0[j] # base rate
     * P$rr.alc.o.age[aj[j]] # RR age
+    * (1 + P$urr.alc.o.alc.p * Js$alc.past[j]) # RR alc past
     * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.o.vio.z) # RR vio recent
     * (1 + P$urr.alc.o.dep.n * Js$dep.now[j]) # RR dep now
 ); return(R) }
@@ -129,6 +131,7 @@ rate.ptr = function(P,Js,R,aj){
       Js$ptr.o.r0[j] # base rate
     * P$rr.ptr.o.age[aj[j]] # RR age
     * (1 + P$urr.ptr.o.dep.n * Js$dep.now[j]) # RR dep now
+    * (1 + P$urr.ptr.o.alc.n * Js$alc.now[j]) # RR alc now
 ); return(R) }
 
 prob.cdm = function(P,Ks,k,Is){
@@ -275,8 +278,11 @@ add.pars = function(P){
   P$urr.dep.x.vio.z = fit.rr(rr.vio.$dep.x)$rr - 1 # RR-1 of dep recov per violence event
   P$urr.alc.o.vio.z = fit.rr(rr.vio.$alc.o)$rr - 1 # RR-1 of alc onset per violence event
   P$urr.alc.x.vio.z = fit.rr(rr.vio.$alc.x)$rr - 1 # RR-1 of alc recov per violence event
+  P$urr.dep.o.dep.p = P$rr.dep.o.dep.p - 1         # RR-1 of depression onset if depressed in past
+  P$urr.alc.o.alc.p = P$rr.alc.o.alc.p - 1         # RR-1 of alcohol onset if alcohol in past
   P$urr.alc.o.dep.n = P$rr.alc.o.dep.n - 1         # RR-1 of alcohol onset if depressed now
   P$urr.ptr.o.dep.n = P$rr.ptr.o.dep.n - 1         # RR-1 of partner seeking if depressed now
+  P$urr.ptr.o.alc.n = P$rr.ptr.o.alc.n - 1         # RR-1 of partner seeking if alcohol now
   # why pre-compute RR-1: "sum_z RR_z" should be computed as "1 + sum_z (RR_z - 1)"
   # for RR_z < 1: this could yield RR_total < 0 (!) but this is rare & may be correct
   return(P)
