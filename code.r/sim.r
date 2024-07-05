@@ -38,11 +38,11 @@ init.evts = function(Is){
 
 init.inds = function(P){
   # initialize all individuals needed for timesteps 1:zf
-  ny = P$zf/z1y/adur # num sim years
-  n  = P$n * (1+ny)        # total inds needed
+  nd = P$zf/z1y/adur # num sim adurs
+  n  = P$n * (1+nd)  # total inds needed
   Is = data.frame(
     i = seq(n),
-    age      = runif(n,min=amin-ny*adur,max=amax),
+    age      = runif(n,min=amin-nd*adur,max=amax),
     age.act  = runif(n,min=amin,max=20),
     # partnerships
     ptr.n    = 0,
@@ -123,6 +123,7 @@ rate.alc.x = function(P,Js,R,z,e.vio){
       Js$alc.x.r0[j] # base rate
     * 2^(dtz * (z - Js$alc.z0[j]) / P$rr.alc.x.th) # RR alc dur
     * vapply(e.vio[j],get.rr.evt,0,z,P$urr.alc.x.vio.z) # RR vio recent
+    * (1 + P$urr.alc.x.dep.n * Js$dep.now[j]) # RR dep now
 ); return(R) }
 
 rate.ptr = function(P,Js,R,aj){
@@ -151,6 +152,7 @@ sim.run = function(P){
   Es = init.evts(Is) # events
   Ks = NULL          # partnerships
   for (z in 1:P$zf){
+    # if (z %% z1y == 0) { print(z/z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
     Is$age = Is$age + 1/z1y
     # break ptrs --------------------------------------------------------------
@@ -193,7 +195,9 @@ sim.run = function(P){
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
-    k = which(runif(nrow(Ks)) < Ks$f.sex)
+    # TODO: sex should be possible > 1 per week
+    # TODO: 1-exp(-dt*R) elsewhere
+    k = which(runif(nrow(Ks)) < dtz * Ks$f.sex)
     cdm.b = runif(k) < prob.cdm(P,Ks,k,Is)
     i = c(Ks$i1[k],Ks$i2[k])
     Es$sex.e[i] = lapply(Es$sex.e[i],append,z)
@@ -213,6 +217,7 @@ sim.out = function(Is,Es,P,rm.dum=TRUE){
   # compute some extra variables
   Is$age.1 = floor(Is$age)     # 1-year age bins
   Is$age.5 = floor(Is$age/5)*5 # 5-year age bins
+  Is$vio.tot = sapply(Es$vio.e,len) # lifetime vio
   Is$ptr.tot = sapply(Es$ptr.o,len) # lifetime ptrs
   Is$sex.tot = sapply(Es$sex.e,len) # lifetime sex
   Is$cdm.ls  = sapply(Es$cdm.b,last) # last sex cdm
@@ -233,19 +238,20 @@ get.pars = function(seed=0,...){
   P = list(seed=seed)
   P$n = 100
   P$zf = z1y*adur*2     # total timesteps
-  P$ptr.o.r0.m     =  .05  # base rate of partner seeking (mean)
-  P$ptr.max.m      = 1.25  # max num partners (mean)
-  P$vio.e.r0.m     =  .002 # base rate of violence event (mean)
-  P$dep.o.r0.m     =  .001 # base rate of depression onset (mean)
-  P$dep.x.r0.m     =  .01  # base rate of depression recovery (mean)
-  P$alc.o.r0.m     =  .001 # base rate of alcohol onset (mean)
-  P$alc.x.r0.m     =  .01  # base rate of alcohol recovery (mean)
+  P$ptr.o.r0.m     =  .01  # base rate of partner seeking (mean)
+  P$ptr.max.m      = 1.50  # max num partners (mean)
+  P$vio.e.r0.m     =  .001 # base rate of violence event (mean)
+  P$dep.o.r0.m     =  .0001# base rate of depression onset (mean)
+  P$dep.x.r0.m     =  .001 # base rate of depression recovery (mean)
+  P$alc.o.r0.m     =  .0001# base rate of alcohol onset (mean)
+  P$alc.x.r0.m     =  .001 # base rate of alcohol recovery (mean)
   P$ptr.dt.m       = 364   # duration of partnerships (mean)
   P$rr.dep.x.th    = 364   # half-life of RR for depression tunnel
   P$rr.alc.x.th    = 364   # half-life of RR for alcohol tunnel
-  P$rr.dep.o.dep.p = 1.0   # RR of depression onset if depressed in past
-  P$rr.alc.o.alc.p = 1.0   # RR of alcohol onset if alcohol in past
+  P$rr.dep.o.dep.p = 3.0   # RR of depression onset if depressed in past
+  P$rr.alc.o.alc.p = 3.0   # RR of alcohol onset if alcohol in past
   P$rr.alc.o.dep.n = 2.0   # RR of alcohol onset if depressed now
+  P$rr.alc.x.dep.n = 0.5   # RR of alcohol recovery if depressed now
   P$rr.ptr.o.dep.n = 1.0   # RR of partner seeking if depressed now
   P$rr.ptr.o.alc.n = 1.5   # RR of partner seeking if alcohol now
   P$rr.cdm.b.dep.n = 1.0   # RR of condom use if depressed now
@@ -281,6 +287,7 @@ add.pars = function(P){
   P$urr.dep.o.dep.p = P$rr.dep.o.dep.p - 1         # RR-1 of depression onset if depressed in past
   P$urr.alc.o.alc.p = P$rr.alc.o.alc.p - 1         # RR-1 of alcohol onset if alcohol in past
   P$urr.alc.o.dep.n = P$rr.alc.o.dep.n - 1         # RR-1 of alcohol onset if depressed now
+  P$urr.alc.x.dep.n = P$rr.alc.x.dep.n - 1         # RR-1 of alcohol recovery if depressed now
   P$urr.ptr.o.dep.n = P$rr.ptr.o.dep.n - 1         # RR-1 of partner seeking if depressed now
   P$urr.ptr.o.alc.n = P$rr.ptr.o.alc.n - 1         # RR-1 of partner seeking if alcohol now
   # why pre-compute RR-1: "sum_z RR_z" should be computed as "1 + sum_z (RR_z - 1)"
