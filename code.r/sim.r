@@ -38,11 +38,10 @@ init.evts = function(Is){
 
 init.inds = function(P){
   # initialize all individuals needed for timesteps 1:zf
-  nd = P$zf/z1y/adur # num sim adurs
-  n  = P$n * (1+nd)  # total inds needed
+  n = P$ntot
   Is = data.frame(
     i = seq(n),
-    age      = runif(n,min=amin-nd*adur,max=amax),
+    age      = runif(n,min=amin-P$ndur*adur,max=amax),
     age.act  = runif(n,min=amin,max=20),
     # partnerships
     ptr.n    = 0,
@@ -83,6 +82,9 @@ init.ptrs = function(P,Is,z){
 
 # =============================================================================
 # rate & prob funs
+
+rate.to.prob = function(r){ p = 1 - exp(-r*dtz) }
+rate.to.num  = function(r){ n = rpois(len(r),r*dtz) }
 
 rate.vio.e = function(P,Js,aj){
   R = ( # among all
@@ -168,40 +170,39 @@ sim.run = function(P){
     R0 = numeric(nrow(Js)) # init rate = 0 for j
     e.vio = Es$vio.e[i]
     # update vio events -------------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.vio.e(P,Js,aj))]
+    i = ij[which(runif(ij) < rate.to.prob(rate.vio.e(P,Js,aj)))]
     Es$vio.e[i] = lapply(Es$vio.e[i],append,z)
     # update dep onset --------------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.dep.o(P,Js,R0,aj,z,e.vio))]
+    i = ij[which(runif(ij) < rate.to.prob(rate.dep.o(P,Js,R0,aj,z,e.vio)))]
     Is$dep.now[i] = TRUE
     Is$dep.past[i] = TRUE
     Is$dep.z0[i] = z
     Es$dep.o[i] = lapply(Es$dep.o[i],append,z)
     # update dep recovery -----------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.dep.x(P,Js,R0,z,e.vio))]
+    i = ij[which(runif(ij) < rate.to.prob(rate.dep.x(P,Js,R0,z,e.vio)))]
     Is$dep.now[i] = FALSE
     Es$dep.x[i] = lapply(Es$dep.x[i],append,z)
     # update alc onset --------------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.alc.o(P,Js,R0,aj,z,e.vio))]
+    i = ij[which(runif(ij) < rate.to.prob(rate.alc.o(P,Js,R0,aj,z,e.vio)))]
     Is$alc.now[i] = TRUE
     Is$alc.past[i] = TRUE
     Is$alc.z0[i] = z
     # update alc recovery -----------------------------------------------------
-    i = ij[which(runif(ij) < dtz * rate.alc.x(P,Js,R0,z,e.vio))]
+    i = ij[which(runif(ij) < rate.to.prob(rate.alc.x(P,Js,R0,z,e.vio)))]
     Is$alc.now[i] = FALSE
     Es$alc.x[i] = lapply(Es$alc.x[i],append,z)
     # form ptrs ---------------------------------------------------------------
-    i = ij[even.len(which(runif(ij) < dtz * rate.ptr(P,Js,R0,aj)))]
+    i = ij[even.len(which(runif(ij) < rate.to.prob(rate.ptr(P,Js,R0,aj))))]
     Is$ptr.n[i] = Is$ptr.n[i] + 1
     Es$ptr.o[i] = lapply(Es$ptr.o[i],append,z)
     Ks = rbind(Ks,init.ptrs(P,Is[i,],z))
     # sex in ptrs -------------------------------------------------------------
-    # TODO: sex should be possible > 1 per week
-    # TODO: 1-exp(-dt*R) elsewhere
-    k = which(runif(nrow(Ks)) < dtz * Ks$f.sex)
+    k = rep.int(1:nrow(Ks),rate.to.num(Ks$f.sex))
     cdm.b = runif(k) < prob.cdm(P,Ks,k,Is)
-    i = c(Ks$i1[k],Ks$i2[k])
-    Es$sex.e[i] = lapply(Es$sex.e[i],append,z)
-    Es$cdm.b[i] = mapply(append,Es$cdm.b[i],cdm.b)
+    ik = c(Ks$i1[k],Ks$i2[k])
+    i = unique(ik)
+    Es$sex.e[i] = mapply(reppend,Es$sex.e[i],z,tabulate(ik,P$ntot)[i])
+    Es$cdm.b[i] = mapply(append,Es$cdm.b[i],split(cdm.b,k))
   }
   # lapply(Es,function(E){ e = sapply(E,len); hist(e,0:max(e)) }) # DEBUG
   Is = sim.out(Is,Es,P)
@@ -261,6 +262,8 @@ get.pars = function(seed=0,...){
 }
 
 add.pars = function(P){
+  P$ndur = P$zf/z1y/adur    # num sim adurs
+  P$ntot = P$n * (1+P$ndur) # total inds needed
   # define RR splines
   rr.age. = list( # RR age
     vio.e = list(t=c(15,20,30,60),rr=c(0.0,1.0,1.0,0.5)),
