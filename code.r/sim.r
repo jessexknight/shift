@@ -255,7 +255,7 @@ get.pars = function(seed=0,...){
   P$rr.ptr.o.dep.n = 1.0   # RR of partner seeking if depressed now
   P$rr.ptr.o.alc.n = 1.5   # RR of partner seeking if alcohol now
   P$rr.cdm.b.dep.n = 1.0   # RR of condom use if depressed now
-  P$rr.cdm.b.alc.n =  .50  # RR of condom use if alcohol now
+  P$rr.cdm.b.alc.n = 0.5   # RR of condom use if alcohol now
   P = list.update(P,...)
   P = add.pars(P)
 }
