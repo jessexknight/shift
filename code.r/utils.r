@@ -25,6 +25,10 @@ last = function(x){
   ifelse(len(x),tail(x,1),NA)
 }
 
+reppend = function(x,xa,n){
+  append(x,rep.int(xa,n))
+}
+
 list.update = function(x,xu=list(),...){
   # e.g. list.update(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
   args = c(xu,list(...))
