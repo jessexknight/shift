@@ -14,15 +14,16 @@ root.path = function(...,create=FALSE){
   return(path)
 }
 
+na.to.num = function(x,num=0){
+  # replace NA in x with num
+  x[is.na(x)] = num
+  return(x)
+}
+
 even.len = function(x){
   # truncate vector x to have an even length
   length(x) = len(x) - (len(x) %% 2)
   return(x)
-}
-
-last = function(x){
-  # get the last element in x or NA if len(x) == 0
-  ifelse(len(x),tail(x,1),NA)
 }
 
 reppend = function(x,xa,n){
@@ -48,4 +49,8 @@ par.lapply = function(...,.par=TRUE){
 
 rbind.lapply = function(...){
   do.call(rbind,par.lapply(...))
+}
+
+filter.names = function(x,re,b=TRUE){
+  names(x)[grepl(re,names(x))==b]
 }
