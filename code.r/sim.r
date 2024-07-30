@@ -200,8 +200,11 @@ sim.out = function(P,Is,Es,rm.dum=TRUE){
   Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
   Is$vio.n1y   = sapply(Es$vio,  num.dz,P$zf,z1y) # num vio past year
   Is$dep_o.a1y = sapply(Es$dep_o,any.dz,P$zf,z1y) # any dep onset past year
+  Is$dep_x.a1y = sapply(Es$dep_x,any.dz,P$zf,z1y) # any dep onset past year
   Is$haz_o.a1y = sapply(Es$haz_o,any.dz,P$zf,z1y) # any haz onset past year
+  Is$haz_x.a1y = sapply(Es$haz_x,any.dz,P$zf,z1y) # any haz onset past year
   Is$ptr_o.n1y = sapply(Es$ptr_o,num.dz,P$zf,z1y) # num ptr form past year
+  Is$ptr_x.n1y = sapply(Es$ptr_x,num.dz,P$zf,z1y) # num ptr diss past year
   Is = cbind(seed=P$seed,Is)
 }
 
