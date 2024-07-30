@@ -64,17 +64,17 @@ rate.to.num  = function(R){ n = rpois(len(R),R*dtz) }
 rate.vio = function(P,Js,aj){
   R = ( # among all
       Js$vio.Ri # base rate
-    * P$RR.vio.age[aj] # RR age
+    * P$aRR.vio[aj] # RR age
 ); return(R) }
 
 rate.dep_o = function(P,Js,R,aj,z){
   j = which(!Js$dep.now)
   R[j] = ( # among not dep
       Js$dep_o.Ri[j] # base rate
-    * P$RR.dep_o.age[aj[j]] # RR age
+    * P$aRR.dep_o[aj[j]] # RR age
     * (1 + P$RRu.dep_o.dep_p * Js$dep.past[j]) # RR dep past
     * map.tRR(P$tRRu.dep_o.vio_z,Js$vio.zf[j],z) # tRR vio
-    * P$cRR.dep_o.vio_n[Js$vio.n[j]+1] # cRR vio
+    * P$nRR.dep_o.vio_n[Js$vio.n[j]+1] # nRR vio
 ); return(R) }
 
 rate.dep_x = function(P,Js,R,aj,z){
@@ -89,11 +89,11 @@ rate.haz_o = function(P,Js,R,aj,z){
   j = which(!Js$haz.now)
   R[j] = ( # among not haz
       Js$haz_o.Ri[j] # base rate
-    * P$RR.haz_o.age[aj[j]] # RR age
+    * P$aRR.haz_o[aj[j]] # RR age
     * (1 + P$RRu.haz_o.haz_p * Js$haz.past[j]) # RR haz past
     * (1 + P$RRu.haz_o.dep_w * Js$dep.now[j]) # RR dep now
     * map.tRR(P$tRRu.haz_o.vio_z,Js$vio.zf[j],z) # tRR vio
-    * P$cRR.haz_o.vio_n[Js$vio.n[j]+1] # cRR vio
+    * P$nRR.haz_o.vio_n[Js$vio.n[j]+1] # nRR vio
 ); return(R) }
 
 rate.haz_x = function(P,Js,R,aj,z){
@@ -109,11 +109,11 @@ rate.ptr_o = function(P,Js,R,aj,z){
   j = which(Js$ptr.n < Js$ptr.max)
   R[j] = ( # among avail
       Js$ptr_o.Ri[j] # base rate
-    * P$RR.ptr_o.age[aj[j]] # RR age
+    * P$aRR.ptr_o[aj[j]] # RR age
     * (1 + P$RRu.ptr_o.dep_w * Js$dep.now[j]) # RR dep now
     * (1 + P$RRu.ptr_o.haz_w * Js$haz.now[j]) # RR haz now
     * map.tRR(P$tRRu.ptr_o.vio_z,Js$vio.zf[j],z) # tRR vio
-    * P$cRR.ptr_o.vio_n[Js$vio.n[j]+1] # cRR vio
+    * P$nRR.ptr_o.vio_n[Js$vio.n[j]+1] # nRR vio
 ); return(R) }
 
 rate.ptr_x = function(P,Ks,Is){
@@ -195,7 +195,6 @@ sim.out = function(P,Is,Es,rm.dum=TRUE){
     Es = lapply(Es,`[`,i)
   }
   # compute some extra variables
-  Is$vio.tot = sapply(Es$vio,len)   # lifetime vio
   Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
   Is = cbind(seed=P$seed,Is)
 }
