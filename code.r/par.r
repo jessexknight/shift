@@ -2,7 +2,7 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...){
+get.pars = function(seed=0,...,null=NULL){
   P = list(seed=seed)
   P$n = 1000
   P$zf = z1y*adur*2
@@ -57,6 +57,7 @@ get.pars = function(seed=0,...){
   P$ RR.ptr_x.dep_w = 2     # RR: dep now -> ptr dissol
   P$ RR.ptr_x.haz_w = 2     # RR: haz now -> ptr dissol
   # overwrite & add conditional
+  if (is.list(null)){ P = null.pars(P,null,null$save) }
   P = list.update(P,...)
   P = cond.pars(P)
 }
@@ -88,6 +89,22 @@ cond.pars = function(P){
   }
   # for (x in filter.names(P,'^(t|c|d)RR')){ plot(grepl('RRu',x)+P[[x]]); title(x) } # DEBUG
   return(P)
+}
+
+null.pars = function(P,null,save){
+  # overwrite most pars via regex list; but save (exempt) some by name
+  # to skip any default {re}, use null=list({re}=NULL)
+  null.default = list(
+    'Ri\\.m$'      = 0,   # base rates
+    '^.?RR\\.'     = 1,   # RR, aRR, iRR, mRR
+    '^tsc\\.'      = eps, # time scales
+    '^(d|n)sc\\.'  = Inf) # dur & n scales
+  null = list.update(null.default,null)
+  P.save = P[save] # save exempt
+  for (re in names(null)){
+    for (x in filter.names(P,re)){
+      P[[x]] = null[[re]] }}
+  P = list.update(P,P.save) # restore saved
 }
 
 # =============================================================================
