@@ -136,3 +136,11 @@ map.tRR = function(tRRu,ze,z){
   # lookup & sum RR kernel for now (z) given prior events (ze)
   RR = 1 + na.to.num(tRRu[z+1-ze])
 }
+
+num.dz = function(zes,z,dz){
+  n = sum(zes <= z & zes >= z+1-dz)
+}
+
+any.dz = function(zes,z,dz){
+  b = num.dz(zes,z,dz) > 0
+}
