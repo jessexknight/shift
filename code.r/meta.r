@@ -2,6 +2,7 @@
 source('utils.r')
 source('par.r')
 source('sim.r')
+source('plot.r')
 
 # time stuff
 dtz  =  7 # days in 1 timestep
