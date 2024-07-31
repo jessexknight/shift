@@ -42,16 +42,34 @@ val.run = function(name,vars,strat='.',...){
 }
 
 val.plot = function(Is,vars,strat='.'){
-  Ism = melt(cbind(Is,.=''),measure=vars,id=c('seed','i',strat))
-  bins = round(min(len(unique(Ism$value)),sqrt(len(unique(Is$i)))))
-  g = ggplot(Ism,aes(
-      x = as.numeric(value),
-      y = after_stat(density),
-      color = as.factor(.data[[strat]]))) +
-    facet_wrap('~variable',scales='free',ncol=len(vars)) +
-    stat_bin(bins=bins,pad=FALSE,position='identity',geom='path') +
-    labs(x='value',y='density',color=strat) +
-    scale_color_viridis_d()
+  # plot the densities for multiple (7) seeds using:
+  # - boxplot if var is binary
+  # - line+ribbon otherwise
+  # pre-compute group-wise densities b/c no ggplot support
+  g  = c('seed',strat) # grouping variables
+  Is = cbind(Is,.='')[c(g,vars)]
+  Im = rbind.lapply(vars,function(var){
+    x  = as.numeric(Is[[var]]) # extract data
+    br = hist(x,br=min(31,len(unique(x))))$br # compute bins
+    Imx = aggregate(x,Is[g],function(xi){ # for each group
+      x = sum1(hist(xi,br=br,plot=FALSE)$count) }) # compute density
+    bm = rep(br[-len(br)],each=nrow(Imx)) # rep bins for df
+    if (len(br) > 3){ d = cbind(d.cts=c(Imx$x),d.bin=NA) } # continuous
+    else            { d = cbind(d.bin=c(Imx$x),d.cts=NA) } # binary
+    Imv = cbind(Imx[g],var=var,b=bm,d) # collect df
+  })
+  g = ggplot(Im,aes(x=b,y=d.cts,
+      color = as.factor(.data[[strat]]),
+      fill  = as.factor(.data[[strat]]))) +
+    facet_wrap('~var',scales='free',ncol=len(vars)) +
+    stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
+    stat_summary(geom='line',fun=median) +
+    geom_boxplot(aes(y=d.bin,group=interaction(b,.data[[strat]])),
+      scale='width',alpha=.3,outlier.shape=3) +
+    labs(x='value',y='density',color=strat,fill=strat) +
+    scale_color_viridis_d() +
+    scale_fill_viridis_d() +
+    ylim(c(0,NA))
   g = plot.clean(g)
 }
 

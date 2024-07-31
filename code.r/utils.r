@@ -14,6 +14,10 @@ root.path = function(...,create=FALSE){
   return(path)
 }
 
+sum1 = function(x){
+  x/sum(x)
+}
+
 na.to.num = function(x,num=0){
   # replace NA in x with num
   x[is.na(x)] = num
