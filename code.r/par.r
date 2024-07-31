@@ -58,7 +58,7 @@ get.pars = function(seed=0,...,null=NULL){
   P$ RR.ptr_x.haz_w = 2     # RR: haz now -> ptr dissol
   # overwrite & add conditional
   if (is.list(null)){ P = null.pars(P,null,null$save) }
-  P = list.update(P,...)
+  P = ulist(P,...)
   P = cond.pars(P)
 }
 
@@ -99,12 +99,13 @@ null.pars = function(P,null,save){
     '^.?RR\\.'     = 1,   # RR, aRR, iRR, mRR
     '^tsc\\.'      = eps, # time scales
     '^(d|n)sc\\.'  = Inf) # dur & n scales
-  null = list.update(null.default,null)
+  null = ulist(null.default,null)
   P.save = P[save] # save exempt
-  for (re in names(null)){
-    for (x in filter.names(P,re)){
-      P[[x]] = null[[re]] }}
-  P = list.update(P,P.save) # restore saved
+  for (re in names(null)){ # for each regex
+    if (is.null(null[[re]])){ next } # do nothing if NULL
+    for (x in filter.names(P,re)){ # for each matching par
+      P[[x]] = null[[re]] }} # overwrite
+  P = ulist(P,P.save) # restore saved
 }
 
 # =============================================================================

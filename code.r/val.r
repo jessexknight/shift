@@ -5,36 +5,36 @@ source('meta.r')
 
 uid = Sys.Date()
 
-all.Ri = list('Ri\\.m$'=NULL)
 key.vars = c('age','vio.n','dep.now','dep.past','haz.now','haz.past','ptr.n','ptr.tot')
 
 vals = list(
   # base rates
-  'Ri.all'=c(all.Ri,list(save=NULL,vars=key.vars)),
+  'Ri.all'=list(save=NULL,vars=key.vars),
   # RR age
-  'aRR.vio'=c(all.Ri,list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10')),
-  'aRR.dep'=c(all.Ri,list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10')),
-  'aRR.haz'=c(all.Ri,list(save=c('aRR.haz_o'),vars=c('haz_o.a1y'),strat='age.10')),
-  'aRR.ptr'=c(all.Ri,list(save=c('aRR.ptr_o'),vars=c('ptr_o.n1y'),strat='age.10')),
+  'aRR.vio'=list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10'),
+  'aRR.dep'=list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10'),
+  'aRR.haz'=list(save=c('aRR.haz_o'),vars=c('haz_o.a1y'),strat='age.10'),
+  'aRR.ptr'=list(save=c('aRR.ptr_o'),vars=c('ptr_o.n1y'),strat='age.10'),
   # basic RR
-  'RR.dep_o.dep_p'=c(all.Ri,list(save='RR.dep_o.dep_p',vars='dep_o.a1y',strat='dep.past')),
-  'RR.haz_o.haz_p'=c(all.Ri,list(save='RR.haz_o.haz_p',vars='haz_o.a1y',strat='haz.past')),
-  'RR.haz_o.dep_w'=c(all.Ri,list(save='RR.haz_o.dep_w',vars='haz_o.a1y',strat='dep.now')),
-  'RR.haz_x.dep_w'=c(all.Ri,list(save='RR.haz_x.dep_w',vars='haz_x.a1y',strat='dep.now')),
-  'RR.ptr_o.dep_w'=c(all.Ri,list(save='RR.ptr_o.dep_w',vars='ptr_o.n1y',strat='dep.now')),
-  'RR.ptr_o.haz_w'=c(all.Ri,list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='haz.now')),
-  'RR.ptr_x.dep_w'=c(all.Ri,list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='dep.now')),
-  'RR.ptr_x.haz_w'=c(all.Ri,list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='haz.now')),
+  'RR.dep_o.dep_p'=list(save='RR.dep_o.dep_p',vars='dep_o.a1y',strat='dep.past'),
+  'RR.haz_o.haz_p'=list(save='RR.haz_o.haz_p',vars='haz_o.a1y',strat='haz.past'),
+  'RR.haz_o.dep_w'=list(save='RR.haz_o.dep_w',vars='haz_o.a1y',strat='dep.now'),
+  'RR.haz_x.dep_w'=list(save='RR.haz_x.dep_w',vars='haz_x.a1y',strat='dep.now'),
+  'RR.ptr_o.dep_w'=list(save='RR.ptr_o.dep_w',vars='ptr_o.n1y',strat='dep.now'),
+  'RR.ptr_o.haz_w'=list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='haz.now'),
+  'RR.ptr_x.dep_w'=list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='dep.now'),
+  'RR.ptr_x.haz_w'=list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='haz.now'),
   # full null
-  'null'=list(save=NULL,vars=key.vars)
+  'null'=list(save=NULL,vars=key.vars,'Ri\\.m$'=0)
 )
 for (v in names(vals)){ vals[[v]]$name = v }
 
 # =============================================================================
 # run & plot
 
-val.run = function(name,save,vars,strat='.',...){
-  Ps = lapply(1:7,get.pars,n=333,null=list(...,save=save))
+val.run = function(name,vars,strat='.',...){
+  Ps = lapply(1:7,get.pars,n=333,
+    null=ulist('Ri\\.m$'=NULL,...))
   Is = sim.runs(Ps)
   Is = Is[Is$age<amax,]
   g = val.plot(Is,vars,strat)

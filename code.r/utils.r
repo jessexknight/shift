@@ -30,13 +30,10 @@ reppend = function(x,xa,n){
   append(x,rep.int(xa,n))
 }
 
-list.update = function(x,xu=list(),...){
-  # e.g. list.update(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
-  args = c(xu,list(...))
-  for (name in names(args)){
-    x[[name]] = args[[name]]
-  }
-  return(x)
+ulist = function(x=list(),xu=list(),...){
+  # e.g. ulist(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
+  x = c(x,xu,list(...))
+  x[!duplicated(names(x),fromLast=TRUE)]
 }
 
 par.lapply = function(...,.par=TRUE){
