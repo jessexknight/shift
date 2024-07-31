@@ -24,6 +24,19 @@ vals = list(
   'RR.ptr_o.haz_w'=list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='haz.now'),
   'RR.ptr_x.dep_w'=list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='dep.now'),
   'RR.ptr_x.haz_w'=list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='haz.now'),
+  # transient RR
+  'tRR.dep_o.vio_z'=list(save=c('iRR.dep_o.vio_z','tsc.dep_o.vio_z'),vars='dep_o.a1y',strat='vio.a1y'),
+  'tRR.dep_x.vio_z'=list(save=c('iRR.dep_x.vio_z','tsc.dep_x.vio_z'),vars='dep_x.a1y',strat='vio.a1y'),
+  'tRR.haz_o.vio_z'=list(save=c('iRR.haz_o.vio_z','tsc.haz_o.vio_z'),vars='haz_o.a1y',strat='vio.a1y'),
+  'tRR.haz_x.vio_z'=list(save=c('iRR.haz_x.vio_z','tsc.haz_x.vio_z'),vars='haz_x.a1y',strat='vio.a1y'),
+  'tRR.ptr_o.vio_z'=list(save=c('iRR.ptr_o.vio_z','tsc.ptr_o.vio_z'),vars='ptr_o.n1y',strat='vio.a1y'),
+  # cumulative RR
+  'nRR.dep_o.vio_n'=list(save=c('mRR.dep_o.vio_n','nsc.dep_o.vio_n'),vars='dep_o.a1y',strat='vio.n'),
+  'nRR.haz_o.vio_n'=list(save=c('mRR.haz_o.vio_n','nsc.haz_o.vio_n'),vars='haz_o.a1y',strat='vio.n'),
+  'nRR.ptr_o.vio_n'=list(save=c('mRR.ptr_o.vio_n','nsc.ptr_o.vio_n'),vars='ptr_o.n1y',strat='vio.n'),
+  # duration RR
+  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='dep.u'),
+  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='haz.u'),
   # full null
   'null'=list(save=NULL,vars=key.vars,'Ri\\.m$'=0)
 )
@@ -48,12 +61,14 @@ val.plot = function(Is,vars,strat='.'){
   # pre-compute group-wise densities b/c no ggplot support
   g  = c('seed',strat) # grouping variables
   Is = cbind(Is,.='')[c(g,vars)]
+  if (ulen(Is[[strat]]) > 5){
+    Is[[strat]] = q.cut(Is[[strat]],0:5/5) }
   Im = rbind.lapply(vars,function(var){
     x  = as.numeric(Is[[var]]) # extract data
-    br = hist(x,br=min(31,len(unique(x))))$br # compute bins
+    br = hist(x,br=min(31,ulen(x)))$br # compute breaks
     Imx = aggregate(x,Is[g],function(xi){ # for each group
       x = sum1(hist(xi,br=br,plot=FALSE)$count) }) # compute density
-    bm = rep(br[-len(br)],each=nrow(Imx)) # rep bins for df
+    bm = rep(br[-len(br)],each=nrow(Imx)) # rep breaks for df
     if (len(br) > 3){ d = cbind(d.cts=c(Imx$x),d.bin=NA) } # continuous
     else            { d = cbind(d.bin=c(Imx$x),d.cts=NA) } # binary
     Imv = cbind(Imx[g],var=var,b=bm,d) # collect df

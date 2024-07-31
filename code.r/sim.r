@@ -198,7 +198,10 @@ sim.out = function(P,Is,Es,rm.dum=TRUE){
   Is$age.1   = floor(Is$age)        # age in 1-year bins
   Is$age.10  = floor(Is$age/10)*10  # age in 10-year bins
   Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
+  Is$dep.u   = ifelse(Is$dep.now,P$zf+1-Is$dep.zo,NA) # dep duration
+  Is$haz.u   = ifelse(Is$haz.now,P$zf+1-Is$haz.zo,NA) # haz duration
   Is$vio.n1y   = sapply(Es$vio,  num.dz,P$zf,z1y) # num vio past year
+  Is$vio.a1y   = sapply(Es$vio,  any.dz,P$zf,z1y) # any vio past year
   Is$dep_o.a1y = sapply(Es$dep_o,any.dz,P$zf,z1y) # any dep onset past year
   Is$dep_x.a1y = sapply(Es$dep_x,any.dz,P$zf,z1y) # any dep onset past year
   Is$haz_o.a1y = sapply(Es$haz_o,any.dz,P$zf,z1y) # any haz onset past year

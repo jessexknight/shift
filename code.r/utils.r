@@ -24,6 +24,16 @@ na.to.num = function(x,num=0){
   return(x)
 }
 
+q.cut = function(x,qs){
+  # cut x into factor with breaks as quantiles qs
+  cut(x,breaks=unique(quantile(x,qs,na.rm=TRUE)),include.lowest=TRUE)
+}
+
+ulen = function(x){
+  # e.g. ulen(c(1,1,1,2,3)) -> 3
+  len(unique(x))
+}
+
 even.len = function(x){
   # truncate vector x to have an even length
   length(x) = len(x) - (len(x) %% 2)
