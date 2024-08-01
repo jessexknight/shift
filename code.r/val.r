@@ -68,20 +68,21 @@ val.plot = function(Is,vars,strat='.'){
     br = hist(x,br=min(31,ulen(x)))$br # compute breaks
     Imx = aggregate(x,Is[g],function(xi){ # for each group
       x = sum1(hist(xi,br=br,plot=FALSE)$count) }) # compute density
-    bm = rep(br[-len(br)],each=nrow(Imx)) # rep breaks for df
-    if (len(br) > 3){ d = cbind(d.cts=c(Imx$x),d.bin=NA) } # continuous
-    else            { d = cbind(d.bin=c(Imx$x),d.cts=NA) } # binary
-    Imv = cbind(Imx[g],var=var,b=bm,d) # collect df
+    if (len(br) > 3){ # continuous
+      Imv = cbind(Imx[g],var=var,d.cts=c(Imx$x),d.bin=NA,b=rep(br[-len(br)],each=nrow(Imx))) }
+    else { # binary
+      Imv = cbind(Imx[g],var=var,d.bin=Imx$x[,2],d.cts=NA,b=1) }
   })
-  g = ggplot(Im,aes(x=b,y=d.cts,
+  g = ggplot(Im,aes(x=b,y=as.numeric(d.cts),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
     facet_wrap('~var',scales='free',ncol=len(vars)) +
     stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
     stat_summary(geom='line',fun=median) +
-    geom_boxplot(aes(y=d.bin,group=interaction(b,.data[[strat]])),
-      scale='width',alpha=.3,outlier.shape=3) +
+    geom_boxplot(aes(y=as.numeric(d.bin),group=interaction(b,.data[[strat]])),
+      alpha=.3,outlier.alpha=1,outlier.shape=3) +
     labs(x='value',y='density',color=strat,fill=strat) +
+    scale_x_continuous(expand=c(.1,.1)) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
     ylim(c(0,NA))
