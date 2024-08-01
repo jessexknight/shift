@@ -3,8 +3,6 @@ source('meta.r')
 # =============================================================================
 # config
 
-uid = Sys.Date()
-
 key.vars = c('age','vio.n','dep.now','dep.past','haz.now','haz.past','ptr.n','ptr.tot')
 
 vals = list(

@@ -4,6 +4,9 @@ source('par.r')
 source('sim.r')
 source('plot.r')
 
+# unique ID
+uid = Sys.Date()
+
 # time stuff
 dtz  =  7 # days in 1 timestep
 z1y  = 52 # timesteps in 1 year
