@@ -98,12 +98,7 @@ cond.pars = function(P){
 null.pars = function(P,null,save){
   # overwrite most pars via regex list; but save (exempt) some by name
   # to skip any default {re}, use null=list({re}=NULL)
-  null.default = list(
-    'Ri\\.m$'      = 0,   # base rates
-    '^.?RR\\.'     = 1,   # RR, aRR, iRR, mRR
-    '^tsc\\.'      = eps, # time scales
-    '^(d|n)sc\\.'  = Inf) # dur & n scales
-  null = ulist(null.default,null)
+  null = ulist(null.all,null)
   P.save = P[save] # save exempt
   for (re in names(null)){ # for each regex
     if (is.null(null[[re]])){ next } # do nothing if NULL
@@ -111,6 +106,12 @@ null.pars = function(P,null,save){
       P[[x]] = null[[re]] }} # overwrite
   P = ulist(P,P.save) # restore saved
 }
+
+null.all = list(
+  'Ri\\.m$'     = 0,     # base rates
+  '^.?RR\\.'    = 1,     # RR, aRR, iRR, mRR
+  '^tsc\\.'     = 1e-12, # time scales
+  '^(d|n)sc\\.' = Inf)   # dur & num scales
 
 # =============================================================================
 # effect funs

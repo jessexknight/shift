@@ -37,8 +37,8 @@ vals = list(
   # duration RR
   'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='dep.u'),
   'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='haz.u'),
-  # full null
-  'null'=list(save=NULL,vars=key.vars,'Ri\\.m$'=0)
+  # default
+  'default'=ulist(lapply(null.all,function(re){ NULL }),vars=key.vars)
 )
 for (v in names(vals)){ vals[[v]]$name = v }
 
@@ -93,4 +93,4 @@ val.plot = function(Is,vars,strat='.'){
 # main
 
 for (val in vals){
-  do.call(val.run,val,quote=TRUE); break }
+  do.call(val.run,val,quote=TRUE) }
