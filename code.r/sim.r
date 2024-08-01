@@ -10,6 +10,14 @@ init.evts = function(Is){
 
 init.inds = function(P){
   n = P$ntot
+  # sample correlated parameters ----------------------------------------------
+  ptr = as.data.frame(copula(n,
+    covs = P$ptr.cov,
+    qfuns = list(o.Ri=qgamma,x.Ri=qgamma,max=qgeom),
+    o.Ri = list(shape=P$ptr.shape,scale=P$ptr_o.Ri.m/P$ptr.shape),
+    x.Ri = list(shape=P$ptr.shape,scale=P$ptr_x.Ri.m/P$ptr.shape),
+    max  = list(prob=1/P$ptr.max.m)))
+  # create main df of individuals ---------------------------------------------
   Is = data.frame(
     i = seq(n),
     age = runif(n,min=amin-P$ndur*adur,max=amax),
@@ -31,9 +39,9 @@ init.inds = function(P){
     haz.past = FALSE,
     haz.zo   = NA,
     # partnerships
-    ptr_o.Ri = rexp(n=n,rate=1/P$ptr_o.Ri.m),
-    ptr_x.Ri = rexp(n=n,rate=1/P$ptr_x.Ri.m),
-    ptr.max = 1+rgeom(n=n,prob=1/P$ptr.max.m),
+    ptr_o.Ri = ptr$o.Ri,
+    ptr_x.Ri = ptr$x.Ri,
+    ptr.max = 1+ptr$max,
     ptr.n = 0
     # TODO: condoms
   )

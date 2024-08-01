@@ -65,3 +65,19 @@ rbind.lapply = function(...){
 filter.names = function(x,re,b=TRUE){
   names(x)[grepl(re,names(x))==b]
 }
+
+copula = function(n,covs,qfuns,...){
+  # joint sample from qfuns (args in ...) with correlation (covs)
+  # e.g. copula(100,0.5,list(a=qexp,b=qunif),a=list(rate=1),b=list(min=0,max=1))
+  #      draws 100 samples from rexp & runif with 50% corrleation
+  # final correlations are not exact due to quantile transformations
+  d = len(qfuns)
+  sigma = matrix(0,d,d)
+  sigma[lower.tri(sigma)] = covs
+  sigma = sigma + t(sigma) + diag(d)
+  ms = mvtnorm::rmvnorm(n,sigma=sigma) # sample from mvn
+  ps = as.list(data.frame(pnorm(ms))) # normal cdf transform
+  xs = mapply(function(qfun,p,args){ # for each qfun, p vector, args
+    do.call(qfun,c(list(p=p),args)) # target distr quantile transform
+  },qfuns,ps,list(...))
+}
