@@ -9,7 +9,7 @@ key.vars = c('age','vio.n','dep.now','dep.past','haz.now','haz.past','ptr.n','pt
 
 vals = list(
   # base rates
-  'Ri.all'=list(save=NULL,vars=key.vars),
+  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(sex.act==TRUE)),
   # RR age
   'aRR.vio'=list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10'),
   'aRR.dep'=list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10'),
@@ -45,11 +45,11 @@ for (v in names(vals)){ vals[[v]]$name = v }
 # =============================================================================
 # run & plot
 
-val.run = function(name,vars,strat='.',...){
-  Ps = lapply(1:7,get.pars,n=333,
+val.run = function(name,vars,among=quote(TRUE),strat='.',...){
+  Ps = lapply(1:7,get.pars,n=33,zf=z1y*adur,
     null=ulist('Ri\\.m$'=NULL,...))
   Is = sim.runs(Ps)
-  Is = Is[Is$age<amax,]
+  Is = subset(Is,age<amax & eval(among))
   g = val.plot(Is,vars,strat)
   plot.save('val',uid,name,h=3,w=1+3*len(vars))
 }
@@ -93,4 +93,4 @@ val.plot = function(Is,vars,strat='.'){
 # main
 
 for (val in vals){
-  do.call(val.run,val) }
+  do.call(val.run,val,quote=TRUE); break }

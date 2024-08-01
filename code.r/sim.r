@@ -219,6 +219,7 @@ sim.out = function(P,Is,Es,rm.dum=TRUE){
   # TODO: too many, need to pop out
   Is$age.1   = floor(Is$age)        # age in 1-year bins
   Is$age.10  = floor(Is$age/10)*10  # age in 10-year bins
+  Is$sex.act = Is$age > Is$age.act  # sexually active
   Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
   Is$dep.u   = ifelse(Is$dep.now,P$zf+1-Is$dep.zo,NA) # dep duration
   Is$haz.u   = ifelse(Is$haz.now,P$zf+1-Is$haz.zo,NA) # haz duration
