@@ -44,6 +44,11 @@ reppend = function(x,xa,n){
   append(x,rep.int(xa,n))
 }
 
+last = function(x){
+  # return the last element in x or NA if len(x) == 0
+  if (len(x)){ x[len(x)] } else { NA }
+}
+
 ulist = function(x=list(),xu=list(),...){
   # e.g. ulist(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
   x = c(x,xu,list(...))

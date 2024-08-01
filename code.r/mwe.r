@@ -1,9 +1,10 @@
 source('meta.r')
 
 Ps = lapply(1:7,get.pars)
-Is = sim.runs(Ps)
+Ss = sim.runs(Ps)
+Qs = srv.map(Ss)
 
-print(summary(Is[Is$age<amax,c(
+print(summary(Qs[Qs$age<amax,c(
   'vio.n',
   'dep.now','dep.past',
   'haz.now','haz.past',

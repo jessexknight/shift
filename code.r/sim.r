@@ -45,7 +45,7 @@ init.inds = function(P){
     dep.now  = FALSE,
     dep.past = FALSE,
     dep.zo   = NA,
-    # depression
+    # hazardous drinking
     haz_o.Ri = haz$o.Ri,
     haz_x.Ri = haz$x.Ri,
     haz.now  = FALSE,
@@ -150,12 +150,13 @@ rate.ptr_x = function(P,Ks,Is){
 # =============================================================================
 # run simulation
 
-sim.run = function(P){
+sim.run = function(P,rm.dum=TRUE){
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
   Is = init.inds(P)  # individuals
   Es = init.evts(Is) # events
   Ks = NULL          # partnerships
+  # event loop ----------------------------------------------------------------
   for (z in 1:P$zf){
     # if (z %% z1y == 0) { print(z/z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
@@ -205,36 +206,16 @@ sim.run = function(P){
     # sex in ptrs -------------------------------------------------------------
     # TODO
   }
-  Is = sim.out(P,Is,Es)
-}
-
-sim.out = function(P,Is,Es,rm.dum=TRUE){
-  # clean-up simulation output
+  # clean-up ------------------------------------------------------------------
   if (rm.dum){ # remove initial dummy population
     i = which(Is$age < (P$zf/z1y+amin))
     Is = Is[i,]
     Es = lapply(Es,`[`,i)
   }
-  # compute some extra variables
-  # TODO: too many, need to pop out
-  Is$age.1   = floor(Is$age)        # age in 1-year bins
-  Is$age.10  = floor(Is$age/10)*10  # age in 10-year bins
-  Is$sex.act = Is$age > Is$age.act  # sexually active
-  Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
-  Is$dep.u   = ifelse(Is$dep.now,P$zf+1-Is$dep.zo,NA) # dep duration
-  Is$haz.u   = ifelse(Is$haz.now,P$zf+1-Is$haz.zo,NA) # haz duration
-  Is$vio.n1y   = sapply(Es$vio,  num.dz,P$zf,z1y) # num vio past year
-  Is$vio.a1y   = sapply(Es$vio,  any.dz,P$zf,z1y) # any vio past year
-  Is$dep_o.a1y = sapply(Es$dep_o,any.dz,P$zf,z1y) # any dep onset past year
-  Is$dep_x.a1y = sapply(Es$dep_x,any.dz,P$zf,z1y) # any dep onset past year
-  Is$haz_o.a1y = sapply(Es$haz_o,any.dz,P$zf,z1y) # any haz onset past year
-  Is$haz_x.a1y = sapply(Es$haz_x,any.dz,P$zf,z1y) # any haz onset past year
-  Is$ptr_o.n1y = sapply(Es$ptr_o,num.dz,P$zf,z1y) # num ptr form past year
-  Is$ptr_x.n1y = sapply(Es$ptr_x,num.dz,P$zf,z1y) # num ptr diss past year
-  Is = cbind(seed=P$seed,Is)
+  S = list(P=P,Is=Is,Es=Es)
 }
 
 sim.runs = function(Ps,.par=TRUE){
   # run.sim in parallel for each (P)arameter set in Ps
-  Is = rbind.lapply(Ps,sim.run,.par=.par & len(Ps)>1)
+  Ss = par.lapply(Ps,sim.run,.par=.par & len(Ps)>1)
 }

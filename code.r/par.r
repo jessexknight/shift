@@ -2,8 +2,8 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...,null=NULL){
-  P = list(seed=seed)
+get.pars = function(seed=0,...,case='base',null=NULL){
+  P = list(case=case,seed=seed)
   P$n = 1000
   P$zf = z1y*adur*2
   # base rates
