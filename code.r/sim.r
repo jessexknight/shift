@@ -106,8 +106,8 @@ rate.haz_x = function(P,Js,R,aj,z){
 ); return(R) }
 
 rate.ptr_o = function(P,Js,R,aj,z){
-  j = which(Js$ptr.n < Js$ptr.max)
-  R[j] = ( # among avail
+  j = which(Js$age > Js$age.act & Js$ptr.n < Js$ptr.max)
+  R[j] = ( # among sex active & avail
       Js$ptr_o.Ri[j] # base rate
     * P$aRR.ptr_o[aj[j]] # RR age
     * (1 + P$RRu.ptr_o.dep_w * Js$dep.now[j]) # RR dep now
@@ -146,7 +146,7 @@ sim.run = function(P){
     Es$ptr_x[i] = lapply(Es$ptr_x[i],append,z)
     Ks = Ks[!b,]
     # select active inds ------------------------------------------------------
-    i = which(Is$age > Is$age.act & Is$age < amax)
+    i = which(Is$age > amin & Is$age < amax)
     Js = Is[i,] # read only copy of active
     ij = match(Js$i,Is$i) # map j -> j
     aj = floor(Js$age-amin+1) # age vector for j
@@ -195,6 +195,7 @@ sim.out = function(P,Is,Es,rm.dum=TRUE){
     Es = lapply(Es,`[`,i)
   }
   # compute some extra variables
+  # TODO: too many, need to pop out
   Is$age.1   = floor(Is$age)        # age in 1-year bins
   Is$age.10  = floor(Is$age/10)*10  # age in 10-year bins
   Is$ptr.tot = sapply(Es$ptr_o,len) # lifetime ptrs
