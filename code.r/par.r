@@ -15,7 +15,9 @@ get.pars = function(seed=0,...,null=NULL){
   P$ptr_o.Ri.m  = 1/35      # (mean) base rate: partner formation
   P$ptr_x.Ri.m  = 1/364     # (mean) base rate: partner dissolution
   P$ptr.max.m   = 1.50      # (mean) max num partners
-  P$ptr.cov     = 0.9       # approx covariance among ptr_o,ptr_x,ptr.max
+  P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
+  P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
+  P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
   P$ptr.shape   = 3         # gamma shape for ptr_o,ptr_x
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio

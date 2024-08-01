@@ -11,12 +11,25 @@ init.evts = function(Is){
 init.inds = function(P){
   n = P$ntot
   # sample correlated parameters ----------------------------------------------
+  dep = as.data.frame(copula(n,
+    covs = P$dep.cov,
+    qfuns = list(o.Ri=qexp,x.Ri=qexp),
+    o.Ri = list(rate=1/P$dep_o.Ri.m),
+    x.Ri = list(rate=1/P$dep_x.Ri.m)))
+  # plot(dep,col=rgb(0,0,0,.1)) # DEBUG
+  haz = as.data.frame(copula(n,
+    covs = P$haz.cov,
+    qfuns = list(o.Ri=qexp,x.Ri=qexp),
+    o.Ri = list(rate=1/P$haz_o.Ri.m),
+    x.Ri = list(rate=1/P$haz_x.Ri.m)))
+  # plot(haz,col=rgb(0,0,0,.1)) # DEBUG
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma,max=qgeom),
     o.Ri = list(shape=P$ptr.shape,scale=P$ptr_o.Ri.m/P$ptr.shape),
     x.Ri = list(shape=P$ptr.shape,scale=P$ptr_x.Ri.m/P$ptr.shape),
     max  = list(prob=1/P$ptr.max.m)))
+  # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
   Is = data.frame(
     i = seq(n),
@@ -27,14 +40,14 @@ init.inds = function(P){
     vio.zf = NA,
     vio.n  = 0,
     # depression
-    dep_o.Ri = rexp(n=n,rate=1/P$dep_o.Ri.m),
-    dep_x.Ri = rexp(n=n,rate=1/P$dep_x.Ri.m),
+    dep_o.Ri = dep$o.Ri,
+    dep_x.Ri = dep$x.Ri,
     dep.now  = FALSE,
     dep.past = FALSE,
     dep.zo   = NA,
     # depression
-    haz_o.Ri = rexp(n=n,rate=1/P$haz_o.Ri.m),
-    haz_x.Ri = rexp(n=n,rate=1/P$haz_x.Ri.m),
+    haz_o.Ri = haz$o.Ri,
+    haz_x.Ri = haz$x.Ri,
     haz.now  = FALSE,
     haz.past = FALSE,
     haz.zo   = NA,
