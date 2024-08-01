@@ -46,7 +46,7 @@ for (v in names(vals)){ vals[[v]]$name = v }
 # run & plot
 
 val.run = function(name,vars,among=quote(TRUE),strat='.',...){
-  Ps = lapply(1:7,get.pars,n=33,zf=z1y*adur,
+  Ps = lapply(1:7,get.pars,n=333,
     null=ulist('Ri\\.m$'=NULL,...))
   Is = sim.runs(Ps)
   Is = subset(Is,age<amax & eval(among))
