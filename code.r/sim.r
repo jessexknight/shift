@@ -31,9 +31,11 @@ init.inds = function(P){
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
+  age = runif(n,min=amin-P$ndur*adur,max=amax)
   Is = data.frame(
     i = seq(n),
-    age = runif(n,min=amin-P$ndur*adur,max=amax),
+    z.born  = -age*z1y,
+    age     = +age,
     age.act = runif(n,min=amin,max=20),
     # violence
     vio.Ri = rexp(n=n,rate=1/P$vio.Ri.m),
