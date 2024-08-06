@@ -54,32 +54,29 @@ val.run = function(name,vars,among=quote(TRUE),strat='.',...){
 
 val.plot = function(Is,vars,strat='.'){
   # plot the densities for multiple (7) seeds using:
-  # - boxplot if var is binary
-  # - line+ribbon otherwise
+  # boxplot if var is binary else line+ribbon
   # pre-compute group-wise densities b/c no ggplot support
   g  = c('seed',strat) # grouping variables
   Is = cbind(Is,.='')[c(g,vars)]
-  if (ulen(Is[[strat]]) > 5){
-    Is[[strat]] = q.cut(Is[[strat]],0:5/5) }
   Im = rbind.lapply(vars,function(var){
-    x  = as.numeric(Is[[var]]) # extract data
-    br = hist(x,br=min(31,ulen(x)))$br # compute breaks
-    Imx = aggregate(x,Is[g],function(xi){ # for each group
-      x = sum1(hist(xi,br=br,plot=FALSE)$count) }) # compute density
+    x = as.numeric(Is[[var]]) # extract data
+    b = breaks(x) # compute breaks
+    Imv = aggregate(x,Is[g],function(xg){ # for each group
+      d = sum1(hist(xg,breaks=b,right=FALSE,plot=FALSE)$count) }) # compute density
     if (len(br) > 3){ # continuous
-      Imv = cbind(Imx[g],var=var,d.cts=c(Imx$x),d.bin=NA,b=rep(br[-len(br)],each=nrow(Imx))) }
+      Imv = cbind(Imv[g],var=var,d.cts=c(Imv$x),d.bin=NA,b=rep(b[-len(b)],each=nrow(Imv))) }
     else { # binary
-      Imv = cbind(Imx[g],var=var,d.bin=Imx$x[,2],d.cts=NA,b=1) }
+      Imv = cbind(Imv[g],var=var,d.bin=Imv$x[,2],d.cts=NA,b=1) }
   })
-  g = ggplot(Im,aes(x=b,y=as.numeric(d.cts),
+  g = ggplot(Im,aes(x=b,y=100*as.numeric(d.cts),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
     facet_wrap('~var',scales='free',ncol=len(vars)) +
     stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
     stat_summary(geom='line',fun=median) +
-    geom_boxplot(aes(y=as.numeric(d.bin),group=interaction(b,.data[[strat]])),
+    geom_boxplot(aes(y=100*as.numeric(d.bin),group=interaction(b,.data[[strat]])),
       alpha=.3,outlier.alpha=1,outlier.shape=3) +
-    labs(x='value',y='density',color=strat,fill=strat) +
+    labs(x='value',y='proportion (%)',color=strat,fill=strat) +
     scale_x_continuous(expand=c(.1,.1)) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +

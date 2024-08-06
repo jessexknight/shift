@@ -24,9 +24,20 @@ na.to.num = function(x,num=0){
   return(x)
 }
 
-q.cut = function(x,qs){
-  # cut x into factor with breaks as quantiles qs
-  cut(x,breaks=unique(quantile(x,qs,na.rm=TRUE)),include.lowest=TRUE)
+int.cut = function(x,low){
+  # cut with simplified labels (assume integers)
+  # e.g. int.cut(1:6,c(1,2,3,5)) -> c('1','2','3-4','3-4','5+','5+')
+  high = c(low[2:len(low)]-1,Inf)
+  labels = gsub('-Inf','+',ifelse(low==high,low,paste0(low,'-',high)))
+  x.cut = cut(x,breaks=c(low,Inf),labels=labels,right=FALSE)
+}
+
+breaks = function(x,nmax=25){
+  b = c(seq(
+    min(x,na.rm=TRUE),
+    max(x,na.rm=TRUE),
+    ceiling(ulen(x)/nmax) # step
+  ),Inf)
 }
 
 ulen = function(x){
@@ -55,10 +66,12 @@ ulist = function(x=list(),xu=list(),...){
   x[!duplicated(names(x),fromLast=TRUE)]
 }
 
+.cores = 7 # global config of parallel cores
+
 par.lapply = function(...,.par=TRUE){
-  if (.par){
-    parallel::mclapply(...,mc.cores=7)
-  } else {
+  if (.par && len(list(...)[[1]]) > 1){
+    parallel::mclapply(...,mc.cores=.cores) }
+  else {
     lapply(...)
   }
 }
