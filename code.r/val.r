@@ -7,34 +7,34 @@ key.vars = c('age','vio.n','dep.now','dep.past','haz.now','haz.past','ptr.n','pt
 
 vals = list(
   # base rates
-  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(sex.act==TRUE)),
+  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(sex.act)),
   # RR age
   'aRR.vio'=list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10'),
   'aRR.dep'=list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10'),
   'aRR.haz'=list(save=c('aRR.haz_o'),vars=c('haz_o.a1y'),strat='age.10'),
   'aRR.ptr'=list(save=c('aRR.ptr_o'),vars=c('ptr_o.n1y'),strat='age.10'),
   # basic RR
-  'RR.dep_o.dep_p'=list(save='RR.dep_o.dep_p',vars='dep_o.a1y',strat='dep.past'),
-  'RR.haz_o.haz_p'=list(save='RR.haz_o.haz_p',vars='haz_o.a1y',strat='haz.past'),
-  'RR.haz_o.dep_w'=list(save='RR.haz_o.dep_w',vars='haz_o.a1y',strat='dep.now'),
-  'RR.haz_x.dep_w'=list(save='RR.haz_x.dep_w',vars='haz_x.a1y',strat='dep.now'),
-  'RR.ptr_o.dep_w'=list(save='RR.ptr_o.dep_w',vars='ptr_o.n1y',strat='dep.now'),
-  'RR.ptr_o.haz_w'=list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='haz.now'),
-  'RR.ptr_x.dep_w'=list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='dep.now'),
-  'RR.ptr_x.haz_w'=list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='haz.now'),
+  'RR.dep_o.dep_p'=list(save='RR.dep_o.dep_p',vars='dep_o.a1y',strat='yp.dep.past',among=quote(!yp.dep.now)),
+  'RR.haz_o.haz_p'=list(save='RR.haz_o.haz_p',vars='haz_o.a1y',strat='yp.haz.past',among=quote(!yp.haz.now)),
+  'RR.haz_o.dep_w'=list(save='RR.haz_o.dep_w',vars='haz_o.a1y',strat='yp.dep.now', among=quote(!yp.haz.now)),
+  'RR.haz_x.dep_w'=list(save='RR.haz_x.dep_w',vars='haz_x.a1y',strat='yp.dep.now', among=quote( yp.haz.now)),
+  'RR.ptr_o.dep_w'=list(save='RR.ptr_o.dep_w',vars='ptr_o.n1y',strat='yp.dep.now'),
+  'RR.ptr_o.haz_w'=list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='yp.haz.now'),
+  'RR.ptr_x.dep_w'=list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='yp.dep.now'),
+  'RR.ptr_x.haz_w'=list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='yp.haz.now'),
   # transient RR
-  'tRR.dep_o.vio_z'=list(save=c('iRR.dep_o.vio_z','tsc.dep_o.vio_z'),vars='dep_o.a1y',strat='vio.a1y'),
-  'tRR.dep_x.vio_z'=list(save=c('iRR.dep_x.vio_z','tsc.dep_x.vio_z'),vars='dep_x.a1y',strat='vio.a1y'),
-  'tRR.haz_o.vio_z'=list(save=c('iRR.haz_o.vio_z','tsc.haz_o.vio_z'),vars='haz_o.a1y',strat='vio.a1y'),
-  'tRR.haz_x.vio_z'=list(save=c('iRR.haz_x.vio_z','tsc.haz_x.vio_z'),vars='haz_x.a1y',strat='vio.a1y'),
+  'tRR.dep_o.vio_z'=list(save=c('iRR.dep_o.vio_z','tsc.dep_o.vio_z'),vars='dep_o.a1y',strat='vio.a1y',among=quote(!yp.dep.now)),
+  'tRR.dep_x.vio_z'=list(save=c('iRR.dep_x.vio_z','tsc.dep_x.vio_z'),vars='dep_x.a1y',strat='vio.a1y',among=quote( yp.dep.now)),
+  'tRR.haz_o.vio_z'=list(save=c('iRR.haz_o.vio_z','tsc.haz_o.vio_z'),vars='haz_o.a1y',strat='vio.a1y',among=quote(!yp.haz.now)),
+  'tRR.haz_x.vio_z'=list(save=c('iRR.haz_x.vio_z','tsc.haz_x.vio_z'),vars='haz_x.a1y',strat='vio.a1y',among=quote( yp.haz.now)),
   'tRR.ptr_o.vio_z'=list(save=c('iRR.ptr_o.vio_z','tsc.ptr_o.vio_z'),vars='ptr_o.n1y',strat='vio.a1y'),
   # cumulative RR
-  'nRR.dep_o.vio_n'=list(save=c('mRR.dep_o.vio_n','nsc.dep_o.vio_n'),vars='dep_o.a1y',strat='vio.n'),
-  'nRR.haz_o.vio_n'=list(save=c('mRR.haz_o.vio_n','nsc.haz_o.vio_n'),vars='haz_o.a1y',strat='vio.n'),
-  'nRR.ptr_o.vio_n'=list(save=c('mRR.ptr_o.vio_n','nsc.ptr_o.vio_n'),vars='ptr_o.n1y',strat='vio.n'),
+  'nRR.dep_o.vio_n'=list(save=c('mRR.dep_o.vio_n','nsc.dep_o.vio_n'),vars='dep_o.a1y',strat='yp.vio.n.c',among=quote(!yp.dep.now)),
+  'nRR.haz_o.vio_n'=list(save=c('mRR.haz_o.vio_n','nsc.haz_o.vio_n'),vars='haz_o.a1y',strat='yp.vio.n.c',among=quote(!yp.haz.now)),
+  'nRR.ptr_o.vio_n'=list(save=c('mRR.ptr_o.vio_n','nsc.ptr_o.vio_n'),vars='ptr_o.n1y',strat='yp.vio.n.c'),
   # duration RR
-  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='dep.u'),
-  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='haz.u'),
+  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='yp.dep.u.c',among=quote(yp.dep.now)),
+  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='yp.haz.u.c',among=quote(yp.dep.now)),
   # default
   'default'=ulist(lapply(null.all,function(re){ NULL }),vars=key.vars)
 )
@@ -46,29 +46,29 @@ for (v in names(vals)){ vals[[v]]$name = v }
 val.run = function(name,vars,among=quote(TRUE),strat='.',...){
   Ps = lapply(1:7,get.pars,n=333,
     null=ulist('Ri\\.m$'=NULL,...))
-  Is = sim.runs(Ps)
-  Is = subset(Is,age<amax & eval(among))
-  g = val.plot(Is,vars,strat)
+  Q = srv.apply(sim.runs(Ps),srvs=c(srv.val))
+  Q = subset(Q,age < amax & eval(among))
+  g = val.plot(Q,vars,strat)
   plot.save('val',uid,name,h=3,w=1+3*len(vars))
 }
 
-val.plot = function(Is,vars,strat='.'){
+val.plot = function(Q,vars,strat='.'){
   # plot the densities for multiple (7) seeds using:
   # boxplot if var is binary else line+ribbon
   # pre-compute group-wise densities b/c no ggplot support
-  g  = c('seed',strat) # grouping variables
-  Is = cbind(Is,.='')[c(g,vars)]
-  Im = rbind.lapply(vars,function(var){
-    x = as.numeric(Is[[var]]) # extract data
+  g = c('seed',strat) # grouping variables
+  Q = cbind(Q,.='')[c(g,vars)]
+  Qd = rbind.lapply(vars,function(var){
+    x = as.numeric(Q[[var]]) # extract data
     b = breaks(x) # compute breaks
-    Imv = aggregate(x,Is[g],function(xg){ # for each group
+    Qdv = aggregate(x,Q[g],function(xg){ # for each group
       d = sum1(hist(xg,breaks=b,right=FALSE,plot=FALSE)$count) }) # compute density
-    if (len(br) > 3){ # continuous
-      Imv = cbind(Imv[g],var=var,d.cts=c(Imv$x),d.bin=NA,b=rep(b[-len(b)],each=nrow(Imv))) }
+    if (len(b) > 3){ # continuous
+      Qdv = cbind(Qdv[g],var=var,d.cts=c(Qdv$x),d.bin=NA,b=rep(b[-len(b)],each=nrow(Qdv))) }
     else { # binary
-      Imv = cbind(Imv[g],var=var,d.bin=Imv$x[,2],d.cts=NA,b=1) }
+      Qdv = cbind(Qdv[g],var=var,d.bin=Qdv$x[,2],d.cts=NA,b=1) }
   })
-  g = ggplot(Im,aes(x=b,y=100*as.numeric(d.cts),
+  g = ggplot(Qd,aes(x=b,y=100*as.numeric(d.cts),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
     facet_wrap('~var',scales='free',ncol=len(vars)) +
@@ -88,4 +88,4 @@ val.plot = function(Is,vars,strat='.'){
 # main
 
 for (val in vals){
-  do.call(val.run,val,quote=TRUE) }
+  do.call(val.run,val,quote=TRUE); break }

@@ -5,7 +5,7 @@
 get.pars = function(seed=0,...,case='base',null=NULL){
   P = list(case=case,seed=seed)
   P$n = 1000
-  P$zf = z1y*adur*2
+  P$ndur = 1+1
   # base rates
   P$vio.Ri.m    = 1/364     # (mean) base rate: violence event
   P$dep_o.Ri.m  = 1/3640    # (mean) base rate: depression onset
@@ -67,7 +67,7 @@ get.pars = function(seed=0,...,case='base',null=NULL){
 }
 
 cond.pars = function(P){
-  P$ndur = P$zf/z1y/adur    # num sim adurs (1 is dummy)
+  P$zf   = P$ndur*adur*z1y  # final timestep
   P$ntot = P$n * (1+P$ndur) # total inds needed
   # RR: age
   P$aRR.vio   = def.RR.age(P$aRR.vio.ages,P$aRR.vio.RRs) # RR: age -> vio
@@ -141,12 +141,4 @@ def.tRR.exp = function(iRR,tsc,eps=.001){
 map.tRR = function(tRRu,ze,z){
   # lookup & sum RR kernel for now (z) given prior events (ze)
   RR = 1 + na.to.num(tRRu[z+1-ze])
-}
-
-num.dz = function(zes,z,dz){
-  n = sum(zes <= z & zes >= z+1-dz)
-}
-
-any.dz = function(zes,z,dz){
-  b = num.dz(zes,z,dz) > 0
 }

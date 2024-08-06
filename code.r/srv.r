@@ -5,7 +5,7 @@
 p.vars = c('case','seed')
 i.cols = c(
   'i',
-  'age.act',
+  'z.born','age.act',
   'vio.Ri',
   'dep_o.Ri','dep_x.Ri',
   'haz_o.Ri','haz_x.Ri',
@@ -15,37 +15,71 @@ i.cols = c(
 # =============================================================================
 # survey funs
 
-srv.map = function(Ss,z,srvs=NULL){
-  # run survey(s) on Ss at timestep z, return joined Qs
-  if (missing(z)){ z = Ss[[1]]$P$zf }
-  Zs = par.lapply(Ss,srv.base,z=z) # base survey (always)
-  for (srv in srvs){               # other surveys (optional)
-    Zs = par.lapply(Zs,srv,z=z) }
-  Qs = rbind.lapply(Zs,`[[`,'Qs')  # extract Qs
+srv.apply = function(Ms,z,srvs=c(srv.base)){
+  # apply 1+ surveys (srvs) to sim outputs (Ms) at time (z)
+  if (missing(z)){ z = Ms[[1]]$P$zf }
+  Ps = lapply(Ms,`[[`,'P')
+  Es = lapply(Ms,`[[`,'E')
+  Qs = lapply(Ms,srv.init,z=z)
+  for (srv in srvs){
+    Qs = par.mapply(srv,Ps,Qs,Es,z) }
+  Q = do.call(rbind,Qs)
 }
 
-srv.base = function(S,z){
-  # base survey: recreate Qs = Is at time z <= P$zf using Es
-  attach(S) # -> P, Is, Es
-  Es = lapply(Es,lapply,function(zes){ zes[zes <= z] }) # clip events
-  Qs = cbind(P[p.vars],z=z,Is[i.cols]) # init Qs ~= Is
-  Qs$age      = Is$age - (P$zf-z)/364
-  Qs$sex.act  = Qs$age > Qs$age.act
-  Qs$vio.n    = sapply(Es$vio,len)
-  Qs$vio.zf   = sapply(Es$vio,last)
-  n_o = sapply(Es$dep_o,len)
-  Qs$dep.now  = n_o > sapply(Es$dep_x,len)
-  Qs$dep.past = n_o > 0
-  Qs$dep.zo   = sapply(Es$dep_o,last)
-  Qs$dep.u    = ifelse(Qs$dep.now,z+1-Qs$dep.zo,NA)
-  n_o = sapply(Es$haz_o,len)
-  Qs$haz.now  = n_o > sapply(Es$haz_x,len)
-  Qs$haz.past = n_o > 0
-  Qs$haz.zo   = sapply(Es$haz_o,last)
-  Qs$haz.u    = ifelse(Qs$haz.now,z+1-Qs$haz.zo,NA)
-  Qs$ptr.tot  = sapply(Es$ptr_o,len) # lifetime ptrs
-  Qs$ptr.n    = Qs$ptr.tot - sapply(Es$ptr_x,len) # current ptrs
-  # v = intersect(names(Is),names(Qs)) # DEBUG (z = P$zf)
-  # print(all(Is[v]==Qs[v] | is.na(Is[v]))) # DEBUG
-  Z = list(P=P,Qs=Qs,Es=Es) # sim-like output
+srv.init = function(M,z){
+  Q = cbind(M$P[p.vars],z=z,M$I[i.cols]) # init Q ~= I
+  # Q = srv.base(M$P,Q,M$E,z); v = intersect(names(M$I),names(Q)) # DEBUG
+  # print(all.equal(M$I[v],Q[v])) # DEBUG
 }
+
+srv.base = function(P,Q,E,z,fmt='%s'){
+  E = lapply(E,lapply,clip.zes,z=z) # clip events
+  Q$age      = (z-Q$z.born)/z1y
+  Q$sex.act  = Q$age > Q$age.act
+  Q$vio.n    = sapply(E$vio,len)
+  Q$vio.nf   = sapply(E$vio,last)
+  Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
+  Q$dep.past = sapply(E$dep_o,len) > 0
+  Q$dep.zo   = sapply(E$dep_o,last)
+  Q$dep.u    = ifelse(Q$dep.now,z+1-Q$dep.zo,NA)
+  Q$haz.now  = sapply(E$haz_o,len) > sapply(E$haz_x,len)
+  Q$haz.past = sapply(E$haz_o,len) > 0
+  Q$haz.zo   = sapply(E$haz_o,last)
+  Q$haz.u    = ifelse(Q$haz.now,z+1-Q$haz.zo,NA)
+  Q$ptr.tot  = sapply(E$ptr_o,len)
+  Q$ptr.n    = Q$ptr.tot - sapply(E$ptr_x,len)
+  names(Q) = sprintf(fmt,names(Q)) # format names for conflicts
+  return(Q)
+}
+
+# -----------------------------------------------------------------------------
+
+srv.val = function(P,Q,E,z){
+  E = lapply(E,lapply,clip.zes,z=z) # clip events
+  Q = srv.base(P,Q,E,z)
+  Q$age.10 = floor(Q$age/10)*10
+  # events in past 1 year
+  Q$vio.n1y   = sapply(E$vio,num.dz,z,z1y)
+  Q$vio.a1y   = sapply(E$vio,any.dz,z,z1y)
+  Q$dep_o.a1y = sapply(E$dep_o,any.dz,z,z1y)
+  Q$dep_x.a1y = sapply(E$dep_x,any.dz,z,z1y)
+  Q$haz_o.a1y = sapply(E$haz_o,any.dz,z,z1y)
+  Q$haz_x.a1y = sapply(E$haz_x,any.dz,z,z1y)
+  Q$ptr_o.n1y = sapply(E$ptr_o,num.dz,z,z1y)
+  Q$ptr_x.n1y = sapply(E$ptr_x,num.dz,z,z1y)
+  # states 1 year prior
+  Q = cbind(Q,srv.base(P,Q,E,z-z1y,fmt='yp.%s'))
+  Q$yp.dep.u.c = int.cut(Q$yp.dep.u,z1y*c(0,1,10))
+  Q$yp.haz.u.c = int.cut(Q$yp.haz.u,z1y*c(0,1,10))
+  Q$yp.vio.n.c = int.cut(Q$yp.vio.n,c(0,1,10))
+  return(Q)
+}
+
+# =============================================================================
+# question / event funs
+
+clip.zes = function(zes,z){ zes[zes <= z] }
+
+num.dz = function(zes,z,dz){ n = sum(zes <= z & zes >= z+1-dz) }
+
+any.dz = function(zes,z,dz){ b = num.dz(zes,z,dz) > 0 }
