@@ -32,12 +32,8 @@ int.cut = function(x,low){
   x.cut = cut(x,breaks=c(low,Inf),labels=labels,right=FALSE)
 }
 
-breaks = function(x,nmax=25){
-  b = c(seq(
-    min(x,na.rm=TRUE),
-    max(x,na.rm=TRUE),
-    ceiling(ulen(x)/nmax) # step
-  ),Inf)
+breaks = function(x,n=30){
+  b = hist(x,breaks=min(n,ulen(x)),plot=FALSE)$breaks
 }
 
 ulen = function(x){
