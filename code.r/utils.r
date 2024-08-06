@@ -76,6 +76,10 @@ par.lapply = function(...,.par=TRUE){
   }
 }
 
+par.mapply = function(...){
+  parallel::mcmapply(...,mc.cores=.cores,SIMPLIFY=FALSE)
+}
+
 rbind.lapply = function(...){
   do.call(rbind,par.lapply(...))
 }
