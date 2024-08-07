@@ -5,9 +5,9 @@ Ms = sim.runs(Ps)
 Q  = srv.apply(Ms)
 
 print(summary(Q[Q$age<amax,c(
-  'vio.n',
+  'vio.nt',
   'dep.now','dep.past',
   'haz.now','haz.past',
-  'ptr.n','ptr.tot',
+  'ptr.nw','ptr.nt',
   'age'
 )]))

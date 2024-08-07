@@ -26,8 +26,8 @@ init.inds = function(P){
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma,max=qgeom),
-    o.Ri = list(shape=P$ptr.shape,scale=P$ptr_o.Ri.m/P$ptr.shape),
-    x.Ri = list(shape=P$ptr.shape,scale=P$ptr_x.Ri.m/P$ptr.shape),
+    o.Ri = list(shape=P$ptr.Ri.shape,scale=P$ptr_o.Ri.m/P$ptr.Ri.shape),
+    x.Ri = list(shape=P$ptr.Ri.shape,scale=P$ptr_x.Ri.m/P$ptr.Ri.shape),
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
@@ -40,7 +40,7 @@ init.inds = function(P){
     # violence
     vio.Ri = rexp(n=n,rate=1/P$vio.Ri.m),
     vio.zf = NA,
-    vio.n  = 0,
+    vio.nt = 0,
     # depression
     dep_o.Ri = dep$o.Ri,
     dep_x.Ri = dep$x.Ri,
@@ -56,8 +56,8 @@ init.inds = function(P){
     # partnerships
     ptr_o.Ri = ptr$o.Ri,
     ptr_x.Ri = ptr$x.Ri,
-    ptr.max = 1+ptr$max,
-    ptr.n = 0
+    ptr.max  = 1+ptr$max,
+    ptr.nw   = 0
     # TODO: condoms
   )
 }
@@ -72,7 +72,7 @@ init.ptrs = function(P,I,i,z){
   K = data.frame(
     i1 = I$i[i1], # i of partner 1
     i2 = I$i[i2], # i of partner 2
-    zo = z # timestep ptr starts
+    zo = z # timestep ptr begins
     # TODO: f.sex, p.cdm
   )
 }
@@ -96,8 +96,8 @@ rate.dep_o = function(P,J,R,aj,z){
       J$dep_o.Ri[j] # base rate
     * P$aRR.dep_o[aj[j]] # RR age
     * (1 + P$RRu.dep_o.dep_p * J$dep.past[j]) # RR dep past
-    * map.tRR(P$tRRu.dep_o.vio_z,J$vio.zf[j],z) # tRR vio
-    * P$nRR.dep_o.vio_n[J$vio.n[j]+1] # nRR vio
+    * map.tRR(P$tRRu.dep_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * P$nRR.dep_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
 rate.dep_x = function(P,J,R,aj,z){
@@ -105,7 +105,7 @@ rate.dep_x = function(P,J,R,aj,z){
   R[j] = ( # among dep
       J$dep_x.Ri[j] # base rate
     * map.tRR(P$dRRu.dep_x.dep_u,J$dep.zo[j],z) # RR dep dur
-    * map.tRR(P$tRRu.dep_x.vio_z,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.dep_x.vio_zf,J$vio.zf[j],z) # tRR vio
 ); return(R) }
 
 rate.haz_o = function(P,J,R,aj,z){
@@ -115,8 +115,8 @@ rate.haz_o = function(P,J,R,aj,z){
     * P$aRR.haz_o[aj[j]] # RR age
     * (1 + P$RRu.haz_o.haz_p * J$haz.past[j]) # RR haz past
     * (1 + P$RRu.haz_o.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_o.vio_z,J$vio.zf[j],z) # tRR vio
-    * P$nRR.haz_o.vio_n[J$vio.n[j]+1] # nRR vio
+    * map.tRR(P$tRRu.haz_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * P$nRR.haz_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
 rate.haz_x = function(P,J,R,aj,z){
@@ -125,18 +125,18 @@ rate.haz_x = function(P,J,R,aj,z){
       J$haz_x.Ri[j] # base rate
     * map.tRR(P$dRRu.haz_x.haz_u,J$haz.zo[j],z) # RR haz dur
     * (1 + P$RRu.haz_x.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_x.vio_z,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.haz_x.vio_zf,J$vio.zf[j],z) # tRR vio
 ); return(R) }
 
 rate.ptr_o = function(P,J,R,aj,z){
-  j = which(J$age > J$age.act & J$ptr.n < J$ptr.max)
+  j = which(J$age > J$age.act & J$ptr.nw < J$ptr.max)
   R[j] = ( # among sex active & avail
       J$ptr_o.Ri[j] # base rate
     * P$aRR.ptr_o[aj[j]] # RR age
     * (1 + P$RRu.ptr_o.dep_w * J$dep.now[j]) # RR dep now
     * (1 + P$RRu.ptr_o.haz_w * J$haz.now[j]) # RR haz now
-    * map.tRR(P$tRRu.ptr_o.vio_z,J$vio.zf[j],z) # tRR vio
-    * P$nRR.ptr_o.vio_n[J$vio.n[j]+1] # nRR vio
+    * map.tRR(P$tRRu.ptr_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * P$nRR.ptr_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
 rate.ptr_x = function(P,K,I){
@@ -163,10 +163,10 @@ sim.run = function(P,rm.dum=TRUE){
     # if (z %% z1y == 0) { print(z/z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
     I$age = I$age + 1/z1y
-    # ptr dissolve ------------------------------------------------------------
+    # end ptrs ----------------------------------------------------------------
     b = rate.to.bool(rate.ptr_x(P,K,I))
     i = c(K$i1[b],K$i2[b])
-    I$ptr.n[i] = I$ptr.n[i] - 1
+    I$ptr.nw[i] = I$ptr.nw[i] - 1 # TODO: bug if any repeated i
     E$ptr_x[i] = lapply(E$ptr_x[i],append,z)
     K = K[!b,]
     # select active inds ------------------------------------------------------
@@ -175,34 +175,34 @@ sim.run = function(P,rm.dum=TRUE){
     ij = match(J$i,I$i) # map j -> j
     aj = floor(J$age-amin+1) # age vector for j
     R0 = numeric(nrow(J)) # init rate = 0 for j
-    # update vio events -------------------------------------------------------
+    # vio events --------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.vio(P,J,aj)))]
     I$vio.zf[i] = z
-    I$vio.n[i] = I$vio.n[i] + 1
+    I$vio.nt[i] = I$vio.nt[i] + 1
     E$vio[i] = lapply(E$vio[i],append,z)
-    # update dep onset --------------------------------------------------------
+    # begin dep ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z)))]
     I$dep.now[i] = TRUE
     I$dep.past[i] = TRUE
     I$dep.zo[i] = z
     E$dep_o[i] = lapply(E$dep_o[i],append,z)
-    # update dep recovery -----------------------------------------------------
+    # end dep -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z)))]
     I$dep.now[i] = FALSE
     E$dep_x[i] = lapply(E$dep_x[i],append,z)
-    # update haz onset --------------------------------------------------------
+    # begin haz ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z)))]
     I$haz.now[i] = TRUE
     I$haz.past[i] = TRUE
     I$haz.zo[i] = z
     E$haz_o[i] = lapply(E$haz_o[i],append,z)
-    # update haz recovery -----------------------------------------------------
+    # end haz -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z)))]
     I$haz.now[i] = FALSE
     E$haz_x[i] = lapply(E$haz_x[i],append,z)
-    # ptr formation -----------------------------------------------------------
+    # begin ptrs --------------------------------------------------------------
     i = ij[even.len(which(rate.to.bool(rate.ptr_o(P,J,R0,aj,z))))]
-    I$ptr.n[i] = I$ptr.n[i] + 1
+    I$ptr.nw[i] = I$ptr.nw[i] + 1
     E$ptr_o[i] = lapply(E$ptr_o[i],append,z)
     K = rbind(K,init.ptrs(P,I,i,z))
     # sex in ptrs -------------------------------------------------------------

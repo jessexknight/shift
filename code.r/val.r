@@ -3,7 +3,11 @@ source('meta.r')
 # =============================================================================
 # config
 
-key.vars = c('age','vio.n','dep.now','dep.past','haz.now','haz.past','ptr.n','ptr.tot')
+key.vars = c('age',
+  'vio.nt','vio.n1y',
+  'dep.now','dep.past',
+  'haz.now','haz.past',
+  'ptr.nw','ptr.nt')
 
 vals = list(
   # base rates
@@ -29,12 +33,12 @@ vals = list(
   'tRR.haz_x.vio_z'=list(save=c('iRR.haz_x.vio_z','tsc.haz_x.vio_z'),vars='haz_x.a1y',strat='vio.a1y',among=quote( yp.haz.now)),
   'tRR.ptr_o.vio_z'=list(save=c('iRR.ptr_o.vio_z','tsc.ptr_o.vio_z'),vars='ptr_o.n1y',strat='vio.a1y',among=quote(sex.act)),
   # cumulative RR
-  'nRR.dep_o.vio_n'=list(save=c('mRR.dep_o.vio_n','nsc.dep_o.vio_n'),vars='dep_o.a1y',strat='yp.vio.n.c',among=quote(!yp.dep.now)),
-  'nRR.haz_o.vio_n'=list(save=c('mRR.haz_o.vio_n','nsc.haz_o.vio_n'),vars='haz_o.a1y',strat='yp.vio.n.c',among=quote(!yp.haz.now)),
-  'nRR.ptr_o.vio_n'=list(save=c('mRR.ptr_o.vio_n','nsc.ptr_o.vio_n'),vars='ptr_o.n1y',strat='yp.vio.n.c',among=quote(sex.act)),
+  'nRR.dep_o.vio_n'=list(save=c('mRR.dep_o.vio_n','nsc.dep_o.vio_n'),vars='dep_o.a1y',strat='yp.vio.nt.c',among=quote(!yp.dep.now)),
+  'nRR.haz_o.vio_n'=list(save=c('mRR.haz_o.vio_n','nsc.haz_o.vio_n'),vars='haz_o.a1y',strat='yp.vio.nt.c',among=quote(!yp.haz.now)),
+  'nRR.ptr_o.vio_n'=list(save=c('mRR.ptr_o.vio_n','nsc.ptr_o.vio_n'),vars='ptr_o.n1y',strat='yp.vio.nt.c',among=quote(sex.act)),
   # duration RR
-  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='yp.dep.u.c',among=quote(yp.dep.now)),
-  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='yp.haz.u.c',among=quote(yp.dep.now)),
+  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='yp.dep.dur.c',among=quote(yp.dep.now)),
+  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='yp.haz.dur.c',among=quote(yp.dep.now)),
   # default
   'default'=ulist(lapply(null.all,function(re){ NULL }),vars=key.vars,among=quote(sex.act))
 )

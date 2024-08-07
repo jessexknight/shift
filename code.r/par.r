@@ -7,59 +7,59 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$n = 1000
   P$ndur = 1+1
   # base rates
-  P$vio.Ri.m    = 1/364     # (mean) base rate: violence event
-  P$dep_o.Ri.m  = 1/3640    # (mean) base rate: depression onset
-  P$dep_x.Ri.m  = 1/364     # (mean) base rate: depression recovery
-  P$haz_o.Ri.m  = 1/3640    # (mean) base rate: hazdrink onset
-  P$haz_x.Ri.m  = 1/364     # (mean) base rate: hazdrink recovery
-  P$ptr_o.Ri.m  = 1/35      # (mean) base rate: partner formation
-  P$ptr_x.Ri.m  = 1/364     # (mean) base rate: partner dissolution
+  P$vio.Ri.m    = 1/t1y     # (mean) base rate: violence
+  P$dep_o.Ri.m  = 0.01/t1y  # (mean) base rate: depression begin
+  P$dep_x.Ri.m  = 1.00/t1y  # (mean) base rate: depression end
+  P$haz_o.Ri.m  = 0.01/t1y  # (mean) base rate: hazdrink begin
+  P$haz_x.Ri.m  = 1.00/t1y  # (mean) base rate: hazdrink end
+  P$ptr_o.Ri.m  = 1/35      # (mean) base rate: partner begin
+  P$ptr_x.Ri.m  = 1/t1y     # (mean) base rate: partner end
   P$ptr.max.m   = 1.50      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
-  P$ptr.shape   = 3         # gamma shape for ptr_o,ptr_x
+  P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
-  P$aRR.dep_o.ages = c(amin,amax) # (age points) RR: age -> dep onset
-  P$aRR.dep_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> dep onset
-  P$aRR.haz_o.ages = c(amin,amax) # (age points) RR: age -> haz onset
-  P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz onset
-  P$aRR.ptr_o.ages = c(amin,amax) # (age points) RR: age -> ptr form
-  P$aRR.ptr_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> ptr form
-  # RR: * -> dep onset
-  P$ RR.dep_o.dep_p = 3     # RR: dep past -> dep onset
-  P$iRR.dep_o.vio_z = 2     # (initial RR) transient RR: vio -> dep onset
-  P$tsc.dep_o.vio_z = 30    # (time scale) transient RR: vio -> dep onset
-  P$mRR.dep_o.vio_n = 2     # (max RR)    cumulative RR: vio -> dep onset
-  P$nsc.dep_o.vio_n = 10    # (n scale)   cumulative RR: vio -> dep onset
-  # RR: * -> dep recov
-  P$dsc.dep_x.dep_u = 364   # (dur scale)  duration RR: dep dur -> dep recov
-  P$iRR.dep_x.vio_z = 1/2   # (initial RR) transient RR: vio -> dep recov
-  P$tsc.dep_x.vio_z = 30    # (time scale) transient RR: vio -> dep recov
-  # RR: * -> haz onset
-  P$ RR.haz_o.haz_p = 3     # RR: haz past -> haz onset
-  P$ RR.haz_o.dep_w = 3     # RR: dep now -> haz onset
-  P$iRR.haz_o.vio_z = 2     # (initial RR) transient RR: vio -> haz onset
-  P$tsc.haz_o.vio_z = 30    # (time scale) transient RR: vio -> haz onset
-  P$mRR.haz_o.vio_n = 2     # (max RR)    cumulative RR: vio -> haz onset
-  P$nsc.haz_o.vio_n = 10    # (n scale)   cumulative RR: vio -> haz onset
-  # RR: * -> haz recov
-  P$ RR.haz_x.dep_w = 1/3   # RR: dep now -> haz recov
-  P$dsc.haz_x.haz_u = 364   # (dur scale)  duration RR: haz dur -> haz recov
-  P$iRR.haz_x.vio_z = 1/2   # (initial RR) transient RR: vio -> haz recov
-  P$tsc.haz_x.vio_z = 30    # (time scale) transient RR: vio -> haz recov
-  # RR: * -> ptr form
-  P$ RR.ptr_o.dep_w = 1/2   # RR: dep now -> ptr form
-  P$ RR.ptr_o.haz_w = 2     # RR: haz now -> ptr form
-  P$iRR.ptr_o.vio_z = 1/2   # (initial RR) transient RR: vio -> ptr form
-  P$tsc.ptr_o.vio_z = 30    # (time scale) transient RR: vio -> ptr form
-  P$mRR.ptr_o.vio_n = 1/2   # (max RR)    cumulative RR: vio -> ptr form
-  P$nsc.ptr_o.vio_n = 10    # (n scale)   cumulative RR: vio -> ptr form
-  # RR: * -> ptr dissol
-  P$ RR.ptr_x.dep_w = 2     # RR: dep now -> ptr dissol
-  P$ RR.ptr_x.haz_w = 2     # RR: haz now -> ptr dissol
+  P$aRR.dep_o.ages = c(amin,amax) # (age points) RR: age -> dep begin
+  P$aRR.dep_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> dep begin
+  P$aRR.haz_o.ages = c(amin,amax) # (age points) RR: age -> haz begin
+  P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz begin
+  P$aRR.ptr_o.ages = c(amin,amax) # (age points) RR: age -> ptr begin
+  P$aRR.ptr_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> ptr begin
+  # RR: * -> dep begin
+  P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
+  P$iRR.dep_o.vio_zf = 2     # (initial RR) transient RR: vio -> dep begin
+  P$tsc.dep_o.vio_zf = 30    # (time scale) transient RR: vio -> dep begin
+  P$mRR.dep_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> dep begin
+  P$nsc.dep_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> dep begin
+  # RR: * -> dep end
+  P$dsc.dep_x.dep_u  = t1y   # (dur scale)  duration RR: dep dur -> dep end
+  P$iRR.dep_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> dep end
+  P$tsc.dep_x.vio_zf = 30    # (time scale) transient RR: vio -> dep end
+  # RR: * -> haz begin
+  P$ RR.haz_o.haz_p  = 3     # RR: haz past -> haz begin
+  P$ RR.haz_o.dep_w  = 3     # RR: dep now -> haz begin
+  P$iRR.haz_o.vio_zf = 2     # (initial RR) transient RR: vio -> haz begin
+  P$tsc.haz_o.vio_zf = 30    # (time scale) transient RR: vio -> haz begin
+  P$mRR.haz_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> haz begin
+  P$nsc.haz_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> haz begin
+  # RR: * -> haz end
+  P$ RR.haz_x.dep_w  = 1/3   # RR: dep now -> haz end
+  P$dsc.haz_x.haz_u  = t1y   # (dur scale)  duration RR: haz dur -> haz end
+  P$iRR.haz_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> haz end
+  P$tsc.haz_x.vio_zf = 30    # (time scale) transient RR: vio -> haz end
+  # RR: * -> ptr begin
+  P$ RR.ptr_o.dep_w  = 1/2   # RR: dep now -> ptr begin
+  P$ RR.ptr_o.haz_w  = 2     # RR: haz now -> ptr begin
+  P$iRR.ptr_o.vio_zf = 1/2   # (initial RR) transient RR: vio -> ptr begin
+  P$tsc.ptr_o.vio_zf = 30    # (time scale) transient RR: vio -> ptr begin
+  P$mRR.ptr_o.vio_nt = 1/2   # (max RR)    cumulative RR: vio -> ptr begin
+  P$nsc.ptr_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> ptr begin
+  # RR: * -> ptr end
+  P$ RR.ptr_x.dep_w  = 2     # RR: dep now -> ptr end
+  P$ RR.ptr_x.haz_w  = 2     # RR: haz now -> ptr end
   # overwrite & add conditional
   if (is.list(null)){ P = null.pars(P,null,null$save) }
   P = ulist(P,...)
@@ -71,22 +71,22 @@ cond.pars = function(P){
   P$ntot = P$n * (1+P$ndur) # total inds needed
   # RR: age
   P$aRR.vio   = def.RR.age(P$aRR.vio.ages,P$aRR.vio.RRs) # RR: age -> vio
-  P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs) # RR: age -> dep onset
-  P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs) # RR: age -> haz onset
-  P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr form
+  P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs) # RR: age -> dep begin
+  P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs) # RR: age -> haz begin
+  P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
   # tRR: vio
-  P$tRRu.dep_o.vio_z = def.tRR.exp(P$iRR.dep_o.vio_z,P$tsc.dep_o.vio_z) - 1 # tRR-1: vio -> dep onset
-  P$tRRu.dep_x.vio_z = def.tRR.exp(P$iRR.dep_x.vio_z,P$tsc.dep_x.vio_z) - 1 # tRR-1: vio -> dep recov
-  P$tRRu.haz_o.vio_z = def.tRR.exp(P$iRR.haz_o.vio_z,P$tsc.haz_o.vio_z) - 1 # tRR-1: vio -> haz onset
-  P$tRRu.haz_x.vio_z = def.tRR.exp(P$iRR.haz_x.vio_z,P$tsc.haz_x.vio_z) - 1 # tRR-1: vio -> haz recov
-  P$tRRu.ptr_o.vio_z = def.tRR.exp(P$iRR.ptr_o.vio_z,P$tsc.ptr_o.vio_z) - 1 # tRR-1: vio -> ptr form
+  P$tRRu.dep_o.vio_zf = def.tRR.exp(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf) - 1 # tRR-1: vio -> dep begin
+  P$tRRu.dep_x.vio_zf = def.tRR.exp(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf) - 1 # tRR-1: vio -> dep end
+  P$tRRu.haz_o.vio_zf = def.tRR.exp(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf) - 1 # tRR-1: vio -> haz begin
+  P$tRRu.haz_x.vio_zf = def.tRR.exp(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf) - 1 # tRR-1: vio -> haz end
+  P$tRRu.ptr_o.vio_zf = def.tRR.exp(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  P$nRR.dep_o.vio_n = def.nRR.exp(P$mRR.dep_o.vio_n,P$nsc.dep_o.vio_n) # nRR: vio -> dep onset
-  P$nRR.haz_o.vio_n = def.nRR.exp(P$mRR.haz_o.vio_n,P$nsc.haz_o.vio_n) # nRR: vio -> haz onset
-  P$nRR.ptr_o.vio_n = def.nRR.exp(P$mRR.ptr_o.vio_n,P$nsc.ptr_o.vio_n) # nRR: vio -> ptr form
+  P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt) # nRR: vio -> dep begin
+  P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt) # nRR: vio -> haz begin
+  P$nRR.ptr_o.vio_nt = def.nRR.exp(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt) # nRR: vio -> ptr begin
   # dRR: durs
-  P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u) - 1 # RR-1: dep dur -> dep recov
-  P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u) - 1 # RR-1: dep dur -> dep recov
+  P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
