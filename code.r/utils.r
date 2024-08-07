@@ -1,4 +1,8 @@
-options(width=180)
+options(
+  stringsAsFactors=FALSE,
+  showNCalls=500,
+  nwarnings=1e4,
+  width=200)
 
 len = length
 lens = lengths
