@@ -1,9 +1,9 @@
 # source model code
 source('utils.r')
-source('par.r')
-source('sim.r')
-source('srv.r')
-source('plot.r')
+source('sim/par.r')
+source('sim/sim.r')
+source('sim/srv.r')
+source('sim/plot.r')
 
 # unique ID
 uid = Sys.Date()

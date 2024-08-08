@@ -1,4 +1,4 @@
-source('meta.r')
+source('sim/meta.r')
 
 Ps = lapply(1:7,get.pars)
 Ms = sim.runs(Ps)

@@ -1,4 +1,4 @@
-source('meta.r')
+source('sim/meta.r')
 
 # =============================================================================
 # config
@@ -92,4 +92,4 @@ val.plot = function(Q,vars,strat='.'){
 # main
 
 for (val in vals){
-  do.call(val.run,val,quote=TRUE) }
+  do.call(val.run,val,quote=TRUE); break }

@@ -1,4 +1,4 @@
-source('meta.r')
+source('sim/meta.r')
 options(width=256)
 
 N = list(rep=3,seed=7)

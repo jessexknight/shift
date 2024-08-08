@@ -8,7 +8,7 @@ len = length
 lens = lengths
 
 # proj.root: full path to parent of /code.r/fio.r
-proj.root = strsplit(file.path(getwd(),''),file.path('','code.r',''))[[1]][1]
+proj.root = strsplit(file.path(getwd(),''),file.path('','code',''))[[1]][1]
 
 root.path = function(...,create=FALSE){
   # e.g. root.path('abc','123') returns proj.root/abc/123
