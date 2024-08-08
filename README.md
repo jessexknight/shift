@@ -1,6 +1,5 @@
-# MAST HIV
-Modelling the potential impact of Addressing STructural factors on HIV transmission
-among sexual and gender minorities in Sub-Saharan Africa
+# SHIFT
+The Stigma and HIV Impact for Transmission Study
 
 ## Authors
 - Jesse Knight
