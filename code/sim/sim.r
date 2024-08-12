@@ -168,6 +168,7 @@ sim.run = function(P,rm.dum=TRUE){
     i = c(K$i1[b],K$i2[b])
     I$ptr.nw[i] = I$ptr.nw[i] - 1 # TODO: bug if any repeated i
     E$ptr_x[i] = lapply(E$ptr_x[i],append,z)
+    E$ptr_u[i] = wapply(append,E$ptr_u[i],z-K$zo[b])
     K = K[!b,]
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age < amax)

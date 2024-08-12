@@ -24,7 +24,7 @@ evts = c(
   'vio',
   'dep_o','dep_x',
   'haz_o','haz_x',
-  'ptr_o','ptr_x',
+  'ptr_o','ptr_x','ptr_u',
   'sex',
   'cdm')
 names(evts) = evts
