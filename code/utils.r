@@ -84,6 +84,10 @@ rbind.lapply = function(...){
   do.call(rbind,par.lapply(...))
 }
 
+wapply = function(...){
+  mapply(...,SIMPLIFY=FALSE)
+}
+
 filter.names = function(x,re,b=TRUE){
   # e.g. filter.names(list(a1=0,a2=0,ba=0),'^a') -> c('a1','a2')
   names(x)[grepl(re,names(x))==b]

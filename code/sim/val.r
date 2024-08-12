@@ -4,14 +4,15 @@ source('sim/meta.r')
 # config
 
 key.vars = c('age',
-  'vio.nt','vio.n1y',
+  'vio.nt',
   'dep.now','dep.past',
   'haz.now','haz.past',
   'ptr.nw','ptr.nt')
 
-vals = list(
-  # base rates
-  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(p1y.sex.act)),
+# -----------------------------------------------------------------------------
+# RR scenarios
+
+val.RR = list(
   # RR age
   'aRR.vio'=list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10'),
   'aRR.dep'=list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10'),
@@ -39,18 +40,33 @@ vals = list(
   # duration RR
   'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='p1y.dep.dur.c',among=quote(p1y.dep.now)),
   'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.dep.now)),
-  # default
-  'default'=ulist(lapply(null.all,function(re){ NULL }),vars=key.vars,among=quote(p1y.sex.act))
+  # base rates
+  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(p1y.sex.act))
 )
-for (v in names(vals)){ vals[[v]]$name = v }
+for (v in names(val.RR)){
+  val.RR[[v]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[v]]$save)
+  val.RR[[v]]$srvs = c(srv.val.RR)
+  val.RR[[v]]$name = v
+}
+
+# -----------------------------------------------------------------------------
+# base scenarios
+
+val.base = list(
+  'ptr.dur'=list(vars=c('ptr.p.dur.m','ptr.w.dur.m'),strat='ptr.nw.c'),
+  'base'=list(vars=key.vars)
+)
+for (v in names(val.base)){
+  val.base[[v]]$name = v
+  val.base[[v]]$srvs = c(srv.base,srv.ptr)
+}
 
 # =============================================================================
 # run & plot
 
-val.run = function(name,vars,among=quote(TRUE),strat='.',...){
-  Ps = lapply(1:21,get.pars,n=333,
-    null=ulist('Ri\\.m$'=NULL,...))
-  Q = srv.apply(sim.runs(Ps),srvs=c(srv.val))
+val.run = function(name,vars,among=quote(TRUE),strat='.',null=NULL,srvs=NULL,...){
+  Ps = lapply(1:21,get.pars,n=333,null=null,...)
+  Q = srv.apply(sim.runs(Ps),srvs=srvs)
   Q = subset(Q,age < amax & eval(among))
   g = val.plot(Q,vars,strat)
   plot.save('val',uid,name,h=3,w=1+3*len(vars))
@@ -91,5 +107,5 @@ val.plot = function(Q,vars,strat='.'){
 # =============================================================================
 # main
 
-for (val in vals){
-  do.call(val.run,val,quote=TRUE) }
+for (val in val.RR){   do.call(val.run,val,quote=TRUE) }
+for (val in val.base){ do.call(val.run,val,quote=TRUE) }

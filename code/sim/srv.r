@@ -52,9 +52,18 @@ srv.base = function(P,Q,E,z,fmt='%s'){
   return(Q)
 }
 
+srv.ptr = function(P,Q,E,z){
+  E = lapply(E,lapply,clip.zes,z=z) # clip events
+  Q$ptr.nw.c = int.cut(Q$ptr.nw,c(0,1,2))
+  ptr.w.dur = wapply(dur.ptr.w,E$ptr_o,E$ptr_x,E$ptr_u,z) # ongo ptrs durs
+  Q$ptr.p.dur.m = dtz*sapply(E$ptr_u,mean)   # past ptrs durs
+  Q$ptr.w.dur.m = dtz*sapply(ptr.w.dur,mean) # ongo ptrs durs
+  return(Q)
+}
+
 # -----------------------------------------------------------------------------
 
-srv.val = function(P,Q,E,z){
+srv.val.RR = function(P,Q,E,z){
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q = srv.base(P,Q,E,z)
   Q$age.10 = floor(Q$age/10)*10
@@ -97,3 +106,5 @@ clip.zes = function(zes,z){ zes[zes <= z] }
 num.dz = function(zes,z,dz){ n = sum(zes <= z & zes >= z+1-dz) }
 
 any.dz = function(zes,z,dz){ b = num.dz(zes,z,dz) > 0 }
+
+dur.ptr.w = function(zos,zxs,us,z){ z - zos[!(zos %in% (zxs-us))] }
