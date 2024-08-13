@@ -3,8 +3,8 @@ source('sim/meta.r')
 # =============================================================================
 # config
 
-n = 333
-n.s = 21
+n      = cli.arg('n',333)
+n.seed = cli.arg('n.seed',7)
 key.vars = c('age',
   'vio.nt',
   'dep.now','dep.past',
@@ -69,8 +69,8 @@ for (v in names(val.base)){
 # run & plot
 
 val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(case='base'),...){
-  status(2,'val.run: ',name,' @ ',n.s*prod(lens(gpar)))
-  Ps = grid.apply(c(list(seed=1:n.s),gpar),get.pars,n=n,...)
+  status(2,'val.run: ',name,' @ ',n.seed*prod(lens(gpar)))
+  Ps = grid.apply(c(list(seed=1:n.seed),gpar),get.pars,n=n,...)
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
   for (var in vars){
