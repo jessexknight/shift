@@ -2,7 +2,7 @@ library('ggplot2')
 library('reshape2')
 
 plot.save = function(...,w=6,h=4,ext='.pdf'){
-  fname = paste0(root.path('out','fig',...,create=TRUE),ext)
+  fname = str(root.path('out','fig',...,create=TRUE),ext)
   cat(paste('saving:',fname,'\n'))
   ggsave(fname,w=w,h=h)
 }

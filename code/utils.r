@@ -6,6 +6,7 @@ options(
 
 len = length
 lens = lengths
+str = paste0
 
 # proj.root: full path to parent of /code.r/fio.r
 proj.root = strsplit(file.path(getwd(),''),file.path('','code',''))[[1]][1]
@@ -32,7 +33,7 @@ int.cut = function(x,low){
   # cut with simplified labels (assume integers)
   # e.g. int.cut(1:6,c(1,2,3,5)) -> c('1','2','3-4','3-4','5+','5+')
   high = c(low[2:len(low)]-1,Inf)
-  labels = gsub('-Inf','+',ifelse(low==high,low,paste0(low,'-',high)))
+  labels = gsub('-Inf','+',ifelse(low==high,low,str(low,'-',high)))
   x.cut = cut(x,breaks=c(low,Inf),labels=labels,right=FALSE)
 }
 
@@ -66,6 +67,11 @@ ulist = function(x=list(),xu=list(),...){
   x[!duplicated(names(x),fromLast=TRUE)]
 }
 
+list.str = function(x,def=': ',join=', '){
+  # e.g. list.str(list(a=1,b=2)) -> 'a: 1, b: 2'
+  paste(names(x),x,sep=def,collapse=join)
+}
+
 .cores = 7 # global config of parallel cores
 
 par.lapply = function(...,.par=TRUE){
@@ -86,6 +92,13 @@ rbind.lapply = function(...){
 
 wapply = function(...){
   mapply(...,SIMPLIFY=FALSE)
+}
+
+grid.apply = function(x,fun,...,.par=TRUE){
+  # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
+  # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
+  args = apply(expand.grid(x),1,function(xi){ c(as.list(xi),list(...)) })
+  par.lapply(args,do.call,what=fun,.par=.par)
 }
 
 filter.names = function(x,re,b=TRUE){
