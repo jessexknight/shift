@@ -2,8 +2,8 @@
 # =============================================================================
 # config
 
-p.vars = c('case','seed')
-i.cols = c(
+.p.vars = c('case','seed')
+.i.vars = c(
   'i',
   'z.born','age.act',
   'vio.Ri',
@@ -15,21 +15,22 @@ i.cols = c(
 # =============================================================================
 # survey funs
 
-srv.apply = function(Ms,z,srvs=c(srv.base)){
+srv.apply = function(Ms,z,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (z)
   if (missing(z)){ z = Ms[[1]]$P$zf }
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')
-  Qs = lapply(Ms,srv.init,z=z)
+  Qs = lapply(Ms,srv.init,z=z,p.vars=p.vars,i.vars=i.vars)
   for (srv in srvs){
     Qs = par.mapply(srv,Ps,Qs,Es,z) }
   Q = do.call(rbind,Qs)
 }
 
-srv.init = function(M,z){
-  Q = cbind(M$P[p.vars],z=z,M$I[i.cols]) # init Q ~= I
-  # Q = srv.base(M$P,Q,M$E,z); v = intersect(names(M$I),names(Q)) # DEBUG
-  # print(all.equal(M$I[v],Q[v])) # DEBUG
+srv.init = function(M,z,p.vars,i.vars){
+  p.vars = unique(c(.p.vars,p.vars))
+  i.vars = unique(c(.i.vars,i.vars))
+  Q = cbind(M$P[p.vars],z=z,M$I[i.vars]) # init Q ~= I
+  # Q = srv.base(M$P,Q,M$E,z); print(all.equal(M$I[i.vars],Q[i.vars])) # DEBUG
 }
 
 srv.base = function(P,Q,E,z,fmt='%s'){
