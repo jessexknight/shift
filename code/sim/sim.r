@@ -153,6 +153,7 @@ rate.ptr_x = function(P,K,I){
 # run simulation
 
 sim.run = function(P,rm.dum=TRUE){
+  status(4,P$id)
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
   I = init.inds(P) # individuals
@@ -220,5 +221,7 @@ sim.run = function(P,rm.dum=TRUE){
 
 sim.runs = function(Ps,.par=TRUE){
   # run.sim in parallel for each (P)arameter set in Ps
-  Ms = par.lapply(Ps,sim.run,.par=.par)
+  status(3,'sim.runs: ',len(Ps))
+  Ms = par.lapply(Ps,sim.run,.par=.par); status(2)
+  return(Ms)
 }

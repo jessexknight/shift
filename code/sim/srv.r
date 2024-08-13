@@ -17,6 +17,7 @@
 
 srv.apply = function(Ms,z,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (z)
+  status(3,'srv.apply: ',len(Ms))
   if (missing(z)){ z = Ms[[1]]$P$zf }
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')

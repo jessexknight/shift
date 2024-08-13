@@ -1,6 +1,7 @@
 source('sim/meta.r')
 options(width=256)
 
+.verb = 0
 N = list(rep=3,seed=7)
 f = file.path('.tmp','mbm',sprintf('mbm_s%dr%d_%s.out',
   N$seed,N$rep,Sys.Date()))

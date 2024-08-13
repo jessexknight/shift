@@ -69,6 +69,7 @@ for (v in names(val.base)){
 # run & plot
 
 val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(case='base'),...){
+  status(2,'val.run: ',name,' @ ',n.s*prod(lens(gpar)))
   Ps = grid.apply(c(list(seed=1:n.s),gpar),get.pars,n=n,...)
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))

@@ -3,7 +3,7 @@
 # pars
 
 get.pars = function(seed=0,...,case='base',null=NULL){
-  P = list(case=case,seed=seed)
+  P = list(case=case,seed=seed,id=sprintf('%6d',seed))
   P$n = 1000
   P$ndur = 1+1
   # base rates

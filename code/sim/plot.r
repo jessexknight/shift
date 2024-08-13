@@ -3,7 +3,7 @@ library('reshape2')
 
 plot.save = function(...,w=6,h=4,ext='.pdf'){
   fname = str(root.path('out','fig',...,create=TRUE),ext)
-  cat(paste('saving:',fname,'\n'))
+  status(3,'saving: ',fname)
   ggsave(fname,w=w,h=h)
 }
 

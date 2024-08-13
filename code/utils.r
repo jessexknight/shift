@@ -19,6 +19,15 @@ root.path = function(...,create=FALSE){
   return(path)
 }
 
+.verb = 4
+
+status = function(lvl,...){
+  if (lvl > .verb){ return() }
+  pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
+  end = list('\n','\n','\n','')[[lvl]]
+  cat(pre,...,end,sep='')
+}
+
 sum1 = function(x){
   x/sum(x)
 }
