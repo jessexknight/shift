@@ -1,3 +1,6 @@
+# -----------------------------------------------------------------------------
+# options + aliases
+
 options(
   stringsAsFactors=FALSE,
   showNCalls=500,
@@ -7,6 +10,9 @@ options(
 len = length
 lens = lengths
 str = paste0
+
+# -----------------------------------------------------------------------------
+# files + i/o
 
 # proj.root: full path to parent of /code.r/fio.r
 proj.root = strsplit(file.path(getwd(),''),file.path('','code',''))[[1]][1]
@@ -19,7 +25,13 @@ root.path = function(...,create=FALSE){
   return(path)
 }
 
-.verb = 4
+cli.arg = function(name,default=NA){
+  args = strsplit(commandArgs(trailingOnly=TRUE),'=')
+  x = args[[match(name,sapply(args,`[`,1))]][2]
+  x = ifelse(len(x),type.convert(x,as.is=TRUE),default)
+}
+
+.verb = cli.arg('.verb',4)
 
 status = function(lvl,...){
   if (lvl > .verb){ return() }
@@ -27,6 +39,9 @@ status = function(lvl,...){
   end = list('\n','\n','\n','')[[lvl]]
   cat(pre,...,end,sep='')
 }
+
+# -----------------------------------------------------------------------------
+# vector tools
 
 sum1 = function(x){
   x/sum(x)
@@ -70,10 +85,18 @@ last = function(x){
   if (len(x)){ x[len(x)] } else { NA }
 }
 
+# -----------------------------------------------------------------------------
+# list tools
+
 ulist = function(x=list(),xu=list(),...){
   # e.g. ulist(list(a=1,b=2),xu=list(a=3),b=4) -> list(a=3,b=4)
   x = c(x,xu,list(...))
   x[!duplicated(names(x),fromLast=TRUE)]
+}
+
+filter.names = function(x,re,b=TRUE){
+  # e.g. filter.names(list(a1=0,a2=0,ba=0),'^a') -> c('a1','a2')
+  names(x)[grepl(re,names(x))==b]
 }
 
 list.str = function(x,def=': ',join=', '){
@@ -81,7 +104,10 @@ list.str = function(x,def=': ',join=', '){
   paste(names(x),x,sep=def,collapse=join)
 }
 
-.cores = 7 # global config of parallel cores
+# -----------------------------------------------------------------------------
+# *apply
+
+.cores = cli.arg('.cores',7)
 
 par.lapply = function(...,.par=TRUE){
   if (.par && len(list(...)[[1]]) > 1){
@@ -111,10 +137,8 @@ grid.apply = function(x,fun,...,.par=TRUE){
   par.lapply(args,do.call,what=fun,.par=.par)
 }
 
-filter.names = function(x,re,b=TRUE){
-  # e.g. filter.names(list(a1=0,a2=0,ba=0),'^a') -> c('a1','a2')
-  names(x)[grepl(re,names(x))==b]
-}
+# -----------------------------------------------------------------------------
+# stats
 
 copula = function(n,covs,qfuns,...){
   # joint sample from qfuns (args in ...) with correlation (covs)
