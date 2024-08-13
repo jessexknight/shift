@@ -3,6 +3,8 @@ source('sim/meta.r')
 # =============================================================================
 # config
 
+n = 333
+n.s = 21
 key.vars = c('age',
   'vio.nt',
   'dep.now','dep.past',
@@ -12,36 +14,39 @@ key.vars = c('age',
 # -----------------------------------------------------------------------------
 # RR scenarios
 
+RR3 = c(1,3,9)
+RR2 = c(1,9)
+ts2 = c(30,180)
+ns2 = c(10,100)
+
 val.RR = list(
   # RR age
-  'aRR.vio'=list(save=c('aRR.vio'),  vars=c('vio.n1y'),  strat='age.10'),
-  'aRR.dep'=list(save=c('aRR.dep_o'),vars=c('dep_o.a1y'),strat='age.10'),
-  'aRR.haz'=list(save=c('aRR.haz_o'),vars=c('haz_o.a1y'),strat='age.10'),
-  'aRR.ptr'=list(save=c('aRR.ptr_o'),vars=c('ptr_o.n1y'),strat='age.10',among=quote(p1y.sex.act)),
+  aRR.vio=list(save='aRR.vio',  vars='vio.n1y',  strat='age.10'),
+  aRR.dep=list(save='aRR.dep_o',vars='dep_o.a1y',strat='age.10'),
+  aRR.haz=list(save='aRR.haz_o',vars='haz_o.a1y',strat='age.10'),
+  aRR.ptr=list(save='aRR.ptr_o',vars='ptr_o.n1y',strat='age.10',among=quote(p1y.sex.act)),
   # basic RR
-  'RR.dep_o.dep_p'=list(save='RR.dep_o.dep_p',vars='dep_o.a1y',strat='p1y.dep.past',among=quote(!p1y.dep.now)),
-  'RR.haz_o.haz_p'=list(save='RR.haz_o.haz_p',vars='haz_o.a1y',strat='p1y.haz.past',among=quote(!p1y.haz.now)),
-  'RR.haz_o.dep_w'=list(save='RR.haz_o.dep_w',vars='haz_o.a1y',strat='p1y.dep.now', among=quote(!p1y.haz.now)),
-  'RR.haz_x.dep_w'=list(save='RR.haz_x.dep_w',vars='haz_x.a1y',strat='p1y.dep.now', among=quote( p1y.haz.now)),
-  'RR.ptr_o.dep_w'=list(save='RR.ptr_o.dep_w',vars='ptr_o.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
-  'RR.ptr_o.haz_w'=list(save='RR.ptr_o.haz_w',vars='ptr_o.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
-  'RR.ptr_x.dep_w'=list(save='RR.ptr_x.dep_w',vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
-  'RR.ptr_x.haz_w'=list(save='RR.ptr_x.haz_w',vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
+  RR.dep_o.dep_p=list(gpar=list('RR.dep_o.dep_p'=RR3),vars='dep_o.a1y',strat='p1y.dep.past',among=quote(!p1y.dep.now)),
+  RR.haz_o.haz_p=list(gpar=list('RR.haz_o.haz_p'=RR3),vars='haz_o.a1y',strat='p1y.haz.past',among=quote(!p1y.haz.now)),
+  RR.haz_o.dep_w=list(gpar=list('RR.haz_o.dep_w'=RR3),vars='haz_o.a1y',strat='p1y.dep.now', among=quote(!p1y.haz.now)),
+  RR.haz_x.dep_w=list(gpar=list('RR.haz_x.dep_w'=RR3),vars='haz_x.a1y',strat='p1y.dep.now', among=quote( p1y.haz.now)),
+  RR.ptr_o.dep_w=list(gpar=list('RR.ptr_o.dep_w'=RR3),vars='ptr_o.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
+  RR.ptr_o.haz_w=list(gpar=list('RR.ptr_o.haz_w'=RR3),vars='ptr_o.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
+  RR.ptr_x.dep_w=list(gpar=list('RR.ptr_x.dep_w'=RR3),vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
+  RR.ptr_x.haz_w=list(gpar=list('RR.ptr_x.haz_w'=RR3),vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
   # transient RR
-  'tRR.dep_o.vio_zf'=list(save=c('iRR.dep_o.vio_zf','tsc.dep_o.vio_zf'),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
-  'tRR.dep_x.vio_zf'=list(save=c('iRR.dep_x.vio_zf','tsc.dep_x.vio_zf'),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),
-  'tRR.haz_o.vio_zf'=list(save=c('iRR.haz_o.vio_zf','tsc.haz_o.vio_zf'),vars='haz_o.a3m',strat='vio.a3m',among=quote(!p3m.haz.now)),
-  'tRR.haz_x.vio_zf'=list(save=c('iRR.haz_x.vio_zf','tsc.haz_x.vio_zf'),vars='haz_x.a3m',strat='vio.a3m',among=quote( p3m.haz.now)),
-  'tRR.ptr_o.vio_zf'=list(save=c('iRR.ptr_o.vio_zf','tsc.ptr_o.vio_zf'),vars='ptr_o.n3m',strat='vio.a3m',among=quote( p3m.sex.act)),
+  tRR.dep_o.vio_zf=list(gpar=list('iRR.dep_o.vio_zf'=RR2,'tsc.dep_o.vio_zf'=ts2),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
+  tRR.dep_x.vio_zf=list(gpar=list('iRR.dep_x.vio_zf'=RR2,'tsc.dep_x.vio_zf'=ts2),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),
+  tRR.haz_o.vio_zf=list(gpar=list('iRR.haz_o.vio_zf'=RR2,'tsc.haz_o.vio_zf'=ts2),vars='haz_o.a3m',strat='vio.a3m',among=quote(!p3m.haz.now)),
+  tRR.haz_x.vio_zf=list(gpar=list('iRR.haz_x.vio_zf'=RR2,'tsc.haz_x.vio_zf'=ts2),vars='haz_x.a3m',strat='vio.a3m',among=quote( p3m.haz.now)),
+  tRR.ptr_o.vio_zf=list(gpar=list('iRR.ptr_o.vio_zf'=RR2,'tsc.ptr_o.vio_zf'=ts2),vars='ptr_o.n3m',strat='vio.a3m',among=quote( p3m.sex.act)),
   # cumulative RR
-  'nRR.dep_o.vio_nt'=list(save=c('mRR.dep_o.vio_nt','nsc.dep_o.vio_nt'),vars='dep_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.dep.now)),
-  'nRR.haz_o.vio_nt'=list(save=c('mRR.haz_o.vio_nt','nsc.haz_o.vio_nt'),vars='haz_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.haz.now)),
-  'nRR.ptr_o.vio_nt'=list(save=c('mRR.ptr_o.vio_nt','nsc.ptr_o.vio_nt'),vars='ptr_o.n1y',strat='p1y.vio.nt.c',among=quote( p1y.sex.act)),
+  nRR.dep_o.vio_nt=list(gpar=list('mRR.dep_o.vio_nt'=RR2,'nsc.dep_o.vio_nt'=ns2),vars='dep_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.dep.now)),
+  nRR.haz_o.vio_nt=list(gpar=list('mRR.haz_o.vio_nt'=RR2,'nsc.haz_o.vio_nt'=ns2),vars='haz_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.haz.now)),
+  nRR.ptr_o.vio_nt=list(gpar=list('mRR.ptr_o.vio_nt'=RR2,'nsc.ptr_o.vio_nt'=ns2),vars='ptr_o.n1y',strat='p1y.vio.nt.c',among=quote( p1y.sex.act)),
   # duration RR
-  'dRR.dep_x.dep_u'=list(save=c('dsc.dep_x.dep_u'),vars='dep_x.a1y',strat='p1y.dep.dur.c',among=quote(p1y.dep.now)),
-  'dRR.haz_x.haz_u'=list(save=c('dsc.haz_x.haz_u'),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.dep.now)),
-  # base rates
-  'Ri.all'=list(save=NULL,vars=key.vars,among=quote(p1y.sex.act))
+  dRR.dep_x.dep_u=list(gpar=list('dsc.dep_x.dep_u'=ts2),vars='dep_x.a1y',strat='p1y.dep.dur.c',among=quote(p1y.dep.now)),
+  dRR.haz_x.haz_u=list(gpar=list('dsc.haz_x.haz_u'=ts2),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.haz.now))
 )
 for (v in names(val.RR)){
   val.RR[[v]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[v]]$save)
@@ -53,55 +58,52 @@ for (v in names(val.RR)){
 # base scenarios
 
 val.base = list(
-  'ptr.dur'=list(vars=c('ptr.p.dur.m','ptr.w.dur.m'),strat='ptr.nw.c'),
   'base'=list(vars=key.vars)
 )
 for (v in names(val.base)){
-  val.base[[v]]$name = v
   val.base[[v]]$srvs = c(srv.base,srv.ptr)
+  val.base[[v]]$name = v
 }
 
 # =============================================================================
 # run & plot
 
-val.run = function(name,vars,among=quote(TRUE),strat='.',null=NULL,srvs=NULL,...){
-  Ps = lapply(1:21,get.pars,n=333,null=null,...)
-  Q = srv.apply(sim.runs(Ps),srvs=srvs)
+val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(case='base'),...){
+  Ps = grid.apply(c(list(seed=1:n.s),gpar),get.pars,n=n,...)
+  Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
-  g = val.plot(Q,vars,strat)
-  plot.save('val',uid,name,h=3,w=1+3*len(vars))
+  for (var in vars){
+    g = val.plot(Q,var,strat,names(gpar))
+    plot.save('val',uid,str(name,'--',var),h=3,w=1+3*prod(lens(gpar)))
+  }
 }
 
-val.plot = function(Q,vars,strat='.'){
-  # plot the densities for multiple (7) seeds using:
-  # boxplot if var is binary else line+ribbon
-  # pre-compute group-wise densities b/c no ggplot support
-  g = c('seed',strat) # grouping variables
-  Q = cbind(Q,.='')[c(g,vars)]
-  Qd = rbind.lapply(vars,.par=FALSE,function(var){
-    x = as.numeric(Q[[var]]) # extract data
-    b = breaks(x) # compute breaks
-    Qx = aggregate(x,Q[g],function(xg){ # for each group
-      x = sum1(hist(xg,breaks=b,right=FALSE,plot=FALSE)$count) }) # compute density
-    if (len(b) == 2){ Qd = cbind(d.bin=1,d.cts=NA,b=b[1]) } # singleton
-    if (len(b) == 3){ Qd = cbind(d.bin=Qx$x[,2],d.cts=NA,b=b[2]) } # binary
-    if (len(b) >  3){ Qd = cbind(d.cts=c(Qx$x),d.bin=NA,b=rep(b[-len(b)],each=nrow(Qx))) }
-    Qdv = cbind(Qx[g],var=var,Qd)
-  })
-  g = ggplot(Qd,aes(x=b,y=100*as.numeric(d.cts),
+val.plot = function(Q,var,strat,gpar){
+  g = c('seed','gpar',strat) # grouping variables
+  Q = cbind(Q,gpar=apply(Q[gpar],1,list.str),.='')[c(g,var)]
+  x = as.numeric(Q[[var]]) # extract values
+  b = breaks(x) # compute common breaks
+  cts = ulen(x) > 2 # is var continuous or binary
+  Qx = aggregate(x,Q[g],function(xg){ # for each group
+    x = sum1(hist(xg,breaks=b,right=FALSE,plot=FALSE)$count) }) # compute density
+  if (cts){ Qp = cbind(p=c(Qx$x),b=rep(b[-len(b)],each=nrow(Qx))) } # continuous
+  else    { Qp = cbind(p=Qx$x[,2],b=1) } # binary
+  Qp = cbind(Qx[g],Qp)
+  g = ggplot(Qp,aes(x=b,y=100*as.numeric(p),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
-    facet_wrap('~var',scales='free',ncol=len(vars)) +
-    stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
-    stat_summary(geom='line',fun=median) +
-    geom_boxplot(aes(y=100*as.numeric(d.bin),group=interaction(b,.data[[strat]])),
-      alpha=.3,outlier.alpha=1,outlier.shape=3) +
-    labs(x='value',y='proportion (%)',color=strat,fill=strat) +
-    scale_x_continuous(expand=c(.1,.1)) +
+    facet_wrap('~gpar',scales='free',ncol=ulen(Q$gpar)) +
+    labs(y='proportion (%)',color=strat,fill=strat) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
-    ylim(c(0,NA))
-  g = plot.clean(g)
+    ylim(c(0,NA)) +
+    ggtitle(var)
+  if (cts){ g = plot.clean(g) + xlab('value') +
+    stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
+    stat_summary(geom='line',fun=median) }
+  else { g = plot.clean(g,axis.text.x=element_blank()) + xlab('') +
+    geom_boxplot(aes(group=interaction(b,gpar,.data[[strat]])),
+      alpha=.3,outlier.alpha=1,outlier.shape=3) }
 }
 
 # =============================================================================
