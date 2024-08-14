@@ -3,7 +3,8 @@ source('sim/meta.r')
 # =============================================================================
 # config
 
-n      = cli.arg('n',333)
+v      = cli.arg('v',     1:23)
+n.pop  = cli.arg('n.pop', 333)
 n.seed = cli.arg('n.seed',7)
 key.vars = c('age',
   'vio.nt',
@@ -48,10 +49,10 @@ val.RR = list(
   dRR.dep_x.dep_u=list(gpar=list('dsc.dep_x.dep_u'=ts2),vars='dep_x.a1y',strat='p1y.dep.dur.c',among=quote(p1y.dep.now)),
   dRR.haz_x.haz_u=list(gpar=list('dsc.haz_x.haz_u'=ts2),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.haz.now))
 )
-for (v in names(val.RR)){
-  val.RR[[v]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[v]]$save)
-  val.RR[[v]]$srvs = c(srv.val.RR)
-  val.RR[[v]]$name = v
+for (name in names(val.RR)){
+  val.RR[[name]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[name]]$save)
+  val.RR[[name]]$srvs = c(srv.val.RR)
+  val.RR[[name]]$name = name
 }
 
 # -----------------------------------------------------------------------------
@@ -60,9 +61,9 @@ for (v in names(val.RR)){
 val.base = list(
   'base'=list(vars=key.vars)
 )
-for (v in names(val.base)){
-  val.base[[v]]$srvs = c(srv.base,srv.ptr)
-  val.base[[v]]$name = v
+for (name in names(val.base)){
+  val.base[[name]]$srvs = c(srv.base,srv.ptr)
+  val.base[[name]]$name = name
 }
 
 # =============================================================================
@@ -70,7 +71,7 @@ for (v in names(val.base)){
 
 val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(case='base'),...){
   status(2,'val.run: ',name,' @ ',n.seed*prod(lens(gpar)))
-  Ps = grid.apply(c(list(seed=1:n.seed),gpar),get.pars,n=n,...)
+  Ps = grid.apply(c(list(seed=1:n.seed),gpar),get.pars,n.pop=n.pop,...)
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
   for (var in vars){
@@ -110,5 +111,5 @@ val.plot = function(Q,var,strat,gpar){
 # =============================================================================
 # main
 
-for (val in val.RR){   do.call(val.run,val,quote=TRUE) }
-for (val in val.base){ do.call(val.run,val,quote=TRUE) }
+vals = c(val.RR,val.base)[v] # 1:22,23:23
+for (val in vals){ do.call(val.run,val,quote=TRUE) }

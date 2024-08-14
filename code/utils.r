@@ -1,6 +1,16 @@
 # -----------------------------------------------------------------------------
 # options + aliases
 
+cli.arg = function(name,default=NA){
+  args = strsplit(commandArgs(trailingOnly=TRUE),'=')
+  x = args[[match(name,sapply(args,`[`,1))]][2]
+  if (length(x)){ x = type.convert(x,as.is=TRUE) }
+  else          { x = default }
+}
+
+.mem = cli.arg('.mem',Inf)*2^30 # GB
+unix::rlimit_as(cur=.mem/2,max=.mem)
+
 options(
   stringsAsFactors=FALSE,
   showNCalls=500,
@@ -23,12 +33,6 @@ root.path = function(...,create=FALSE){
   if (create & !dir.exists(dirname(path))){
     dir.create(dirname(path),recursive=TRUE) }
   return(path)
-}
-
-cli.arg = function(name,default=NA){
-  args = strsplit(commandArgs(trailingOnly=TRUE),'=')
-  x = args[[match(name,sapply(args,`[`,1))]][2]
-  x = ifelse(len(x),type.convert(x,as.is=TRUE),default)
 }
 
 .verb = cli.arg('.verb',4)
