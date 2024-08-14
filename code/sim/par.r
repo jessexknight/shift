@@ -4,8 +4,8 @@
 
 get.pars = function(seed=0,...,case='base',null=NULL){
   P = list(case=case,seed=seed,id=sprintf('%6d',seed))
-  P$n = 1000
-  P$ndur = 1+1
+  P$n.pop = 1000
+  P$n.dur = 1+1
   # base rates
   P$vio.Ri.m    = 1/t1y     # (mean) base rate: violence
   P$dep_o.Ri.m  = 0.01/t1y  # (mean) base rate: depression begin
@@ -67,8 +67,8 @@ get.pars = function(seed=0,...,case='base',null=NULL){
 }
 
 cond.pars = function(P){
-  P$zf   = P$ndur*adur*z1y  # final timestep
-  P$ntot = P$n * (1+P$ndur) # total inds needed
+  P$zf    = P$n.dur*adur*z1y  # final timestep
+  P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
   # RR: age
   P$aRR.vio   = def.RR.age(P$aRR.vio.ages,P$aRR.vio.RRs) # RR: age -> vio
   P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs) # RR: age -> dep begin

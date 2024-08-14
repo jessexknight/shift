@@ -2,16 +2,16 @@ source('sim/meta.r')
 options(width=256)
 
 .verb = 0
-N = list(rep=3,seed=7)
+n = list(rep=3,seed=7)
 f = file.path('.tmp','mbm',sprintf('mbm_s%dr%d_%s.out',
-  N$seed,N$rep,Sys.Date()))
+  n$seed,n$rep,Sys.Date()))
 
 mbm = microbenchmark::microbenchmark(
-  {sim.runs(lapply(1:N$seed,get.pars,n=30))},
-  {sim.runs(lapply(1:N$seed,get.pars,n=100))},
-  {sim.runs(lapply(1:N$seed,get.pars,n=300))},
-  {sim.runs(lapply(1:N$seed,get.pars,n=1000))},
-times=N$rep)
+  {sim.runs(lapply(1:n$seed,get.pars,n.pop=30))},
+  {sim.runs(lapply(1:n$seed,get.pars,n.pop=100))},
+  {sim.runs(lapply(1:n$seed,get.pars,n.pop=300))},
+  {sim.runs(lapply(1:n$seed,get.pars,n.pop=1000))},
+times=n$rep)
 
 print(mbm)
 sink(f)

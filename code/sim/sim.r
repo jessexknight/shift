@@ -9,7 +9,7 @@ init.evts = function(I){
 }
 
 init.inds = function(P){
-  n = P$ntot
+  n = P$n.tot
   # sample correlated parameters ----------------------------------------------
   dep = as.data.frame(copula(n,
     covs = P$dep.cov,
@@ -31,7 +31,7 @@ init.inds = function(P){
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
-  age = runif(n,min=amin-P$ndur*adur,max=amax)
+  age = runif(n,min=amin-P$n.dur*adur,max=amax)
   I = data.frame(
     i = seq(n),
     z.born  = -age*z1y,
