@@ -19,6 +19,7 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
   P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
+  P$all.Ri.shape = 1        # (gamma shape): all other base rates
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
