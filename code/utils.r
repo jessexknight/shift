@@ -8,9 +8,6 @@ cli.arg = function(name,default=NA){
   else          { x = default }
 }
 
-.mem = cli.arg('.mem',Inf)*2^30 # GB
-unix::rlimit_as(cur=.mem/2,max=.mem)
-
 options(
   stringsAsFactors=FALSE,
   showNCalls=500,
