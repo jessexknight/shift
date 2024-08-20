@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -j oe
 #PBS -N val
-#PBS -l walltime=00:10:00
+#PBS -l walltime=00:45:00
 #PBS -l select=1:ncpus=64:mem=128gb
 
 module add tools/prod

@@ -21,12 +21,12 @@ ts2 = c(30,180)
 ns2 = c(10,100)
 
 val.RR = list(
-  # RR age
+  # RR age [1:4]
   aRR.vio=list(save='aRR.vio',  vars='vio.n1y',  strat='age.10'),
   aRR.dep=list(save='aRR.dep_o',vars='dep_o.a1y',strat='age.10'),
   aRR.haz=list(save='aRR.haz_o',vars='haz_o.a1y',strat='age.10'),
   aRR.ptr=list(save='aRR.ptr_o',vars='ptr_o.n1y',strat='age.10',among=quote(p1y.sex.act)),
-  # basic RR
+  # basic RR [5:12]
   RR.dep_o.dep_p=list(gpar=list('RR.dep_o.dep_p'=RR3),vars='dep_o.a1y',strat='p1y.dep.past',among=quote(!p1y.dep.now)),
   RR.haz_o.haz_p=list(gpar=list('RR.haz_o.haz_p'=RR3),vars='haz_o.a1y',strat='p1y.haz.past',among=quote(!p1y.haz.now)),
   RR.haz_o.dep_w=list(gpar=list('RR.haz_o.dep_w'=RR3),vars='haz_o.a1y',strat='p1y.dep.now', among=quote(!p1y.haz.now)),
@@ -35,21 +35,22 @@ val.RR = list(
   RR.ptr_o.haz_w=list(gpar=list('RR.ptr_o.haz_w'=RR3),vars='ptr_o.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
   RR.ptr_x.dep_w=list(gpar=list('RR.ptr_x.dep_w'=RR3),vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
   RR.ptr_x.haz_w=list(gpar=list('RR.ptr_x.haz_w'=RR3),vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
-  # transient RR
+  # transient RR [13:17]
   tRR.dep_o.vio_zf=list(gpar=list('iRR.dep_o.vio_zf'=RR2,'tsc.dep_o.vio_zf'=ts2),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
   tRR.dep_x.vio_zf=list(gpar=list('iRR.dep_x.vio_zf'=RR2,'tsc.dep_x.vio_zf'=ts2),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),
   tRR.haz_o.vio_zf=list(gpar=list('iRR.haz_o.vio_zf'=RR2,'tsc.haz_o.vio_zf'=ts2),vars='haz_o.a3m',strat='vio.a3m',among=quote(!p3m.haz.now)),
   tRR.haz_x.vio_zf=list(gpar=list('iRR.haz_x.vio_zf'=RR2,'tsc.haz_x.vio_zf'=ts2),vars='haz_x.a3m',strat='vio.a3m',among=quote( p3m.haz.now)),
   tRR.ptr_o.vio_zf=list(gpar=list('iRR.ptr_o.vio_zf'=RR2,'tsc.ptr_o.vio_zf'=ts2),vars='ptr_o.n3m',strat='vio.a3m',among=quote( p3m.sex.act)),
-  # cumulative RR
+  # cumulative RR [18:20]
   nRR.dep_o.vio_nt=list(gpar=list('mRR.dep_o.vio_nt'=RR2,'nsc.dep_o.vio_nt'=ns2),vars='dep_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.dep.now)),
   nRR.haz_o.vio_nt=list(gpar=list('mRR.haz_o.vio_nt'=RR2,'nsc.haz_o.vio_nt'=ns2),vars='haz_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.haz.now)),
   nRR.ptr_o.vio_nt=list(gpar=list('mRR.ptr_o.vio_nt'=RR2,'nsc.ptr_o.vio_nt'=ns2),vars='ptr_o.n1y',strat='p1y.vio.nt.c',among=quote( p1y.sex.act)),
-  # duration RR
+  # duration RR [21:22]
   dRR.dep_x.dep_u=list(gpar=list('dsc.dep_x.dep_u'=ts2),vars='dep_x.a1y',strat='p1y.dep.dur.c',among=quote(p1y.dep.now)),
   dRR.haz_x.haz_u=list(gpar=list('dsc.haz_x.haz_u'=ts2),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.haz.now))
 )
 for (name in names(val.RR)){
+  val.RR[[name]]$all.Ri.shape = 1 # reduce heterogeneity
   val.RR[[name]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[name]]$save)
   val.RR[[name]]$srvs = c(srv.val.RR)
   val.RR[[name]]$name = name
