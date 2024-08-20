@@ -32,13 +32,16 @@ init.inds = function(P){
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
   age = runif(n,min=amin-P$n.dur*adur,max=amax)
+  vio.Ri = rgamma(n=n,shape=P$all.Ri.shape,scale=P$vio.Ri.m/P$all.Ri.shape)
+  sex.Ri = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
+  cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   I = data.frame(
     i = seq(n),
     z.born  = -age*z1y,
     age     = +age,
     age.act = runif(n,min=amin,max=20),
     # violence
-    vio.Ri = rgamma(n=n,shape=P$all.Ri.shape,scale=P$vio.Ri.m/P$all.Ri.shape),
+    vio.Ri = vio.Ri,
     vio.zf = NA,
     vio.nt = 0,
     # depression
@@ -57,8 +60,10 @@ init.inds = function(P){
     ptr_o.Ri = ptr$o.Ri,
     ptr_x.Ri = ptr$x.Ri,
     ptr.max  = 1+ptr$max,
-    ptr.nw   = 0
-    # TODO: condoms
+    ptr.nw   = 0,
+    # sex freq & condom prob
+    sex.Ri = sex.Ri,
+    cdm.Pi = cdm.Pi
   )
 }
 
@@ -72,8 +77,9 @@ init.ptrs = function(P,I,i,z){
   K = data.frame(
     i1 = I$i[i1], # i of partner 1
     i2 = I$i[i2], # i of partner 2
+    f.sex = I$sex.Ri[i1]/2 + I$sex.Ri[i2]/2, # sex freq
+    p.cdm = I$cdm.Pi[i1]/2 + I$cdm.Pi[i2]/2, # condom prob
     zo = z # timestep ptr begins
-    # TODO: f.sex, p.cdm
   )
 }
 

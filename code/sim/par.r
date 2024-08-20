@@ -14,6 +14,9 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$haz_x.Ri.m  = 1.00/t1y  # (mean) base rate: hazdrink end
   P$ptr_o.Ri.m  = 1/35      # (mean) base rate: partner begin
   P$ptr_x.Ri.m  = 1/t1y     # (mean) base rate: partner end
+  P$sex.Ri.95   = c(.1,.5)  # (95% CI) base rate: sex within ptr
+  P$cdm.Pi.95   = c(.2,.8)  # (95% CI) prob: condom use
+  # base rate covariance, shapes, etc.
   P$ptr.max.m   = 1.50      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
@@ -70,6 +73,8 @@ get.pars = function(seed=0,...,case='base',null=NULL){
 cond.pars = function(P){
   P$zf    = P$n.dur*adur*z1y  # final timestep
   P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
+  P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
+  P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
   # RR: age
   P$aRR.vio   = def.RR.age(P$aRR.vio.ages,P$aRR.vio.RRs) # RR: age -> vio
   P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs) # RR: age -> dep begin

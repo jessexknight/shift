@@ -141,6 +141,11 @@ grid.apply = function(x,fun,...,.par=TRUE){
 # -----------------------------------------------------------------------------
 # stats
 
+fit.beta = function(qs,ps=c(.025,.975)){
+  efun = function(par){ e = sum(abs(ps-pbeta(qs,par[1],par[2]))) }
+  optim(c(1,1),efun,method='L-BFGS-B',lower=0)$par
+}
+
 copula = function(n,covs,qfuns,...){
   # joint sample from qfuns (args in ...) with correlation (covs)
   # e.g. copula(100,0.5,list(a=qexp,b=qunif),a=list(rate=1),b=list(min=0,max=1))
