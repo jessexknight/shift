@@ -14,14 +14,14 @@ init.inds = function(P){
   dep = as.data.frame(copula(n,
     covs = P$dep.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=P$all.Ri.shape,scale=P$dep_o.Ri.m),
-    x.Ri = list(shape=P$all.Ri.shape,scale=P$dep_x.Ri.m)))
+    o.Ri = list(shape=P$all.Ri.shape,scale=P$dep_o.Ri.m/P$all.Ri.shape),
+    x.Ri = list(shape=P$all.Ri.shape,scale=P$dep_x.Ri.m/P$all.Ri.shape)))
   # plot(dep,col=rgb(0,0,0,.1)) # DEBUG
   haz = as.data.frame(copula(n,
     covs = P$haz.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=P$all.Ri.shape,scale=P$haz_o.Ri.m),
-    x.Ri = list(shape=P$all.Ri.shape,scale=P$haz_x.Ri.m)))
+    o.Ri = list(shape=P$all.Ri.shape,scale=P$haz_o.Ri.m/P$all.Ri.shape),
+    x.Ri = list(shape=P$all.Ri.shape,scale=P$haz_x.Ri.m/P$all.Ri.shape)))
   # plot(haz,col=rgb(0,0,0,.1)) # DEBUG
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
@@ -38,7 +38,7 @@ init.inds = function(P){
     age     = +age,
     age.act = runif(n,min=amin,max=20),
     # violence
-    vio.Ri = rgamma(n=n,shape=P$all.Ri.shape,scale=P$vio.Ri.m),
+    vio.Ri = rgamma(n=n,shape=P$all.Ri.shape,scale=P$vio.Ri.m/P$all.Ri.shape),
     vio.zf = NA,
     vio.nt = 0,
     # depression
