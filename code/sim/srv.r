@@ -43,11 +43,11 @@ srv.base = function(P,Q,E,z,fmt='%s'){
   Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
   Q$dep.past = sapply(E$dep_o,len) > 0
   Q$dep.zo   = sapply(E$dep_o,last)
-  Q$dep.dur  = ifelse(Q$dep.now,z+1-Q$dep.zo,NA)
+  Q$dep.uz   = ifelse(Q$dep.now,z+1-Q$dep.zo,NA)
   Q$haz.now  = sapply(E$haz_o,len) > sapply(E$haz_x,len)
   Q$haz.past = sapply(E$haz_o,len) > 0
   Q$haz.zo   = sapply(E$haz_o,last)
-  Q$haz.dur  = ifelse(Q$haz.now,z+1-Q$haz.zo,NA)
+  Q$haz.uz   = ifelse(Q$haz.now,z+1-Q$haz.zo,NA)
   Q$ptr.nt   = sapply(E$ptr_o,len)
   Q$ptr.nw   = Q$ptr.nt - sapply(E$ptr_x,len)
   names(Q) = sprintf(fmt,names(Q)) # format names for conflicts
@@ -57,9 +57,9 @@ srv.base = function(P,Q,E,z,fmt='%s'){
 srv.ptr = function(P,Q,E,z){
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q$ptr.nw.c = int.cut(Q$ptr.nw,c(0,1,2))
-  ptr.w.dur = wapply(dur.ptr.w,E$ptr_o,E$ptr_x,E$ptr_u,z) # ongo ptrs durs
-  Q$ptr.p.dur.m = dtz*sapply(E$ptr_u,mean)   # past ptrs durs
-  Q$ptr.w.dur.m = dtz*sapply(ptr.w.dur,mean) # ongo ptrs durs
+  ptr.w.uz = wapply(dur.ptr.w,E$ptr_o,E$ptr_x,E$ptr_u,z) # ongo ptrs durs
+  Q$ptr.p.dur.m = dtz*sapply(E$ptr_u,mean)  # past ptrs durs
+  Q$ptr.w.dur.m = dtz*sapply(ptr.w.uz,mean) # ongo ptrs durs
   return(Q)
 }
 
@@ -80,8 +80,8 @@ srv.val.RR = function(P,Q,E,z){
   Q$ptr_x.n1y = sapply(E$ptr_x,num.dz,z,z1y)
   # states 1 year prior
   Q = cbind(Q,srv.base(P,Q,E,z-z1y,fmt='p1y.%s'))
-  Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.dur,z1y*c(0,1,10))
-  Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.dur,z1y*c(0,1,10))
+  Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.uz,t1y*c(0,1,5))
+  Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.uz,t1y*c(0,1,5))
   Q$p1y.vio.nt.c  = int.cut(Q$p1y.vio.nt,c(0,1,10,100))
   # events in past 3 months
   Q$vio.n3m   = sapply(E$vio,  num.dz,z,z3m)
@@ -94,8 +94,8 @@ srv.val.RR = function(P,Q,E,z){
   Q$ptr_x.n3m = sapply(E$ptr_x,num.dz,z,z3m)
   # states 3 months prior
   Q = cbind(Q,srv.base(P,Q,E,z-z3m,fmt='p3m.%s'))
-  Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.dur,z3m*c(0,1,10))
-  Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.dur,z3m*c(0,1,10))
+  Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.uz,t3m*c(0,1,5))
+  Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.uz,t3m*c(0,1,5))
   Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,1,10,100))
   return(Q)
 }
