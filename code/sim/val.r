@@ -82,12 +82,12 @@ val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(cas
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
   for (var in vars){
-    g = val.plot(Q,var,strat,names(gpar)[lens(gpar)>1])
+    g = val.plot(Q,var,strat,names(gpar)[lens(gpar)>1],name)
     plot.save('val',uid,str(name,'--',var),h=3,w=1+3*prod(lens(gpar)))
   }
 }
 
-val.plot = function(Q,var,strat,gpar){
+val.plot = function(Q,var,strat,gpar,name){
   g = c('seed','gpar',strat) # grouping variables
   Q = cbind(Q,gpar=apply(Q[gpar],1,list.str,def=' = ',join='\n'),.='')[c(g,var)]
   x = as.numeric(Q[[var]]) # extract values
@@ -102,15 +102,15 @@ val.plot = function(Q,var,strat,gpar){
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
     facet_wrap('~gpar',scales='fixed',ncol=ulen(Q$gpar)) +
-    labs(y='proportion (%)',color=strat,fill=strat) +
+    labs(y='proportion (%)',x=var,color=strat,fill=strat) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
     ylim(c(0,NA)) +
-    ggtitle(var)
-  if (cts){ g = plot.clean(g) + xlab('value') +
+    ggtitle(name)
+  if (cts){ g = plot.clean(g) +
     stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
     stat_summary(geom='line',fun=median) }
-  else { g = plot.clean(g,axis.text.x=element_blank()) + xlab('') +
+  else { g = plot.clean(g,axis.text.x=element_blank()) +
     geom_violin(aes(group=interaction(b,gpar,.data[[strat]])),
       alpha=.3,scale='width',bw=2,draw_quantiles=1:3/4) }
 }
