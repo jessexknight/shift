@@ -12,8 +12,8 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$dep_x.Ri.m  = 1.00/t1y  # (mean) base rate: depression end
   P$haz_o.Ri.m  = 0.01/t1y  # (mean) base rate: hazdrink begin
   P$haz_x.Ri.m  = 1.00/t1y  # (mean) base rate: hazdrink end
-  P$ptr_o.Ri.m  = 1/35      # (mean) base rate: partner begin
-  P$ptr_x.Ri.m  = 1/t1y     # (mean) base rate: partner end
+  P$ptr_o.Ri.m  = 1/30      # (mean) base rate: partner begin
+  P$ptr_x.Ri.m  = 1/30      # (mean) base rate: partner end
   P$sex.Ri.95   = c(.1,.5)  # (95% CI) base rate: sex within ptr
   P$cdm.Pi.95   = c(.2,.8)  # (95% CI) prob: condom use
   # base rate covariance, shapes, etc.

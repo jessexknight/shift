@@ -24,7 +24,7 @@ ns2 = c(10,100)
 gvio = list(vio.Ri.m   = .003)
 gdep = list(dep_o.Ri.m = .003, dep_x.Ri.m = .003)
 ghaz = list(haz_o.Ri.m = .003, haz_x.Ri.m = .003)
-gptr = list(ptr_o.Ri.m = .03,  ptr_x.Ri.m = .03)
+gptr = list(ptr_o.Ri.m = .01,  ptr_x.Ri.m = .01)
 
 val.RR = list(
   # RR age [1:4]
@@ -37,10 +37,10 @@ val.RR = list(
   RR.haz_o.haz_p=list(gpar=ulist(ghaz,     RR.haz_o.haz_p=  RR3),vars='haz_o.a1y',strat='p1y.haz.past',among=quote(!p1y.haz.now)),
   RR.haz_o.dep_w=list(gpar=ulist(ghaz,gdep,RR.haz_o.dep_w=  RR3),vars='haz_o.a1y',strat='p1y.dep.now', among=quote(!p1y.haz.now)),
   RR.haz_x.dep_w=list(gpar=ulist(ghaz,gdep,RR.haz_x.dep_w=1/RR3),vars='haz_x.a1y',strat='p1y.dep.now', among=quote( p1y.haz.now)),
-  RR.ptr_o.dep_w=list(gpar=ulist(gptr,gdep,RR.ptr_o.dep_w=  RR3),vars='ptr_o.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
+  RR.ptr_o.dep_w=list(gpar=ulist(gptr,gdep,RR.ptr_o.dep_w=1/RR3),vars='ptr_o.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
   RR.ptr_o.haz_w=list(gpar=ulist(gptr,ghaz,RR.ptr_o.haz_w=  RR3),vars='ptr_o.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
-  RR.ptr_x.dep_w=list(gpar=ulist(gptr,gdep,RR.ptr_x.dep_w=1/RR3),vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
-  RR.ptr_x.haz_w=list(gpar=ulist(gptr,ghaz,RR.ptr_x.haz_w=1/RR3),vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
+  RR.ptr_x.dep_w=list(gpar=ulist(gptr,gdep,RR.ptr_x.dep_w=  RR3),vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
+  RR.ptr_x.haz_w=list(gpar=ulist(gptr,ghaz,RR.ptr_x.haz_w=  RR3),vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
   # transient RR [13:17]
   tRR.dep_o.vio_zf=list(gpar=ulist(gdep,gvio,iRR.dep_o.vio_zf=  RR2,tsc.dep_o.vio_zf=ts2),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
   tRR.dep_x.vio_zf=list(gpar=ulist(gdep,gvio,iRR.dep_x.vio_zf=1/RR2,tsc.dep_x.vio_zf=ts2),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),

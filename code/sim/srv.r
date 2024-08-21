@@ -82,7 +82,7 @@ srv.val.RR = function(P,Q,E,z){
   Q = cbind(Q,srv.base(P,Q,E,z-z1y,fmt='p1y.%s'))
   Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.uz,t1y*c(0,1,5))
   Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.uz,t1y*c(0,1,5))
-  Q$p1y.vio.nt.c  = int.cut(Q$p1y.vio.nt,c(0,1,10,100))
+  Q$p1y.vio.nt.c  = int.cut(Q$p1y.vio.nt,c(0,3,30))
   # events in past 3 months
   Q$vio.n3m   = sapply(E$vio,  num.dz,z,z3m)
   Q$vio.a3m   = sapply(E$vio,  any.dz,z,z3m)
@@ -96,7 +96,7 @@ srv.val.RR = function(P,Q,E,z){
   Q = cbind(Q,srv.base(P,Q,E,z-z3m,fmt='p3m.%s'))
   Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.uz,t3m*c(0,1,5))
   Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.uz,t3m*c(0,1,5))
-  Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,1,10,100))
+  Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,3,30))
   return(Q)
 }
 
