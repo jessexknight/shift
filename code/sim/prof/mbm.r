@@ -3,8 +3,8 @@ options(width=256)
 
 .verb = 0
 n = list(rep=3,seed=7)
-f = file.path('.tmp','mbm',sprintf('mbm_s%dr%d_%s.out',
-  n$seed,n$rep,Sys.Date()))
+f = file.path('.log','prof',sprintf('mbm_s%dr%d_%s.out',
+  n$seed,n$rep,uid))
 
 mbm = microbenchmark::microbenchmark(
   {sim.runs(lapply(1:n$seed,get.pars,n.pop=30))},

@@ -1,11 +1,12 @@
 debug:
 	Rscript sim/debug.r
-mwe:
+sim.mwe:
 	Rscript sim/mwe.r
-val:
+sim.val:
 	Rscript sim/val.r
-mbm:
-	Rscript sim/mbm.r
+sim.prof:
+	Rscript sim/prof/prof.r
+	Rscript sim/prof/mbm.r
 tikz:
 	cd tikz && make all
 .PHONY: tikz
