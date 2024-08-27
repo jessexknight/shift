@@ -84,6 +84,7 @@ dt.pars = function(P,dtz){
 
 cond.pars = function(P){
   P$zf    = P$n.dur*adur*P$z1y # final timestep
+  P$tf    = P$zf * P$dtz       # final time (days)
   P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
