@@ -81,11 +81,12 @@ cond.pars = function(P){
   P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs) # RR: age -> haz begin
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
   # tRR: vio
-  P$tRRu.dep_o.vio_zf = def.tRR.exp(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf) - 1 # tRR-1: vio -> dep begin
-  P$tRRu.dep_x.vio_zf = def.tRR.exp(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf) - 1 # tRR-1: vio -> dep end
-  P$tRRu.haz_o.vio_zf = def.tRR.exp(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf) - 1 # tRR-1: vio -> haz begin
-  P$tRRu.haz_x.vio_zf = def.tRR.exp(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf) - 1 # tRR-1: vio -> haz end
-  P$tRRu.ptr_o.vio_zf = def.tRR.exp(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf) - 1 # tRR-1: vio -> ptr begin
+  def.tRR = def.tRR.exp
+  P$tRRu.dep_o.vio_zf = def.tRR(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf) - 1 # tRR-1: vio -> dep begin
+  P$tRRu.dep_x.vio_zf = def.tRR(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf) - 1 # tRR-1: vio -> dep end
+  P$tRRu.haz_o.vio_zf = def.tRR(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf) - 1 # tRR-1: vio -> haz begin
+  P$tRRu.haz_x.vio_zf = def.tRR(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf) - 1 # tRR-1: vio -> haz end
+  P$tRRu.ptr_o.vio_zf = def.tRR(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
   P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt) # nRR: vio -> dep begin
   P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt) # nRR: vio -> haz begin
@@ -97,7 +98,7 @@ cond.pars = function(P){
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
   }
-  # for (x in filter.names(P,'^(t|c|d)RR')){ plot(grepl('RRu',x)+P[[x]]); title(x) } # DEBUG
+  # for (x in filter.names(P,'^(t|n|d)RR')){ plot(grepl('RRu',x)+P[[x]]); title(x) } # DEBUG
   return(P)
 }
 
@@ -137,6 +138,11 @@ def.nRR.exp = function(mRR,nsc){
 def.dRR.exp = function(tsc){
   z = 1:(z1y*adur) # dmax = all active timesteps
   dRR = exp(-z*dtz/tsc)
+}
+
+def.tRR.rect = function(iRR,tsc){
+  ntz = tsc/dtz
+  tRR = 1 + (iRR-1) * c(rep(1,floor(ntz)),ntz-floor(ntz))
 }
 
 def.tRR.exp = function(iRR,tsc,eps=.001){
