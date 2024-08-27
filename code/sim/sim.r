@@ -102,7 +102,7 @@ rate.dep_o = function(P,J,R,aj,z){
       J$dep_o.Ri[j] # base rate
     * P$aRR.dep_o[aj[j]] # RR age
     * (1 + P$RRu.dep_o.dep_p * J$dep.past[j]) # RR dep past
-    * map.tRR(P$tRRu.dep_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.dep_o.vio_zr,J$vio.zf[j],z) # tRR vio
     * P$nRR.dep_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
@@ -111,7 +111,7 @@ rate.dep_x = function(P,J,R,aj,z){
   R[j] = ( # among dep
       J$dep_x.Ri[j] # base rate
     * map.tRR(P$dRRu.dep_x.dep_u,J$dep.zo[j],z) # RR dep dur
-    * map.tRR(P$tRRu.dep_x.vio_zf,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.dep_x.vio_zr,J$vio.zf[j],z) # tRR vio
 ); return(R) }
 
 rate.haz_o = function(P,J,R,aj,z){
@@ -121,7 +121,7 @@ rate.haz_o = function(P,J,R,aj,z){
     * P$aRR.haz_o[aj[j]] # RR age
     * (1 + P$RRu.haz_o.haz_p * J$haz.past[j]) # RR haz past
     * (1 + P$RRu.haz_o.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.haz_o.vio_zr,J$vio.zf[j],z) # tRR vio
     * P$nRR.haz_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
@@ -131,7 +131,7 @@ rate.haz_x = function(P,J,R,aj,z){
       J$haz_x.Ri[j] # base rate
     * map.tRR(P$dRRu.haz_x.haz_u,J$haz.zo[j],z) # RR haz dur
     * (1 + P$RRu.haz_x.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_x.vio_zf,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.haz_x.vio_zr,J$vio.zf[j],z) # tRR vio
 ); return(R) }
 
 rate.ptr_o = function(P,J,R,aj,z){
@@ -141,7 +141,7 @@ rate.ptr_o = function(P,J,R,aj,z){
     * P$aRR.ptr_o[aj[j]] # RR age
     * (1 + P$RRu.ptr_o.dep_w * J$dep.now[j]) # RR dep now
     * (1 + P$RRu.ptr_o.haz_w * J$haz.now[j]) # RR haz now
-    * map.tRR(P$tRRu.ptr_o.vio_zf,J$vio.zf[j],z) # tRR vio
+    * map.tRR(P$tRRu.ptr_o.vio_zr,J$vio.zf[j],z) # tRR vio
     * P$nRR.ptr_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 

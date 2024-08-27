@@ -15,26 +15,27 @@
 # =============================================================================
 # survey funs
 
-srv.apply = function(Ms,z,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
+srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (z)
   status(3,'srv.apply: ',len(Ms))
-  if (missing(z)){ z = Ms[[1]]$P$zf }
+  if (missing(t)){ t = Ms[[1]]$P$tf }
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')
-  Qs = lapply(Ms,srv.init,z=z,p.vars=p.vars,i.vars=i.vars)
+  Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars)
   for (srv in srvs){
-    Qs = par.mapply(srv,Ps,Qs,Es,z) }
+    Qs = par.mapply(srv,Ps,Qs,Es,t) }
   Q = do.call(rbind,Qs)
 }
 
-srv.init = function(M,z,p.vars,i.vars){
+srv.init = function(M,t,p.vars,i.vars){
   p.vars = unique(c(.p.vars,p.vars))
   i.vars = unique(c(.i.vars,i.vars))
-  Q = cbind(M$P[p.vars],z=z,M$I[i.vars]) # init Q ~= I
+  Q = cbind(M$P[p.vars],t=t,M$I[i.vars]) # init Q ~= I
   # Q = srv.base(M$P,Q,M$E,z); print(all.equal(M$I[i.vars],Q[i.vars])) # DEBUG
 }
 
-srv.base = function(P,Q,E,z,fmt='%s'){
+srv.base = function(P,Q,E,t,fmt='%s'){
+  z = t/P$dtz
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q$age      = (z-Q$z.born)/P$z1y
   Q$sex.act  = Q$age > Q$age.act
@@ -54,7 +55,8 @@ srv.base = function(P,Q,E,z,fmt='%s'){
   return(Q)
 }
 
-srv.ptr = function(P,Q,E,z){
+srv.ptr = function(P,Q,E,t){
+  z = t/P$dtz
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q$ptr.nw.c = int.cut(Q$ptr.nw,c(0,1,2))
   ptr.w.uz = wapply(dur.ptr.w,E$ptr_o,E$ptr_x,E$ptr_u,z) # ongo ptrs durs
@@ -65,7 +67,8 @@ srv.ptr = function(P,Q,E,z){
 
 # -----------------------------------------------------------------------------
 
-srv.val.RR = function(P,Q,E,z){
+srv.val.RR = function(P,Q,E,t){
+  z = t/P$dtz
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q = srv.base(P,Q,E,z)
   Q$age.10 = floor(Q$age/10)*10

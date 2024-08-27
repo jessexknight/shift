@@ -35,31 +35,31 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL){
   P$aRR.ptr_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> ptr begin
   # RR: * -> dep begin
   P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
-  P$iRR.dep_o.vio_zf = 2     # (initial RR) transient RR: vio -> dep begin
-  P$tsc.dep_o.vio_zf = 30    # (time scale) transient RR: vio -> dep begin
+  P$iRR.dep_o.vio_zr = 2     # (initial RR) transient RR: vio -> dep begin
+  P$tsc.dep_o.vio_zr = 30    # (time scale) transient RR: vio -> dep begin
   P$mRR.dep_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> dep begin
   P$nsc.dep_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> dep begin
   # RR: * -> dep end
   P$dsc.dep_x.dep_u  = P$t1y # (dur scale)  duration RR: dep dur -> dep end
-  P$iRR.dep_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> dep end
-  P$tsc.dep_x.vio_zf = 30    # (time scale) transient RR: vio -> dep end
+  P$iRR.dep_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> dep end
+  P$tsc.dep_x.vio_zr = 30    # (time scale) transient RR: vio -> dep end
   # RR: * -> haz begin
   P$ RR.haz_o.haz_p  = 3     # RR: haz past -> haz begin
   P$ RR.haz_o.dep_w  = 3     # RR: dep now -> haz begin
-  P$iRR.haz_o.vio_zf = 2     # (initial RR) transient RR: vio -> haz begin
-  P$tsc.haz_o.vio_zf = 30    # (time scale) transient RR: vio -> haz begin
+  P$iRR.haz_o.vio_zr = 2     # (initial RR) transient RR: vio -> haz begin
+  P$tsc.haz_o.vio_zr = 30    # (time scale) transient RR: vio -> haz begin
   P$mRR.haz_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> haz begin
   P$nsc.haz_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> haz begin
   # RR: * -> haz end
   P$ RR.haz_x.dep_w  = 1/3   # RR: dep now -> haz end
   P$dsc.haz_x.haz_u  = P$t1y # (dur scale)  duration RR: haz dur -> haz end
-  P$iRR.haz_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> haz end
-  P$tsc.haz_x.vio_zf = 30    # (time scale) transient RR: vio -> haz end
+  P$iRR.haz_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> haz end
+  P$tsc.haz_x.vio_zr = 30    # (time scale) transient RR: vio -> haz end
   # RR: * -> ptr begin
   P$ RR.ptr_o.dep_w  = 1/2   # RR: dep now -> ptr begin
   P$ RR.ptr_o.haz_w  = 2     # RR: haz now -> ptr begin
-  P$iRR.ptr_o.vio_zf = 1/2   # (initial RR) transient RR: vio -> ptr begin
-  P$tsc.ptr_o.vio_zf = 30    # (time scale) transient RR: vio -> ptr begin
+  P$iRR.ptr_o.vio_zr = 1/2   # (initial RR) transient RR: vio -> ptr begin
+  P$tsc.ptr_o.vio_zr = 30    # (time scale) transient RR: vio -> ptr begin
   P$mRR.ptr_o.vio_nt = 1/2   # (max RR)    cumulative RR: vio -> ptr begin
   P$nsc.ptr_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> ptr begin
   # RR: * -> ptr end
@@ -94,11 +94,11 @@ cond.pars = function(P){
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
   # tRR: vio
   def.tRR = def.tRR.exp
-  P$tRRu.dep_o.vio_zf = def.tRR(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> dep begin
-  P$tRRu.dep_x.vio_zf = def.tRR(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf,P$dtz) - 1 # tRR-1: vio -> dep end
-  P$tRRu.haz_o.vio_zf = def.tRR(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> haz begin
-  P$tRRu.haz_x.vio_zf = def.tRR(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf,P$dtz) - 1 # tRR-1: vio -> haz end
-  P$tRRu.ptr_o.vio_zf = def.tRR(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> ptr begin
+  P$tRRu.dep_o.vio_zr = def.tRR(P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
+  P$tRRu.dep_x.vio_zr = def.tRR(P$iRR.dep_x.vio_zr,P$tsc.dep_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep end
+  P$tRRu.haz_o.vio_zr = def.tRR(P$iRR.haz_o.vio_zr,P$tsc.haz_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz begin
+  P$tRRu.haz_x.vio_zr = def.tRR(P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
+  P$tRRu.ptr_o.vio_zr = def.tRR(P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
   P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
   P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
