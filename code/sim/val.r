@@ -3,7 +3,7 @@ source('sim/meta.r')
 # =============================================================================
 # config
 
-v      = cli.arg('v',     1:23)
+v      = cli.arg('v',     1:24)
 n.pop  = cli.arg('n.pop', 333)
 n.seed = cli.arg('n.seed',7)
 key.vars = c('age',
@@ -66,7 +66,8 @@ for (name in names(val.RR)){
 # base scenarios
 
 val.base = list(
-  'base'=list(vars=key.vars)
+  base=list(vars=key.vars),
+  dtz=list(vars=key.vars,gpar=ulist(dtz=c(3,7,14)),strat='dtz')
 )
 for (name in names(val.base)){
   val.base[[name]]$srvs = c(srv.base,srv.ptr)
@@ -81,15 +82,16 @@ val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(cas
   Ps = grid.apply(c(list(seed=1:n.seed),gpar),get.pars,n.pop=n.pop,...)
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
+  facet = setdiff(names(gpar)[lens(gpar)>1],strat)
   for (var in vars){
-    g = val.plot(Q,var,strat,names(gpar)[lens(gpar)>1],name)
-    plot.save('val',uid,str(name,'--',var),h=3,w=1+3*prod(lens(gpar)))
+    g = val.plot(Q,var,strat,facet,name)
+    plot.save('val',uid,str(name,'--',var),h=3,w=1+3*prod(lens(gpar[facet])))
   }
 }
 
-val.plot = function(Q,var,strat,gpar,name){
-  g = c('seed','gpar',strat) # grouping variables
-  Q = cbind(Q,gpar=apply(Q[gpar],1,list.str,def=' = ',join='\n'),.='')[c(g,var)]
+val.plot = function(Q,var,strat,facet,name){
+  g = c('seed','facet',strat) # grouping variables
+  Q = cbind(Q,facet=apply(Q[facet],1,list.str,def=' = ',join='\n'),.='')[c(g,var)]
   x = as.numeric(Q[[var]]) # extract values
   b = breaks(x) # compute common breaks
   cts = ulen(x) > 2 # is var continuous or binary
@@ -101,7 +103,7 @@ val.plot = function(Q,var,strat,gpar,name){
   g = ggplot(Qp,aes(x=b,y=100*as.numeric(p),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
-    facet_wrap('~gpar',scales='fixed',ncol=ulen(Q$gpar)) +
+    facet_wrap('~facet',scales='fixed',ncol=ulen(Q$facet)) +
     labs(y='proportion (%)',x=var,color=strat,fill=strat) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
@@ -111,12 +113,12 @@ val.plot = function(Q,var,strat,gpar,name){
     stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
     stat_summary(geom='line',fun=median) }
   else { g = plot.clean(g,axis.text.x=element_blank()) +
-    geom_violin(aes(group=interaction(b,gpar,.data[[strat]])),
+    geom_violin(aes(group=interaction(b,facet,.data[[strat]])),
       alpha=.3,scale='width',bw=2,draw_quantiles=1:3/4) }
 }
 
 # =============================================================================
 # main
 
-vals = c(val.RR,val.base)[v] # 1:22,23:23
+vals = c(val.RR,val.base)[v] # 1:22,23:24
 for (val in vals){ do.call(val.run,val,quote=TRUE) }
