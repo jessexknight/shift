@@ -24,7 +24,7 @@ ns2 = c(10,100)
 gvio = list(vio.Ri.m   = .003)
 gdep = list(dep_o.Ri.m = .003, dep_x.Ri.m = .003)
 ghaz = list(haz_o.Ri.m = .003, haz_x.Ri.m = .003)
-gptr = list(ptr_o.Ri.m = .01,  ptr_x.Ri.m = .01)
+gptr = list(ptr_o.Ri.m = .01,  ptr_x.Ri.m = .02,  ptr.max.m = 3)
 
 val.RR = list(
   # RR age [1:4]
