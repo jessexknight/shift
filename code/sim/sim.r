@@ -37,7 +37,7 @@ init.inds = function(P){
   cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   I = data.frame(
     i = seq(n),
-    z.born  = -age*z1y,
+    z.born  = -age*P$z1y,
     age     = +age,
     age.act = runif(n,min=amin,max=20),
     # violence
@@ -86,9 +86,9 @@ init.ptrs = function(P,I,i,z){
 # =============================================================================
 # rate & prob funs
 
-rate.to.prob = function(R){ p = 1-exp(-R*dtz) }
-rate.to.bool = function(R){ b = runif(R) < (1-exp(-R*dtz)) }
-rate.to.num  = function(R){ n = rpois(len(R),R*dtz) }
+rate.to.prob = function(R,dtz){ p = 1-exp(-R*dtz) }
+rate.to.bool = function(R,dtz){ b = runif(R) < (1-exp(-R*dtz)) }
+rate.to.num  = function(R,dtz){ n = rpois(len(R),R*dtz) }
 
 rate.vio = function(P,J,aj){
   R = ( # among all
@@ -167,11 +167,11 @@ sim.run = function(P,rm.dum=TRUE){
   K = NULL         # partnerships
   # event loop ----------------------------------------------------------------
   for (z in 1:P$zf){
-    # if (z %% z1y == 0) { print(z/z1y) } # DEBUG
+    # if (z %% P$z1y == 0) { print(z/P$z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
-    I$age = I$age + 1/z1y
+    I$age = I$age + 1/P$z1y
     # end ptrs ----------------------------------------------------------------
-    b = rate.to.bool(rate.ptr_x(P,K,I))
+    b = rate.to.bool(rate.ptr_x(P,K,I),P$dtz)
     i = c(K$i1[b],K$i2[b])
     I$ptr.nw[i] = I$ptr.nw[i] - 1 # TODO: bug if any repeated i
     E$ptr_x[i] = lapply(E$ptr_x[i],append,z)
@@ -184,32 +184,32 @@ sim.run = function(P,rm.dum=TRUE){
     aj = floor(J$age-amin+1) # age vector for j
     R0 = numeric(nrow(J)) # init rate = 0 for j
     # vio events --------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.vio(P,J,aj)))]
+    i = ij[which(rate.to.bool(rate.vio(P,J,aj),P$dtz))]
     I$vio.zf[i] = z
     I$vio.nt[i] = I$vio.nt[i] + 1
     E$vio[i] = lapply(E$vio[i],append,z)
     # begin dep ---------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z)))]
+    i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = TRUE
     I$dep.past[i] = TRUE
     I$dep.zo[i] = z
     E$dep_o[i] = lapply(E$dep_o[i],append,z)
     # end dep -----------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z)))]
+    i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = FALSE
     E$dep_x[i] = lapply(E$dep_x[i],append,z)
     # begin haz ---------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z)))]
+    i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = TRUE
     I$haz.past[i] = TRUE
     I$haz.zo[i] = z
     E$haz_o[i] = lapply(E$haz_o[i],append,z)
     # end haz -----------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z)))]
+    i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = FALSE
     E$haz_x[i] = lapply(E$haz_x[i],append,z)
     # begin ptrs --------------------------------------------------------------
-    i = ij[even.len(which(rate.to.bool(rate.ptr_o(P,J,R0,aj,z))))]
+    i = ij[even.len(which(rate.to.bool(rate.ptr_o(P,J,R0,aj,z),P$dtz)))]
     I$ptr.nw[i] = I$ptr.nw[i] + 1
     E$ptr_o[i] = lapply(E$ptr_o[i],append,z)
     K = rbind(K,init.ptrs(P,I,i,z))
@@ -218,7 +218,7 @@ sim.run = function(P,rm.dum=TRUE){
   }
   # clean-up ------------------------------------------------------------------
   if (rm.dum){ # remove initial dummy population
-    i = which(I$z.born > -amin*z1y)
+    i = which(I$z.born > -amin*P$z1y)
     I = I[i,]
     E = lapply(E,`[`,i)
   }

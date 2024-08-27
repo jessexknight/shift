@@ -2,20 +2,21 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...,case='base',null=NULL){
+get.pars = function(seed=0,...,dtz=7,case='base',null=NULL){
   P = list(case=case,seed=seed,id=sprintf('%6d',seed))
+  P = dt.pars(P,dtz)
   P$n.pop = 1000
   P$n.dur = 1+1
   # base rates
-  P$vio.Ri.m    = 1/t1y     # (mean) base rate: violence
-  P$dep_o.Ri.m  = 0.01/t1y  # (mean) base rate: depression begin
-  P$dep_x.Ri.m  = 1.00/t1y  # (mean) base rate: depression end
-  P$haz_o.Ri.m  = 0.01/t1y  # (mean) base rate: hazdrink begin
-  P$haz_x.Ri.m  = 1.00/t1y  # (mean) base rate: hazdrink end
-  P$ptr_o.Ri.m  = 1/30      # (mean) base rate: partner begin
-  P$ptr_x.Ri.m  = 1/30      # (mean) base rate: partner end
-  P$sex.Ri.95   = c(.1,.5)  # (95% CI) base rate: sex within ptr
-  P$cdm.Pi.95   = c(.2,.8)  # (95% CI) prob: condom use
+  P$vio.Ri.m    = 1/P$t1y    # (mean) base rate: violence
+  P$dep_o.Ri.m  = 0.01/P$t1y # (mean) base rate: depression begin
+  P$dep_x.Ri.m  = 1.00/P$t1y # (mean) base rate: depression end
+  P$haz_o.Ri.m  = 0.01/P$t1y # (mean) base rate: hazdrink begin
+  P$haz_x.Ri.m  = 1.00/P$t1y # (mean) base rate: hazdrink end
+  P$ptr_o.Ri.m  = 1/30       # (mean) base rate: partner begin
+  P$ptr_x.Ri.m  = 1/30       # (mean) base rate: partner end
+  P$sex.Ri.95   = c(.1,.5)   # (95% CI) base rate: sex within ptr
+  P$cdm.Pi.95   = c(.2,.8)   # (95% CI) prob: condom use
   # base rate covariance, shapes, etc.
   P$ptr.max.m   = 1.50      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
@@ -39,7 +40,7 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$mRR.dep_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> dep begin
   P$nsc.dep_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> dep begin
   # RR: * -> dep end
-  P$dsc.dep_x.dep_u  = t1y   # (dur scale)  duration RR: dep dur -> dep end
+  P$dsc.dep_x.dep_u  = P$t1y # (dur scale)  duration RR: dep dur -> dep end
   P$iRR.dep_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> dep end
   P$tsc.dep_x.vio_zf = 30    # (time scale) transient RR: vio -> dep end
   # RR: * -> haz begin
@@ -51,7 +52,7 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P$nsc.haz_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> haz begin
   # RR: * -> haz end
   P$ RR.haz_x.dep_w  = 1/3   # RR: dep now -> haz end
-  P$dsc.haz_x.haz_u  = t1y   # (dur scale)  duration RR: haz dur -> haz end
+  P$dsc.haz_x.haz_u  = P$t1y # (dur scale)  duration RR: haz dur -> haz end
   P$iRR.haz_x.vio_zf = 1/2   # (initial RR) transient RR: vio -> haz end
   P$tsc.haz_x.vio_zf = 30    # (time scale) transient RR: vio -> haz end
   # RR: * -> ptr begin
@@ -70,8 +71,19 @@ get.pars = function(seed=0,...,case='base',null=NULL){
   P = cond.pars(P)
 }
 
+dt.pars = function(P,dtz){
+  P$dtz  = dtz              # days in 1 timestep
+  P$z3m  = round(364/dtz/4) # timesteps in 3 months
+  P$z6m  = 2 * P$z3m        # timesteps in 6 months
+  P$z1y  = 4 * P$z3m        # timesteps in 1 year
+  P$t1y  = dtz * P$z1y      # days in 1 year
+  P$t3m  = dtz * P$z3m      # days in 3 months
+  P$t6m  = dtz * P$z6m      # days in 6 months
+  return(P)
+}
+
 cond.pars = function(P){
-  P$zf    = P$n.dur*adur*z1y  # final timestep
+  P$zf    = P$n.dur*adur*P$z1y # final timestep
   P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
@@ -82,18 +94,18 @@ cond.pars = function(P){
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
   # tRR: vio
   def.tRR = def.tRR.exp
-  P$tRRu.dep_o.vio_zf = def.tRR(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf) - 1 # tRR-1: vio -> dep begin
-  P$tRRu.dep_x.vio_zf = def.tRR(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf) - 1 # tRR-1: vio -> dep end
-  P$tRRu.haz_o.vio_zf = def.tRR(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf) - 1 # tRR-1: vio -> haz begin
-  P$tRRu.haz_x.vio_zf = def.tRR(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf) - 1 # tRR-1: vio -> haz end
-  P$tRRu.ptr_o.vio_zf = def.tRR(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf) - 1 # tRR-1: vio -> ptr begin
+  P$tRRu.dep_o.vio_zf = def.tRR(P$iRR.dep_o.vio_zf,P$tsc.dep_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> dep begin
+  P$tRRu.dep_x.vio_zf = def.tRR(P$iRR.dep_x.vio_zf,P$tsc.dep_x.vio_zf,P$dtz) - 1 # tRR-1: vio -> dep end
+  P$tRRu.haz_o.vio_zf = def.tRR(P$iRR.haz_o.vio_zf,P$tsc.haz_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> haz begin
+  P$tRRu.haz_x.vio_zf = def.tRR(P$iRR.haz_x.vio_zf,P$tsc.haz_x.vio_zf,P$dtz) - 1 # tRR-1: vio -> haz end
+  P$tRRu.ptr_o.vio_zf = def.tRR(P$iRR.ptr_o.vio_zf,P$tsc.ptr_o.vio_zf,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt) # nRR: vio -> dep begin
-  P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt) # nRR: vio -> haz begin
-  P$nRR.ptr_o.vio_nt = def.nRR.exp(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt) # nRR: vio -> ptr begin
+  P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
+  P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
+  P$nRR.ptr_o.vio_nt = def.nRR.exp(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
   # dRR: durs
-  P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u) - 1 # dRR-1: dep dur -> dep end
-  P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
@@ -130,22 +142,22 @@ def.RR.age = function(age,RR,eps=.001){
   RR.age = splinefun(age,RR,method='monoH.FC')(seq(amin,amax))
 }
 
-def.nRR.exp = function(mRR,nsc){
+def.nRR.exp = function(mRR,nsc,z1y){
   n = 0:(z1y*adur) # nmax = all active timesteps
   nRR = 1 + (mRR-1) * (1-exp(-n/nsc))
 }
 
-def.dRR.exp = function(tsc){
+def.dRR.exp = function(tsc,dtz,z1y){
   z = 1:(z1y*adur) # dmax = all active timesteps
   dRR = exp(-z*dtz/tsc)
 }
 
-def.tRR.rect = function(iRR,tsc){
+def.tRR.rect = function(iRR,tsc,dtz){
   ntz = tsc/dtz
   tRR = 1 + (iRR-1) * c(rep(1,floor(ntz)),ntz-floor(ntz))
 }
 
-def.tRR.exp = function(iRR,tsc,eps=.001){
+def.tRR.exp = function(iRR,tsc,dtz,eps=.001){
   z = 1:ceiling(qexp(p=1-eps,rate=1/tsc)/dtz) # ensure we cover most AUC
   tRR = 1 + (iRR-1) * exp(-z*dtz/tsc)
 }

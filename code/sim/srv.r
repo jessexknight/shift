@@ -36,7 +36,7 @@ srv.init = function(M,z,p.vars,i.vars){
 
 srv.base = function(P,Q,E,z,fmt='%s'){
   E = lapply(E,lapply,clip.zes,z=z) # clip events
-  Q$age      = (z-Q$z.born)/z1y
+  Q$age      = (z-Q$z.born)/P$z1y
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
   Q$vio.zf   = sapply(E$vio,last)
@@ -58,8 +58,8 @@ srv.ptr = function(P,Q,E,z){
   E = lapply(E,lapply,clip.zes,z=z) # clip events
   Q$ptr.nw.c = int.cut(Q$ptr.nw,c(0,1,2))
   ptr.w.uz = wapply(dur.ptr.w,E$ptr_o,E$ptr_x,E$ptr_u,z) # ongo ptrs durs
-  Q$ptr.p.dur.m = dtz*sapply(E$ptr_u,mean)  # past ptrs durs
-  Q$ptr.w.dur.m = dtz*sapply(ptr.w.uz,mean) # ongo ptrs durs
+  Q$ptr.p.dur.m = P$dtz*sapply(E$ptr_u,mean)  # past ptrs durs
+  Q$ptr.w.dur.m = P$dtz*sapply(ptr.w.uz,mean) # ongo ptrs durs
   return(Q)
 }
 
@@ -70,32 +70,32 @@ srv.val.RR = function(P,Q,E,z){
   Q = srv.base(P,Q,E,z)
   Q$age.10 = floor(Q$age/10)*10
   # events in past 1 year
-  Q$vio.n1y   = sapply(E$vio,  num.dz,z,z1y)
-  Q$vio.a1y   = sapply(E$vio,  any.dz,z,z1y)
-  Q$dep_o.a1y = sapply(E$dep_o,any.dz,z,z1y)
-  Q$dep_x.a1y = sapply(E$dep_x,any.dz,z,z1y)
-  Q$haz_o.a1y = sapply(E$haz_o,any.dz,z,z1y)
-  Q$haz_x.a1y = sapply(E$haz_x,any.dz,z,z1y)
-  Q$ptr_o.n1y = sapply(E$ptr_o,num.dz,z,z1y)
-  Q$ptr_x.n1y = sapply(E$ptr_x,num.dz,z,z1y)
+  Q$vio.n1y   = sapply(E$vio,  num.dz,z,P$z1y)
+  Q$vio.a1y   = sapply(E$vio,  any.dz,z,P$z1y)
+  Q$dep_o.a1y = sapply(E$dep_o,any.dz,z,P$z1y)
+  Q$dep_x.a1y = sapply(E$dep_x,any.dz,z,P$z1y)
+  Q$haz_o.a1y = sapply(E$haz_o,any.dz,z,P$z1y)
+  Q$haz_x.a1y = sapply(E$haz_x,any.dz,z,P$z1y)
+  Q$ptr_o.n1y = sapply(E$ptr_o,num.dz,z,P$z1y)
+  Q$ptr_x.n1y = sapply(E$ptr_x,num.dz,z,P$z1y)
   # states 1 year prior
-  Q = cbind(Q,srv.base(P,Q,E,z-z1y,fmt='p1y.%s'))
-  Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.uz/z1y,c(0,1,5))
-  Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.uz/z1y,c(0,1,5))
+  Q = cbind(Q,srv.base(P,Q,E,z-P$z1y,fmt='p1y.%s'))
+  Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.uz/P$z1y,c(0,1,5))
+  Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.uz/P$z1y,c(0,1,5))
   Q$p1y.vio.nt.c  = int.cut(Q$p1y.vio.nt,c(0,3,30))
   # events in past 3 months
-  Q$vio.n3m   = sapply(E$vio,  num.dz,z,z3m)
-  Q$vio.a3m   = sapply(E$vio,  any.dz,z,z3m)
-  Q$dep_o.a3m = sapply(E$dep_o,any.dz,z,z3m)
-  Q$dep_x.a3m = sapply(E$dep_x,any.dz,z,z3m)
-  Q$haz_o.a3m = sapply(E$haz_o,any.dz,z,z3m)
-  Q$haz_x.a3m = sapply(E$haz_x,any.dz,z,z3m)
-  Q$ptr_o.n3m = sapply(E$ptr_o,num.dz,z,z3m)
-  Q$ptr_x.n3m = sapply(E$ptr_x,num.dz,z,z3m)
+  Q$vio.n3m   = sapply(E$vio,  num.dz,z,P$z3m)
+  Q$vio.a3m   = sapply(E$vio,  any.dz,z,P$z3m)
+  Q$dep_o.a3m = sapply(E$dep_o,any.dz,z,P$z3m)
+  Q$dep_x.a3m = sapply(E$dep_x,any.dz,z,P$z3m)
+  Q$haz_o.a3m = sapply(E$haz_o,any.dz,z,P$z3m)
+  Q$haz_x.a3m = sapply(E$haz_x,any.dz,z,P$z3m)
+  Q$ptr_o.n3m = sapply(E$ptr_o,num.dz,z,P$z3m)
+  Q$ptr_x.n3m = sapply(E$ptr_x,num.dz,z,P$z3m)
   # states 3 months prior
-  Q = cbind(Q,srv.base(P,Q,E,z-z3m,fmt='p3m.%s'))
-  Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.uz/z1y,c(0,1,5))
-  Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.uz/z1y,c(0,1,5))
+  Q = cbind(Q,srv.base(P,Q,E,z-P$z3m,fmt='p3m.%s'))
+  Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.uz/P$z1y,c(0,1,5))
+  Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.uz/P$z1y,c(0,1,5))
   Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,3,30))
   return(Q)
 }
