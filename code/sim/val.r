@@ -42,11 +42,11 @@ val.RR = list(
   RR.ptr_x.dep_w=list(gpar=ulist(gptr,gdep,RR.ptr_x.dep_w=  RR3),vars='ptr_x.n1y',strat='p1y.dep.now', among=quote( p1y.sex.act)),
   RR.ptr_x.haz_w=list(gpar=ulist(gptr,ghaz,RR.ptr_x.haz_w=  RR3),vars='ptr_x.n1y',strat='p1y.haz.now', among=quote( p1y.sex.act)),
   # transient RR [13:17]
-  tRR.dep_o.vio_zf=list(gpar=ulist(gdep,gvio,iRR.dep_o.vio_zf=  RR2,tsc.dep_o.vio_zf=ts2),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
-  tRR.dep_x.vio_zf=list(gpar=ulist(gdep,gvio,iRR.dep_x.vio_zf=1/RR2,tsc.dep_x.vio_zf=ts2),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),
-  tRR.haz_o.vio_zf=list(gpar=ulist(ghaz,gvio,iRR.haz_o.vio_zf=  RR2,tsc.haz_o.vio_zf=ts2),vars='haz_o.a3m',strat='vio.a3m',among=quote(!p3m.haz.now)),
-  tRR.haz_x.vio_zf=list(gpar=ulist(ghaz,gvio,iRR.haz_x.vio_zf=1/RR2,tsc.haz_x.vio_zf=ts2),vars='haz_x.a3m',strat='vio.a3m',among=quote( p3m.haz.now)),
-  tRR.ptr_o.vio_zf=list(gpar=ulist(gptr,gvio,iRR.ptr_o.vio_zf=  RR2,tsc.ptr_o.vio_zf=ts2),vars='ptr_o.n3m',strat='vio.a3m',among=quote( p3m.sex.act)),
+  tRR.dep_o.vio_zr=list(gpar=ulist(gdep,gvio,iRR.dep_o.vio_zr=  RR2,tsc.dep_o.vio_zr=ts2),vars='dep_o.a3m',strat='vio.a3m',among=quote(!p3m.dep.now)),
+  tRR.dep_x.vio_zr=list(gpar=ulist(gdep,gvio,iRR.dep_x.vio_zr=1/RR2,tsc.dep_x.vio_zr=ts2),vars='dep_x.a3m',strat='vio.a3m',among=quote( p3m.dep.now)),
+  tRR.haz_o.vio_zr=list(gpar=ulist(ghaz,gvio,iRR.haz_o.vio_zr=  RR2,tsc.haz_o.vio_zr=ts2),vars='haz_o.a3m',strat='vio.a3m',among=quote(!p3m.haz.now)),
+  tRR.haz_x.vio_zr=list(gpar=ulist(ghaz,gvio,iRR.haz_x.vio_zr=1/RR2,tsc.haz_x.vio_zr=ts2),vars='haz_x.a3m',strat='vio.a3m',among=quote( p3m.haz.now)),
+  tRR.ptr_o.vio_zr=list(gpar=ulist(gptr,gvio,iRR.ptr_o.vio_zr=  RR2,tsc.ptr_o.vio_zr=ts2),vars='ptr_o.n3m',strat='vio.a3m',among=quote( p3m.sex.act)),
   # cumulative RR [18:20]
   nRR.dep_o.vio_nt=list(gpar=ulist(gdep,gvio,mRR.dep_o.vio_nt=RR2,nsc.dep_o.vio_nt=ns2),vars='dep_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.dep.now)),
   nRR.haz_o.vio_nt=list(gpar=ulist(ghaz,gvio,mRR.haz_o.vio_nt=RR2,nsc.haz_o.vio_nt=ns2),vars='haz_o.a1y',strat='p1y.vio.nt.c',among=quote(!p1y.haz.now)),
