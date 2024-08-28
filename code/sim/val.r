@@ -21,9 +21,9 @@ RR3 = c(1,4,8)
 ts2 = c(30,90)
 ds2 = c(90,720)
 ns2 = c(10,100)
-gvio = list(vio.Ri.m   = .003)
-gdep = list(dep_o.Ri.m = .003, dep_x.Ri.m = .003)
-ghaz = list(haz_o.Ri.m = .003, haz_x.Ri.m = .003)
+gvio = list(vio.Ri.m   = .002)
+gdep = list(dep_o.Ri.m = .002, dep_x.Ri.m = .001)
+ghaz = list(haz_o.Ri.m = .002, haz_x.Ri.m = .001)
 gptr = list(ptr_o.Ri.m = .01,  ptr_x.Ri.m = .02,  ptr.max.m = 3)
 
 val.RR = list(
@@ -56,7 +56,7 @@ val.RR = list(
   dRR.haz_x.haz_u=list(gpar=ulist(ghaz,dsc.haz_x.haz_u=ds2),vars='haz_x.a1y',strat='p1y.haz.dur.c',among=quote(p1y.haz.now))
 )
 for (name in names(val.RR)){
-  val.RR[[name]]$all.Ri.shape = 1e3 # reduce heterogeneity
+  val.RR[[name]]$all.Ri.shape = 1e6 # reduce heterogeneity
   val.RR[[name]]$null = ulist('Ri\\.m$'=NULL,save=val.RR[[name]]$save)
   val.RR[[name]]$srvs = c(srv.val.RR)
   val.RR[[name]]$name = name
