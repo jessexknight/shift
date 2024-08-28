@@ -83,15 +83,16 @@ val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(cas
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
   Q = subset(Q,age < amax & eval(among))
   facet = setdiff(names(gpar)[lens(gpar)>1],strat)
+  fixed = list.str(Ps[[1]][setdiff(filter.names(Ps[[1]],'Ri\\.m$'),c(facet,strat))],sig=3)
   for (var in vars){
-    g = val.plot(Q,var,strat,facet,name)
-    plot.save('val',uid,str(name,'--',var),h=3,w=1+3*prod(lens(gpar[facet])))
+    g = val.plot(Q,var,strat,facet,fixed,name)
+    plot.save('val',uid,'.debug',str(name,'--',var),h=3,w=2+3*prod(lens(gpar[facet])))
   }
 }
 
-val.plot = function(Q,var,strat,facet,name){
+val.plot = function(Q,var,strat,facet,fixed,name){
   g = c('seed','facet',strat) # grouping variables
-  Q = cbind(Q,facet=apply(Q[facet],1,list.str,def=' = ',join='\n'),.='')[c(g,var)]
+  Q = cbind(Q,facet=apply(Q[facet],1,list.str,sig=3),.='')[c(g,var)]
   x = as.numeric(Q[[var]]) # extract values
   b = breaks(x) # compute common breaks
   cts = ulen(x) > 2 # is var continuous or binary
@@ -100,11 +101,12 @@ val.plot = function(Q,var,strat,facet,name){
   if (cts){ Qp = cbind(p=c(Qx$x),b=rep(b[-len(b)],each=nrow(Qx))) } # continuous
   else    { Qp = cbind(p=Qx$x[,2],b=1) } # binary
   Qp = cbind(Qx[g],Qp)
+  slab = str(fixed,'\n\n',strat)
   g = ggplot(Qp,aes(x=b,y=100*as.numeric(p),
       color = as.factor(.data[[strat]]),
       fill  = as.factor(.data[[strat]]))) +
     facet_wrap('~facet',scales='fixed',ncol=ulen(Q$facet)) +
-    labs(y='proportion (%)',x=var,color=strat,fill=strat) +
+    labs(y='proportion (%)',x=var,color=slab,fill=slab) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
     ylim(c(0,NA)) +

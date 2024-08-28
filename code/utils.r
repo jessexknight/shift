@@ -100,8 +100,9 @@ filter.names = function(x,re,b=TRUE){
   names(x)[grepl(re,names(x))==b]
 }
 
-list.str = function(x,def=': ',join=', '){
-  # e.g. list.str(list(a=1,b=2)) -> 'a: 1, b: 2'
+list.str = function(x,def=' = ',join='\n',sig=NULL){
+  # e.g. list.str(list(a=1,b=2)) -> 'a = 1\nb = 2'
+  if (!is.null(sig)){ x = signif(unlist(x),sig) }
   paste(names(x),x,sep=def,collapse=join)
 }
 
