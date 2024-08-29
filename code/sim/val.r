@@ -114,11 +114,13 @@ val.plot = function(Q,var,strat,facet,fixed,name){
     ggtitle(name)
   if (cts){ g = plot.clean(g) +
     stat_summary(geom='ribbon',fun.min=min,fun.max=max,alpha=.3,color=NA) +
-    stat_summary(geom='line',fun=median) }
+    stat_summary(geom='line',fun=median) +
+    geom_text(data=Qn,aes(x=1,y=0,label=x),show.legend=FALSE,
+      position=position_dodge(width=.2*max(b))) }
   else { g = plot.clean(g,axis.text.x=element_blank()) +
     geom_violin(aes(group=interaction(b,facet,.data[[strat]])),
       alpha=.3,scale='width',bw=2,draw_quantiles=1:3/4) +
-    geom_text(data=Qn,aes(x=1,y=0,label=x),
+    geom_text(data=Qn,aes(x=1,y=0,label=x),show.legend=FALSE,
       position=position_dodge(width=.9),color='black') }
 }
 
