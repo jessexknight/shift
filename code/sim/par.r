@@ -101,9 +101,10 @@ cond.pars = function(P){
   P$tRRu.haz_x.vio_zr = def.tRR(P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
   P$tRRu.ptr_o.vio_zr = def.tRR(P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  P$nRR.dep_o.vio_nt = def.nRR.exp(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
-  P$nRR.haz_o.vio_nt = def.nRR.exp(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
-  P$nRR.ptr_o.vio_nt = def.nRR.exp(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
+  def.nRR = def.nRR.exp
+  P$nRR.dep_o.vio_nt = def.nRR(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
+  P$nRR.haz_o.vio_nt = def.nRR(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
+  P$nRR.ptr_o.vio_nt = def.nRR(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
   # dRR: durs
   P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
@@ -150,7 +151,7 @@ def.nRR.exp = function(mRR,nsc,z1y){
 
 def.nRR.rect = function(mRR,nsc,z1y){
   nmax = z1y*adur # nmax = all active timesteps
-  nRR = c(1,rep(mRR,nmax))
+  nRR = c(rep(1,nsc),rep(mRR,nmax-nsc))
 }
 
 def.dRR.exp = function(tsc,dtz,z1y){
