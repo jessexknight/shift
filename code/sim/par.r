@@ -148,6 +148,11 @@ def.nRR.exp = function(mRR,nsc,z1y){
   nRR = 1 + (mRR-1) * (1-exp(-n/nsc))
 }
 
+def.nRR.rect = function(mRR,nsc,z1y){
+  nmax = z1y*adur # nmax = all active timesteps
+  nRR = c(1,rep(mRR,nmax))
+}
+
 def.dRR.exp = function(tsc,dtz,z1y){
   z = 1:(z1y*adur) # dmax = all active timesteps
   dRR = exp(-z*dtz/tsc)
