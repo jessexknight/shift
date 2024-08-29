@@ -2,9 +2,9 @@
 # =============================================================================
 # initialization funs
 
-init.evts = function(I){
+init.evts = function(P){
   # initialize event vectors for each event type & individual
-  E0 = lapply(I,function(i){ numeric() })
+  E0 = lapply(1:P$n.tot,function(i){ numeric() })
   E  = lapply(evts,function(e){ E0 })
 }
 
