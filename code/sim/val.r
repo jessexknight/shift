@@ -101,6 +101,7 @@ val.plot = function(Q,var,strat,facet,fixed,name){
   if (cts){ Qp = cbind(p=c(Qx$x),b=rep(b[-len(b)],each=nrow(Qx))) } # continuous
   else    { Qp = cbind(p=Qx$x[,2],b=1) } # binary
   Qp = cbind(Qx[g],Qp)
+  Qn = aggregate(rep(1,nrow(Q)),Q[c('facet',strat)],sum)
   slab = str(fixed,'\n\n',strat)
   g = ggplot(Qp,aes(x=b,y=100*as.numeric(p),
       color = as.factor(.data[[strat]]),
@@ -116,7 +117,9 @@ val.plot = function(Q,var,strat,facet,fixed,name){
     stat_summary(geom='line',fun=median) }
   else { g = plot.clean(g,axis.text.x=element_blank()) +
     geom_violin(aes(group=interaction(b,facet,.data[[strat]])),
-      alpha=.3,scale='width',bw=2,draw_quantiles=1:3/4) }
+      alpha=.3,scale='width',bw=2,draw_quantiles=1:3/4) +
+    geom_text(data=Qn,aes(x=1,y=0,label=x),
+      position=position_dodge(width=.9),color='black') }
 }
 
 # =============================================================================
