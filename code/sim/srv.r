@@ -9,8 +9,7 @@
   'vio.Ri',
   'dep_o.Ri','dep_x.Ri',
   'haz_o.Ri','haz_x.Ri',
-  'ptr_o.Ri','ptr_x.Ri','ptr.max'
-)
+  'ptr_o.Ri','ptr_x.Ri','ptr.max')
 
 # =============================================================================
 # survey funs
@@ -101,6 +100,47 @@ srv.val.RR = function(P,Q,E,t){
   Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.uz/P$z1y,c(0,1,5))
   Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,3,30))
   return(Q)
+}
+
+# -----------------------------------------------------------------------------
+
+dt.data = function(P,Q,E,q.vars=NULL){
+  # TODO: tmin / tmax ?
+  # TODO: integrate in srv.* framework
+  # TODO: not all evts
+  Y = rbind.lapply(1:nrow(Q),function(i){
+    zi = sort(do.call(c,lapply(E[evts],`[[`,i))) # all event times
+    ei = gsub('\\d','',names(zi))                # all event names
+    Yi = cbind(
+      lapply(Q[q.vars],`[`,i),
+      data.frame(
+        e  = c(ei,''), # event name
+        dt = P$dtz * diff(c(0,zi,P$zf)), # time in this state
+        vio.nt  = c(0,cumsum(ei=='vio')),
+        dep.now = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
+        haz.now = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
+        ptr.nw  = c(0,cumsum(ei=='ptr_o')-cumsum(ei=='ptr_x')),
+        row.names = NULL))
+  },.par=FALSE)
+}
+
+inc.rate = function(Y,e,strat=NULL){
+  # TODO: integrate in srv.* framework
+  # TODO: rownames
+  Y = switch(e,
+    vio = Y,
+    dep_o = subset(Y,dep.now==0),
+    dep_x = subset(Y,dep.now==1),
+    haz_o = subset(Y,haz.now==0),
+    haz_o = subset(Y,haz.now==1),
+    ptr_o = subset(Y,ptr.nw < ptr.max),
+    ptr_x = subset(Y,ptr.nw > 0))
+  y.split = split(1:nrow(Y),cbind(Y[strat],.=''))
+  R = rbind.lapply(y.split,function(y){
+    cbind(Y[y[1],strat,drop=FALSE],
+      event=e,
+      rate=sum(Y$e[y]==e)/sum(Y$dt[y]))
+  })
 }
 
 # =============================================================================
