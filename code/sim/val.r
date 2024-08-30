@@ -81,7 +81,7 @@ val.run = function(name,vars,strat='.',among=quote(TRUE),srvs=NULL,gpar=list(cas
   status(2,'val.run: ',name,' @ ',n.seed*prod(lens(gpar)))
   Ps = grid.apply(c(list(seed=1:n.seed),gpar),get.pars,n.pop=n.pop,...)
   Q = srv.apply(sim.runs(Ps),srvs=srvs,p.vars=names(gpar))
-  Q = subset(Q,age < amax & eval(among))
+  Q = subset(Q,eval(among))
   facet = setdiff(names(gpar)[lens(gpar)>1],strat)
   fixed = list.str(Ps[[1]][setdiff(filter.names(Ps[[1]],'Ri\\.m$'),c(facet,strat))],sig=3)
   for (var in vars){

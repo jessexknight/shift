@@ -158,7 +158,7 @@ rate.ptr_x = function(P,K,I){
 # =============================================================================
 # run simulation
 
-sim.run = function(P,rm.dum=TRUE){
+sim.run = function(P,sub='act'){
   status(4,P$id)
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
@@ -217,12 +217,7 @@ sim.run = function(P,rm.dum=TRUE){
     # TODO
   }
   # clean-up ------------------------------------------------------------------
-  if (rm.dum){ # remove initial dummy population
-    i = which(I$z.born > -amin*P$z1y)
-    I = I[i,]
-    E = lapply(E,`[`,i)
-  }
-  M = list(P=P,I=I,E=E)
+  M = sim.sub(M=list(P=P,I=I,E=E),sub=sub)
 }
 
 sim.runs = function(Ps,.par=TRUE){
@@ -230,4 +225,13 @@ sim.runs = function(Ps,.par=TRUE){
   status(3,'sim.runs: ',len(Ps))
   Ms = par.lapply(Ps,sim.run,.par=.par); status(4,'\n')
   return(Ms)
+}
+
+sim.sub = function(M,sub){
+  # subset model output by age
+  i = switch(sub,
+    act = which(M$I$age > amin & M$I$age < amax),
+    dum = which(M$I$z.born > -amin*M$P$z1y),
+    all = 1:nrow(M$I))
+  M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
 }
