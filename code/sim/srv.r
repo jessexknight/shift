@@ -109,13 +109,15 @@ dt.data = function(P,Q,E,q.vars=NULL){
   # TODO: integrate in srv.* framework
   # TODO: not all evts
   Y = rbind.lapply(1:nrow(Q),function(i){
+    z0 = Q$z.born[i] + P$z1y * amin
+    zf = Q$z.born[i] + P$z1y * amax
     zi = sort(do.call(c,lapply(E[evts],`[[`,i))) # all event times
     ei = gsub('\\d','',names(zi))                # all event names
     Yi = cbind(
       lapply(Q[q.vars],`[`,i),
       data.frame(
         e  = c(ei,''), # event name
-        dt = P$dtz * diff(c(0,zi,P$zf)), # time in this state
+        dt = P$dtz * diff(c(z0,zi,zf)), # time in this state
         vio.nt  = c(0,cumsum(ei=='vio')),
         dep.now = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
         haz.now = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
@@ -127,12 +129,13 @@ dt.data = function(P,Q,E,q.vars=NULL){
 inc.rate = function(Y,e,strat=NULL){
   # TODO: integrate in srv.* framework
   # TODO: rownames
+  Y = subset(Y,e != '')
   Y = switch(e,
     vio = Y,
     dep_o = subset(Y,dep.now==0),
     dep_x = subset(Y,dep.now==1),
     haz_o = subset(Y,haz.now==0),
-    haz_o = subset(Y,haz.now==1),
+    haz_x = subset(Y,haz.now==1),
     ptr_o = subset(Y,ptr.nw < ptr.max),
     ptr_x = subset(Y,ptr.nw > 0))
   y.split = split(1:nrow(Y),cbind(Y[strat],.=''))
