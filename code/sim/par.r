@@ -2,7 +2,7 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...,dtz=7,case='base',null=NULL){
+get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P = list(case=case,seed=seed,id=sprintf('%6d',seed))
   P = dt.pars(P,dtz)
   P$n.pop = 1000
@@ -66,7 +66,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL){
   P$ RR.ptr_x.dep_w  = 2     # RR: dep now -> ptr end
   P$ RR.ptr_x.haz_w  = 2     # RR: haz now -> ptr end
   # overwrite & add conditional
-  if (is.list(null)){ P = null.pars(P,null,null$save) }
+  P = null.pars(P,null,save)
   P = ulist(P,...)
   P = cond.pars(P)
 }
@@ -117,22 +117,22 @@ cond.pars = function(P){
 }
 
 null.pars = function(P,null,save){
-  # overwrite most pars via regex list; but save (exempt) some by name
-  # to skip any default {re}, use null=list({re}=NULL)
-  null = ulist(null.all,null)
   P.save = P[save] # save exempt
-  for (re in names(null)){ # for each regex
-    if (is.null(null[[re]])){ next } # do nothing if NULL
+  map = flist(null.sets[null]) # merge regex list
+  for (re in names(map)){ # for each regex
     for (x in filter.names(P,re)){ # for each matching par
-      P[[x]] = null[[re]] }} # overwrite
+      P[[x]] = map[[re]] }} # overwrite
   P = ulist(P,P.save) # restore saved
 }
 
-null.all = list(
-  'Ri\\.m$'     = 0,     # base rates
-  '^.?RR\\.'    = 1,     # RR, aRR, iRR, mRR
-  '^tsc\\.'     = 1e-12, # time scales
-  '^(d|n)sc\\.' = Inf)   # dur & num scales
+null.sets = list(
+  Ri  = list('Ri\\.m$'=0),
+  RR  = list('^RR\\.'=1),
+  tRR = list('^iRR\\.'=1,'^tsc\\.'=1e-12),
+  nRR = list('^mRR\\.'=1,'^nsc\\.'=Inf),
+  dRR = list('^dsc\\.'=Inf))
+null.sets$xRR = flist(null.sets[2:5])
+null.sets$all = flist(null.sets)
 
 # =============================================================================
 # effect funs
