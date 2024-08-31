@@ -95,6 +95,11 @@ ulist = function(x=list(),xu=list(),...){
   x[!duplicated(names(x),fromLast=TRUE)]
 }
 
+flist = function(x){
+  # flatten list(list(a=1),list(b=2)) -> list(a=1,b=2)
+  do.call(c,unname(x))
+}
+
 filter.names = function(x,re,b=TRUE){
   # e.g. filter.names(list(a1=0,a2=0,ba=0),'^a') -> c('a1','a2')
   names(x)[grepl(re,names(x))==b]
