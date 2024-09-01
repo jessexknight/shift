@@ -74,6 +74,7 @@ init.ptrs = function(P,I,i,z){
   if (n==0){ return(NULL) }
   i1 = i[0+(1:n)]
   i2 = i[n+(1:n)]
+  # if (any(i1==i2)){ TODO }
   K = cbind(
     i1 = I$i[i1], # i of partner 1
     i2 = I$i[i2], # i of partner 2
@@ -208,11 +209,10 @@ sim.run = function(P,sub='act'){
     I$haz.now[i] = FALSE
     E$haz_x[i,z] = TRUE
     # begin ptrs --------------------------------------------------------------
-    i = ij[even.len(which(rate.to.bool(rate.ptr_o(P,J,R0,aj,z),P$dtz)))]
-    # TODO: multi-ptrs
-    I$ptr.nw[i] = I$ptr.nw[i] + 1
-    E$ptr_o[i,z] = TRUE
-    K = rbind(K,init.ptrs(P,I,i,z))
+    nj = even.sum(rate.to.num(rate.ptr_o(P,J,R0,aj,z),P$dtz))
+    I$ptr.nw[J$i] = I$ptr.nw[J$i] + nj
+    E$ptr_o[J$i,z] = nj
+    K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
     # sex in ptrs -------------------------------------------------------------
     # TODO
   }
