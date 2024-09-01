@@ -87,7 +87,7 @@ init.ptrs = function(P,I,i,z){
 # rate & prob funs
 
 rate.to.prob = function(R,dtz){ p = 1-exp(-R*dtz) }
-rate.to.bool = function(R,dtz){ b = runif(R) < (1-exp(-R*dtz)) }
+rate.to.bool = function(R,dtz){ b = runif(len(R)) < (1-exp(-R*dtz)) }
 rate.to.num  = function(R,dtz){ n = rpois(len(R),R*dtz) }
 
 rate.vio = function(P,J,aj){
