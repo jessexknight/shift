@@ -3,9 +3,9 @@
 # initialization funs
 
 init.evts = function(P){
-  # initialize event vectors for each event type & individual
-  E0 = lapply(1:P$n.tot,function(i){ numeric() })
-  E  = lapply(evts,function(e){ E0 })
+  # initialize event matrices for each event type & individual
+  # TODO: could reduce mem req using ncol = adur*P$z1y < P$zf
+  E = lapply(evts,function(e){ matrix(FALSE,nrow=P$n.tot,ncol=P$zf) })
 }
 
 init.inds = function(P){
@@ -74,7 +74,7 @@ init.ptrs = function(P,I,i,z){
   if (n==0){ return(NULL) }
   i1 = i[0+(1:n)]
   i2 = i[n+(1:n)]
-  K = data.frame(
+  K = cbind(
     i1 = I$i[i1], # i of partner 1
     i2 = I$i[i2], # i of partner 2
     f.sex = I$sex.Ri[i1]/2 + I$sex.Ri[i2]/2, # sex freq
@@ -146,8 +146,8 @@ rate.ptr_o = function(P,J,R,aj,z){
 ); return(R) }
 
 rate.ptr_x = function(P,K,I){
-  i1 = K$i1
-  i2 = K$i2
+  i1 = K[,1]
+  i2 = K[,2]
   R = ( # among all (ptrs)
       0.5 * (I$ptr_x.Ri[i1] + I$ptr_x.Ri[i2])
     # TODO: RR age
@@ -172,10 +172,9 @@ sim.run = function(P,sub='act'){
     I$age = I$age + 1/P$z1y
     # end ptrs ----------------------------------------------------------------
     b = rate.to.bool(rate.ptr_x(P,K,I),P$dtz)
-    i = c(K$i1[b],K$i2[b])
-    I$ptr.nw[i] = I$ptr.nw[i] - 1 # TODO: bug if any repeated i
-    E$ptr_x[i] = lapply(E$ptr_x[i],append,z)
-    E$ptr_u[i] = wapply(append,E$ptr_u[i],z-K$zo[b])
+    ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
+    I$ptr.nw = I$ptr.nw - ni
+    E$ptr_x[,z] = ni
     K = K[!b,]
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age < amax)
@@ -187,31 +186,32 @@ sim.run = function(P,sub='act'){
     i = ij[which(rate.to.bool(rate.vio(P,J,aj),P$dtz))]
     I$vio.zf[i] = z
     I$vio.nt[i] = I$vio.nt[i] + 1
-    E$vio[i] = lapply(E$vio[i],append,z)
+    E$vio[i,z]  = TRUE
     # begin dep ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = TRUE
     I$dep.past[i] = TRUE
     I$dep.zo[i] = z
-    E$dep_o[i] = lapply(E$dep_o[i],append,z)
+    E$dep_o[i,z] = TRUE
     # end dep -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = FALSE
-    E$dep_x[i] = lapply(E$dep_x[i],append,z)
+    E$dep_x[i,z] = TRUE
     # begin haz ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = TRUE
     I$haz.past[i] = TRUE
     I$haz.zo[i] = z
-    E$haz_o[i] = lapply(E$haz_o[i],append,z)
+    E$haz_o[i,z] = TRUE
     # end haz -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = FALSE
-    E$haz_x[i] = lapply(E$haz_x[i],append,z)
+    E$haz_x[i,z] = TRUE
     # begin ptrs --------------------------------------------------------------
     i = ij[even.len(which(rate.to.bool(rate.ptr_o(P,J,R0,aj,z),P$dtz)))]
+    # TODO: multi-ptrs
     I$ptr.nw[i] = I$ptr.nw[i] + 1
-    E$ptr_o[i] = lapply(E$ptr_o[i],append,z)
+    E$ptr_o[i,z] = TRUE
     K = rbind(K,init.ptrs(P,I,i,z))
     # sex in ptrs -------------------------------------------------------------
     # TODO
@@ -233,5 +233,5 @@ sim.sub = function(M,sub){
     act = which(M$I$age > amin & M$I$age < amax),
     dum = which(M$I$z.born > -amin*M$P$z1y),
     all = 1:nrow(M$I))
-  M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
+  M = list(P=M$P,I=M$I[i,],E=lapply(M$E,function(Ee){ Ee[i,] }))
 }
