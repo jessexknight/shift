@@ -93,30 +93,41 @@ srv.val.RR = function(P,Q,E,t){
 # -----------------------------------------------------------------------------
 
 dt.data = function(P,Q,E,q.vars=NULL){
-  # TODO: tmin / tmax ?
   # TODO: integrate in srv.* framework
   # TODO: not all evts
+  q.vars = unique(c(.p.vars,.i.vars,q.vars))
   Y = rbind.lapply(1:nrow(Q),function(i){
-    z0 = Q$z.born[i] + P$z1y * amin
-    zf = Q$z.born[i] + P$z1y * amax
-    zi = sort(do.call(c,lapply(E[evts],`[[`,i))) # all event times
-    ei = gsub('\\d','',names(zi))                # all event names
+    to = Q$t.born[i] + P$t1y * amin
+    tx = Q$t.born[i] + P$t1y * amax
+    ti = sort(do.call(c,lapply(E[evts],`[[`,i))) # all event times
+    ei = gsub('\\d','',names(ti))                # all event names
     Yi = cbind(
       lapply(Q[q.vars],`[`,i),
       data.frame(
-        e  = c(ei,''), # event name
-        dt = P$dtz * diff(c(z0,zi,zf)), # time in this state
+        e  = c(ei,''), # event name or '' = censored
+        to = c(to,ti), # period start
+        tx = c(ti,tx), # period end
         vio.nt  = c(0,cumsum(ei=='vio')),
         dep.now = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
         haz.now = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
         ptr.nw  = c(0,cumsum(ei=='ptr_o')-cumsum(ei=='ptr_x')),
         row.names = NULL))
   },.par=FALSE)
+  # df.compare(subset(Y,e==''),Q) # DEBUG
 }
 
-inc.rate = function(Y,e,strat=NULL){
+dt.data.sub = function(Y,t,dt,among=quote(TRUE)){
+  tx.w = t    # window start
+  to.w = t-dt # window end
+  Y = subset(Y, to <= tx.w & tx >= to.w) # observed
+  Y$e [Y$tx > tx.w] = ''   # censored
+  Y$tx[Y$tx > tx.w] = tx.w # clip end
+  Y$to[Y$to < to.w] = to.w # clip start
+  Y = subset(Y,among) # any other subset
+}
+
+inc.rate = function(Y,e,strat='seed'){
   # TODO: integrate in srv.* framework
-  # TODO: rownames
   Y = subset(Y,e != '')
   Y = switch(e,
     vio = Y,
@@ -128,9 +139,13 @@ inc.rate = function(Y,e,strat=NULL){
     ptr_x = subset(Y,ptr.nw > 0))
   y.split = split(1:nrow(Y),cbind(Y[strat],.=''))
   R = rbind.lapply(y.split,function(y){
+    ne = sum(Y$e[y]==e)
+    dt = sum(Y$tx[y]-Y$to[y])
     cbind(Y[y[1],strat,drop=FALSE],
-      event=e,
-      rate=sum(Y$e[y]==e)/sum(Y$dt[y]))
+      event=e,ne=ne,dt=dt,rate=ne/dt,
+      # poisson 95% CI
+      rate.lo=qchisq(.025,2*ne  )/dt/2,
+      rate.hi=qchisq(.975,2*ne+2)/dt/2)
   })
 }
 
