@@ -30,7 +30,8 @@ srv.init = function(M,t,p.vars,i.vars){
   p.vars = unique(c(.p.vars,p.vars))
   i.vars = unique(c(.i.vars,i.vars))
   Q = cbind(M$P[p.vars],t=t,M$I[i.vars]) # init Q ~= I
-  # Q = srv.base(M$P,Q,M$E,t); print(all.equal(M$I[i.vars],Q[i.vars])) # DEBUG
+  # Q = srv.base(M$P,Q,M$E,t); x = intersect(names(M$I),names(Q))
+  # print(all.equal(M$I[x],Q[x])) # DEBUG
 }
 
 srv.base = function(P,Q,E,t,fmt='%s'){
