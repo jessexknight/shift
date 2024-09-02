@@ -5,7 +5,7 @@
 .p.vars = c('case','seed')
 .i.vars = c(
   'i',
-  'z.born','age.act',
+  't.born','age.act',
   'vio.Ri',
   'dep_o.Ri','dep_x.Ri',
   'haz_o.Ri','haz_x.Ri',
@@ -30,8 +30,7 @@ srv.init = function(M,t,p.vars,i.vars){
   p.vars = unique(c(.p.vars,p.vars))
   i.vars = unique(c(.i.vars,i.vars))
   Q = cbind(M$P[p.vars],t=t,M$I[i.vars]) # init Q ~= I
-  # Q = srv.base(M$P,Q,M$E,t); x = intersect(names(M$I),names(Q))
-  # print(all.equal(M$I[x],Q[x])) # DEBUG
+  # df.compare(srv.base(M$P,Q,M$E,t),M$I) # DEBUG
 }
 
 srv.base = function(P,Q,E,t,fmt='%s'){

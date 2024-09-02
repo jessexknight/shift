@@ -113,6 +113,12 @@ list.str = function(x,def=' = ',join='\n',sig=NULL){
   paste(names(x),x,sep=def,collapse=join)
 }
 
+df.compare = function(x,y,v=NULL,cast=as.numeric){
+  # check if x[v] == y[v] (for debug)
+  if (is.null(v)){ v = intersect(names(x),names(y)) }
+  print(all.equal( lapply(x[v],cast), lapply(y[v],cast) ))
+}
+
 # -----------------------------------------------------------------------------
 # *apply
 
@@ -131,7 +137,7 @@ par.mapply = function(...){
 }
 
 rbind.lapply = function(...){
-  do.call(rbind,par.lapply(...))
+  do.call(rbind,c(par.lapply(...),list(make.row.names=FALSE)))
 }
 
 wapply = function(...){
