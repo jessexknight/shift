@@ -178,7 +178,7 @@ sim.run = function(P,sub='act'){
     E$ptr_x[,z] = ni
     K = K[!b,]
     # select active inds ------------------------------------------------------
-    i = which(I$age > amin & I$age < amax)
+    i = which(I$age > amin & I$age <= amax)
     J = I[i,] # read only copy of active
     ij = match(J$i,I$i) # map j -> j
     aj = floor(J$age-amin+1) # age vector for j
@@ -233,8 +233,8 @@ sim.runs = function(Ps,.par=TRUE){
 sim.sub = function(M,sub){
   # subset model output by age
   i = switch(sub,
-    act = which(M$I$age > amin & M$I$age < amax),
-    dum = which(M$I$t.born > -amin*M$P$t1y),
+    act = which(M$I$age > amin & M$I$age <= amax),
+    dum = which(M$I$t.born >= -amin*M$P$t1y),
     all = 1:nrow(M$I))
   M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
 }
