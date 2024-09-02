@@ -5,7 +5,7 @@
 init.evts = function(P){
   # initialize event matrices for each event type & individual
   # TODO: could reduce mem req using ncol = adur*P$z1y < P$zf
-  Z = lapply(evts,function(e){ matrix(FALSE,nrow=P$n.tot,ncol=P$zf) })
+  E = lapply(evts,function(e){ matrix(FALSE,nrow=P$n.tot,ncol=P$zf) })
 }
 
 init.inds = function(P){
@@ -164,7 +164,7 @@ sim.run = function(P,sub='act'){
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
   I = init.inds(P) # individuals
-  Z = init.evts(P) # events
+  E = init.evts(P) # events
   K = NULL         # partnerships
   # event loop ----------------------------------------------------------------
   for (z in 1:P$zf){
@@ -175,7 +175,7 @@ sim.run = function(P,sub='act'){
     b = rate.to.bool(rate.ptr_x(P,K,I),P$dtz)
     ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
     I$ptr.nw = I$ptr.nw - ni
-    Z$ptr_x[,z] = ni
+    E$ptr_x[,z] = ni
     K = K[!b,]
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age < amax)
@@ -187,31 +187,31 @@ sim.run = function(P,sub='act'){
     i = ij[which(rate.to.bool(rate.vio(P,J,aj),P$dtz))]
     I$vio.zr[i] = z
     I$vio.nt[i] = I$vio.nt[i] + 1
-    Z$vio[i,z]  = TRUE
+    E$vio[i,z]  = TRUE
     # begin dep ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = TRUE
     I$dep.past[i] = TRUE
     I$dep.zo[i] = z
-    Z$dep_o[i,z] = TRUE
+    E$dep_o[i,z] = TRUE
     # end dep -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = FALSE
-    Z$dep_x[i,z] = TRUE
+    E$dep_x[i,z] = TRUE
     # begin haz ---------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = TRUE
     I$haz.past[i] = TRUE
     I$haz.zo[i] = z
-    Z$haz_o[i,z] = TRUE
+    E$haz_o[i,z] = TRUE
     # end haz -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
     I$haz.now[i] = FALSE
-    Z$haz_x[i,z] = TRUE
+    E$haz_x[i,z] = TRUE
     # begin ptrs --------------------------------------------------------------
     nj = even.sum(rate.to.num(rate.ptr_o(P,J,R0,aj,z),P$dtz))
     I$ptr.nw[J$i] = I$ptr.nw[J$i] + nj
-    Z$ptr_o[J$i,z] = nj
+    E$ptr_o[J$i,z] = nj
     K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
     # sex in ptrs -------------------------------------------------------------
     # TODO
@@ -219,7 +219,7 @@ sim.run = function(P,sub='act'){
   # clean-up ------------------------------------------------------------------
   x = c('vio.zr','dep.zo','haz.zo')
   I[gsub('z','t',x)] = P$dtz * I[x]; I[x] = NULL # convert *.z -> *.t
-  E = lapply(Z,apply,1,function(ni){ P$dtz*rep(1:P$zf,ni) }) # n mat -> t vecs
+  E = lapply(E,apply,1,function(ni){ P$dtz*rep(1:P$zf,ni) }) # n mat -> t vecs
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub) # collect
 }
 
