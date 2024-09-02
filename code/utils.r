@@ -71,9 +71,11 @@ ulen = function(x){
   len(unique(x))
 }
 
-even.len = function(x){
-  # truncate vector x to have an even length
-  length(x) = len(x) - (len(x) %% 2)
+even.sum = function(x){
+  if (sum(x) %% 2){
+    i = which.max(x)
+    x[i] = x[i] - 1
+  }
   return(x)
 }
 
