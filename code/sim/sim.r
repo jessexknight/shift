@@ -217,6 +217,7 @@ sim.run = function(P,sub='act'){
     # TODO
   }
   # clean-up ------------------------------------------------------------------
+  E = lapply(E,apply,1,function(ni){ rep(1:P$zf,ni) }) # n mat -> z vecs
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub)
 }
 
@@ -233,5 +234,5 @@ sim.sub = function(M,sub){
     act = which(M$I$age > amin & M$I$age < amax),
     dum = which(M$I$z.born > -amin*M$P$z1y),
     all = 1:nrow(M$I))
-  M = list(P=M$P,I=M$I[i,],E=lapply(M$E,function(Ee){ Ee[i,] }))
+  M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
 }
