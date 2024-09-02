@@ -147,7 +147,7 @@ wapply = function(...){
 grid.apply = function(x,fun,...,.par=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
-  xg = expand.grid(x)
+  xg = expand.grid(x,stringsAsFactors=FALSE)
   args = lapply(1:nrow(xg),function(i){ c(as.list(xg[i,]),list(...)) })
   par.lapply(args,do.call,what=fun,.par=.par)
 }
