@@ -107,16 +107,18 @@ filter.names = function(x,re,b=TRUE){
   names(x)[grepl(re,names(x))==b]
 }
 
-list.str = function(x,def=' = ',join='\n',sig=NULL){
+list.str = function(x,def=' = ',join='\n',sig=Inf){
   # e.g. list.str(list(a=1,b=2)) -> 'a = 1\nb = 2'
-  if (!is.null(sig)){ x = signif(unlist(x),sig) }
-  paste(names(x),x,sep=def,collapse=join)
+  f = function(x){ ifelse(is.numeric(x),signif(x,sig),x) }
+  paste(names(x),lapply(x,f),sep=def,collapse=join)
 }
 
 df.compare = function(x,y,v=NULL,cast=as.numeric){
   # check if x[v] == y[v] (for debug)
   if (is.null(v)){ v = intersect(names(x),names(y)) }
-  print(all.equal( lapply(x[v],cast), lapply(y[v],cast) ))
+  eq = all.equal(lapply(x[v],cast),lapply(y[v],cast))
+  status(3,'df.compare @ ',paste(v,collapse=','),': ',
+    ifelse(eq==TRUE,'OK',paste('\n',eq)))
 }
 
 # -----------------------------------------------------------------------------
@@ -148,7 +150,7 @@ grid.apply = function(x,fun,...,.par=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   xg = expand.grid(x,stringsAsFactors=FALSE)
-  args = lapply(1:nrow(xg),function(i){ c(as.list(xg[i,]),list(...)) })
+  args = lapply(1:nrow(xg),function(i){ ulist(as.list(xg[i,]),...) })
   par.lapply(args,do.call,what=fun,.par=.par)
 }
 
@@ -172,6 +174,6 @@ copula = function(n,covs,qfuns,...){
   ms = mvtnorm::rmvnorm(n,sigma=sigma) # sample from mvn
   ps = as.list(data.frame(pnorm(ms))) # normal cdf transform
   xs = mapply(function(qfun,p,args){ # for each qfun, p vector, args
-    do.call(qfun,c(list(p=p),args)) # target distr quantile transform
+    do.call(qfun,ulist(args,p=p)) # target distr quantile transform
   },qfuns,ps,list(...))
 }
