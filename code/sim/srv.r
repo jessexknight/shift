@@ -122,7 +122,6 @@ dt.data.sub = function(Y,t,dt,among=quote(TRUE)){
 
 inc.rate = function(Y,e,strat='seed'){
   # TODO: integrate in srv.* framework
-  Y = subset(Y,e != '')
   Y = switch(e,
     vio = Y,
     dep_o = subset(Y,dep.now==0),
