@@ -3,13 +3,7 @@
 # config
 
 .p.vars = c('case','seed')
-.i.vars = c(
-  'i',
-  't.born','age.act',
-  'vio.Ri',
-  'dep_o.Ri','dep_x.Ri',
-  'haz_o.Ri','haz_x.Ri',
-  'ptr_o.Ri','ptr_x.Ri','ptr.max')
+.i.vars = c('i','t.born','age.act','ptr.max')
 
 # =============================================================================
 # survey funs
@@ -26,7 +20,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
   Q = do.call(rbind,Qs)
 }
 
-srv.init = function(M,t,p.vars,i.vars){
+srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
   p.vars = unique(c(.p.vars,p.vars))
   i.vars = unique(c(.i.vars,i.vars))
   Q = cbind(M$P[p.vars],t=t,M$I[i.vars]) # init Q ~= I
@@ -137,7 +131,7 @@ inc.rate = function(Y,e,strat='seed'){
     haz_x = subset(Y,haz.now==1),
     ptr_o = subset(Y,ptr.nw < ptr.max),
     ptr_x = subset(Y,ptr.nw > 0))
-  y.split = split(1:nrow(Y),cbind(Y[strat],.=''))
+  y.split = split(1:nrow(Y),Y[strat])
   R = rbind.lapply(y.split,function(y){
     ne = sum(Y$e[y]==e)
     dt = sum(Y$tx[y]-Y$to[y])
