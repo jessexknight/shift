@@ -97,7 +97,6 @@ rate.datas = function(Ms,t,dt,...,among=quote(TRUE)){
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
   # TODO: not all evts
-  # TODO: add dt arg here for speed
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){
     to = Q$t.born[i] + M$P$t1y * amin
