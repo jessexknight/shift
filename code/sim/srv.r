@@ -84,33 +84,42 @@ srv.val.RR = function(P,Q,E,t){
   return(Q)
 }
 
-# -----------------------------------------------------------------------------
+# =============================================================================
+# rate funs
 
-dt.data = function(P,Q,E,q.vars=NULL){
-  # TODO: integrate in srv.* framework
-  # TODO: not all evts
-  q.vars = unique(c(.p.vars,.i.vars,q.vars))
-  Y = rbind.lapply(1:nrow(Q),function(i){
-    to = Q$t.born[i] + P$t1y * amin
-    tx = Q$t.born[i] + P$t1y * amax
-    ti = sort(do.call(c,lapply(E[evts],`[[`,i))) # all event times
-    ei = gsub('\\d','',names(ti))                # all event names
-    Yi = cbind(
-      lapply(Q[q.vars],`[`,i),
-      data.frame(
-        e  = c(ei,''), # event name or '' = censored
-        to = c(to,ti), # period start
-        tx = c(ti,tx), # period end
-        vio.nt  = c(0,cumsum(ei=='vio')),
-        dep.now = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
-        haz.now = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
-        ptr.nw  = c(0,cumsum(ei=='ptr_o')-cumsum(ei=='ptr_x')),
-        row.names = NULL))
-  },.par=FALSE)
-  # df.compare(subset(Y,e==''),Q) # DEBUG
+rate.datas = function(Ms,t,dt,...,among=quote(TRUE)){
+  status(3,'rate.datas: ',len(Ms))
+  if (missing( t)){  t = Ms[[1]]$P$tf }
+  if (missing(dt)){ dt = Inf }
+  Y = rbind.lapply(Ms,rate.data,t=t,...)
+  Y = rate.data.sub(Y,t,dt,among=among)
 }
 
-dt.data.sub = function(Y,t,dt,among=quote(TRUE)){
+rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
+  # TODO: not all evts
+  # TODO: add dt arg here for speed
+  Q = srv.init(M,t,p.vars,i.vars)
+  Y = rbind.lapply(1:nrow(Q),function(i){
+    to = Q$t.born[i] + M$P$t1y * amin
+    tx = Q$t.born[i] + M$P$t1y * amax
+    ti = sort(do.call(c,lapply(M$E[evts],`[[`,i))) # all event times
+    ei = gsub('\\d','',names(ti))                  # all event names
+    Yi = cbind(Q[i,],
+      e  = c(ei,''), # event name or '' = censored
+      to = c(to,ti), # period start
+      tx = c(ti,tx), # period end
+      vio.nt   = c(0,cumsum(ei=='vio')),
+      dep.now  = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
+      dep.past = c(0,cummax(ei=='dep_o')),
+      haz.now  = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
+      haz.past = c(0,cummax(ei=='haz_o')),
+      ptr.nw   = c(0,cumsum(ei=='ptr_o')-cumsum(ei=='ptr_x')),
+      ptr.nt   = c(0,cumsum(ei=='ptr_o')))
+  },.par=FALSE)
+  # df.compare(subset(Y,e==''),srv.base(M$P,Q,M$E,t=t)) # DEBUG
+}
+
+rate.data.sub = function(Y,t,dt,among=quote(TRUE)){
   tx.w = t    # window start
   to.w = t-dt # window end
   Y = subset(Y, to <= tx.w & tx >= to.w) # observed
@@ -120,8 +129,7 @@ dt.data.sub = function(Y,t,dt,among=quote(TRUE)){
   Y = subset(Y,among) # any other subset
 }
 
-inc.rate = function(Y,e,strat='seed'){
-  # TODO: integrate in srv.* framework
+rate.est = function(Y,e,strat='seed'){
   Y = switch(e,
     vio = Y,
     dep_o = subset(Y,dep.now==0),
