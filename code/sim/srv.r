@@ -30,6 +30,7 @@ srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
 srv.base = function(P,Q,E,t,fmt='%s'){
   E = clip.evts(E,t=t)
   Q$age      = (t-Q$t.born)/P$t1y
+  Q$age.1    = floor(Q$age)
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
   Q$vio.tr   = sapply(E$vio,last)
@@ -87,45 +88,50 @@ srv.val.RR = function(P,Q,E,t){
 # =============================================================================
 # rate funs
 
-rate.datas = function(Ms,t,dt,...,among=quote(TRUE)){
+rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   status(3,'rate.datas: ',len(Ms))
   if (missing( t)){  t = Ms[[1]]$P$tf }
-  if (missing(dt)){ dt = Inf }
   Y = rbind.lapply(Ms,rate.data,t=t,...)
   Y = rate.data.sub(Y,t,dt,among=among)
 }
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
-  # TODO: not all evts
-  # TODO: add age & sex.act
+  tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){
-    to = Q$t.born[i] + M$P$t1y * amin
-    tx = Q$t.born[i] + M$P$t1y * amax
-    ti = sort(do.call(c,lapply(M$E[evts],`[[`,i))) # all event times
-    ei = gsub('\\d','',names(ti))                  # all event names
+    if (tia(i,amin) > t){ return(NULL) } # (unobserved)
+    Ei = ulist(lapply(M$E,`[[`,i),       # add events:
+      age  = tia(i,seq(amin,amax)),      # - birthdays
+      act  = tia(i,Q$age.act[i]),        # - sexual activity
+      tmax = rep(t,tia(i,amax) > t))     # - clip (end obs)
+    ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
+    ei = gsub('\\d','',names(ti))        # obs event names
+    ein = ei[-len(ti)]   # for speed
     Yi = cbind(Q[i,],
-      e  = c(ei,''), # event name or '' = censored
-      to = c(to,ti), # period start
-      tx = c(ti,tx), # period end
-      vio.nt   = c(0,cumsum(ei=='vio')),
-      dep.now  = c(0,cumsum(ei=='dep_o')-cumsum(ei=='dep_x')),
-      dep.past = c(0,cummax(ei=='dep_o')),
-      haz.now  = c(0,cumsum(ei=='haz_o')-cumsum(ei=='haz_x')),
-      haz.past = c(0,cummax(ei=='haz_o')),
-      ptr.nw   = c(0,cumsum(ei=='ptr_o')-cumsum(ei=='ptr_x')),
-      ptr.nt   = c(0,cumsum(ei=='ptr_o')))
+      e  = ei[-1],       # event name
+      to = ti[-len(ti)], # period start
+      tx = ti[-1],       # period end
+      vio.nt   = cumsum(ein=='vio'),
+      dep.now  = cumsum(ein=='dep_o')-cumsum(ein=='dep_x'),
+      dep.past = cummax(ein=='dep_o'),
+      haz.now  = cumsum(ein=='haz_o')-cumsum(ein=='haz_x'),
+      haz.past = cummax(ein=='haz_o'),
+      ptr.nw   = cumsum(ein=='ptr_o')-cumsum(ein=='ptr_x'),
+      ptr.nt   = cumsum(ein=='ptr_o'),
+      age.1    = cumsum(ein=='age')+amin-1,
+      sex.act  = cummax(ein=='act'),
+    row.names=NULL)
   },.par=FALSE)
-  # df.compare(subset(Y,e==''),srv.base(M$P,Q,M$E,t=t)) # DEBUG
+  # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
 }
 
-rate.data.sub = function(Y,t,dt,among=quote(TRUE)){
-  tx.w = t    # window start
-  to.w = t-dt # window end
+rate.data.sub = function(Y,t,dt=t,among=quote(TRUE)){
+  tx.w = t    # obs end
+  to.w = t-dt # obs start
   Y = subset(Y, to <= tx.w & tx >= to.w) # observed
-  Y$e [Y$tx > tx.w] = ''   # censored
-  Y$tx[Y$tx > tx.w] = tx.w # clip end
-  Y$to[Y$to < to.w] = to.w # clip start
+  Y$e [Y$tx > tx.w] = 'tmax' # clip event
+  Y$tx[Y$tx > tx.w] = tx.w   # clip end
+  Y$to[Y$to < to.w] = to.w   # clip start
   Y = subset(Y,among) # any other subset
 }
 
@@ -136,8 +142,8 @@ rate.est = function(Y,e,strat='seed'){
     dep_x = subset(Y,dep.now==1),
     haz_o = subset(Y,haz.now==0),
     haz_x = subset(Y,haz.now==1),
-    ptr_o = subset(Y,ptr.nw < ptr.max), # TODO: add sex.act
-    ptr_x = subset(Y,ptr.nw > 0))
+    ptr_o = subset(Y,sex.act & ptr.nw < ptr.max),
+    ptr_x = subset(Y,sex.act & ptr.nw > 0))
   y.split = split(1:nrow(Y),Y[strat])
   R = rbind.lapply(y.split,function(y){
     ne = sum(Y$e[y]==e)
