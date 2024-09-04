@@ -223,10 +223,10 @@ sim.run = function(P,sub='act'){
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub) # collect
 }
 
-sim.runs = function(Ps,.par=TRUE){
+sim.runs = function(Ps,...,.par=TRUE){
   # run.sim in parallel for each (P)arameter set in Ps
   status(3,'sim.runs: ',len(Ps))
-  Ms = par.lapply(Ps,sim.run,.par=.par); status(4,'\n')
+  Ms = par.lapply(Ps,sim.run,...,.par=.par); status(4,'\n')
   return(Ms)
 }
 
