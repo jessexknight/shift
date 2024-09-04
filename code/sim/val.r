@@ -94,13 +94,14 @@ val.plot.rate = function(R,evt,gpar,strat,facet,fixed,t1y=364){
     geom_point(data=data.frame(R=R.ref),shape=9,color='red') +
     facet_wrap('~facet',scales='fixed',ncol=ulen(R$facet)) +
     labs(y=str('Rate (per year): ',evt),x='',color=str(fix,'\n\n',strat)) +
+    guides(color=guide_legend(ncol=2)) +
     ggtitle(str(name,': ',evt)) +
     scale_color_viridis_d() +
     ylim(c(0,NA))
   g = add.rate.label(g,R,c('facet',strat),R.max+R.ref,function(Ri){
     str(signif(median(Ri$R/R.ref),3)) })
   g = add.rate.label(g,R,c('facet',strat),0,function(Ri){
-    str(round(median(Ri$ne)),' / ',round(median(Ri$dt)/t1y)) })
+    str(round(median(Ri$ne)),'\n',round(median(Ri$dt)/t1y),'\n') })
   g = plot.clean(g,legend.title=element_text(size=9))
 }
 
