@@ -97,6 +97,7 @@ rate.datas = function(Ms,t,dt,...,among=quote(TRUE)){
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
   # TODO: not all evts
+  # TODO: add age & sex.act
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){
     to = Q$t.born[i] + M$P$t1y * amin
@@ -135,7 +136,7 @@ rate.est = function(Y,e,strat='seed'){
     dep_x = subset(Y,dep.now==1),
     haz_o = subset(Y,haz.now==0),
     haz_x = subset(Y,haz.now==1),
-    ptr_o = subset(Y,ptr.nw < ptr.max),
+    ptr_o = subset(Y,ptr.nw < ptr.max), # TODO: add sex.act
     ptr_x = subset(Y,ptr.nw > 0))
   y.split = split(1:nrow(Y),Y[strat])
   R = rbind.lapply(y.split,function(y){
