@@ -104,7 +104,7 @@ flist = function(x){
 
 filter.names = function(x,re,b=TRUE){
   # e.g. filter.names(list(a1=0,a2=0,ba=0),'^a') -> c('a1','a2')
-  names(x)[grepl(re,names(x))==b]
+  names(x)[grepl(re,names(x),perl=TRUE)==b]
 }
 
 list.str = function(x,def=' = ',join='\n',sig=Inf){
