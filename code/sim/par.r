@@ -24,6 +24,10 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
   P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
   P$all.Ri.shape = 1        # (gamma shape): all other base rates
+  # *RR shapes
+  P$tRR.shape = 'exp'
+  P$nRR.shape = 'exp'
+  P$dRR.shape = 'exp'
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
@@ -94,26 +98,26 @@ cond.pars = function(P){
   P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs) # RR: age -> haz begin
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
   # tRR: vio
-  def.tRR = def.tRR.exp
+  def.tRR = get(str('def.tRR.',P$tRR.shape))
   P$tRRu.dep_o.vio_zr = def.tRR(P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
   P$tRRu.dep_x.vio_zr = def.tRR(P$iRR.dep_x.vio_zr,P$tsc.dep_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep end
   P$tRRu.haz_o.vio_zr = def.tRR(P$iRR.haz_o.vio_zr,P$tsc.haz_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz begin
   P$tRRu.haz_x.vio_zr = def.tRR(P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
   P$tRRu.ptr_o.vio_zr = def.tRR(P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  def.nRR = def.nRR.exp
+  def.nRR = get(str('def.nRR.',P$nRR.shape))
   P$nRR.dep_o.vio_nt = def.nRR(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
   P$nRR.haz_o.vio_nt = def.nRR(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
   P$nRR.ptr_o.vio_nt = def.nRR(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
   # dRR: durs
-  def.dRR = def.dRR.exp
+  def.dRR = get(str('def.dRR.',P$dRR.shape))
   P$dRRu.dep_x.dep_u = def.dRR(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   P$dRRu.haz_x.haz_u = def.dRR(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
   }
-  # for (x in filter.names(P,'^(t|n|d)RR')){ plot(grepl('RRu',x)+P[[x]]); title(x) } # DEBUG
+  # for (x in filter.names(P,'^(t|n|d)RR.(?!shape)')){ plot(grepl('RRu',x)+P[[x]]); title(x) } # DEBUG
   return(P)
 }
 
@@ -155,7 +159,7 @@ def.nRR.ramp = function(mRR,nsc,z1y){
   nRR = c(seq(1,mRR,len=nsc+1),rep(mRR,nmax-nsc))
 }
 
-def.nRR.rect = function(mRR,nsc,z1y){
+def.nRR.step = function(mRR,nsc,z1y){
   nmax = z1y*adur # nmax = all active timesteps
   nRR = c(rep(1,nsc),rep(mRR,nmax-nsc))
 }
@@ -165,9 +169,14 @@ def.dRR.exp = function(dsc,dtz,z1y){
   dRR = exp(-z*dtz/dsc)
 }
 
-def.tRR.rect = function(iRR,tsc,dtz){
-  ntz = tsc/dtz
-  tRR = 1 + (iRR-1) * c(rep(1,floor(ntz)),ntz-floor(ntz))
+def.tRR.step = function(iRR,tsc,dtz){
+  zsc = tsc/dtz # tsc in timesteps
+  tRR = 1 + (iRR-1) * c(rep(1,floor(zsc)),zsc-floor(zsc))
+}
+
+def.tRR.ramp = function(iRR,tsc,dtz){
+  zsc = tsc/dtz # tsc in timesteps
+  tRR = seq(iRR,1,(1-iRR)/(zsc+1))[-1]
 }
 
 def.tRR.exp = function(iRR,tsc,dtz,eps=.001){
