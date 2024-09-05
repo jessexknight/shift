@@ -11,8 +11,8 @@ cli.arg = function(name,default=NA){
 options(
   stringsAsFactors=FALSE,
   showNCalls=500,
-  nwarnings=1e4,
-  width=200)
+  width=200,
+  warn=1)
 
 len = length
 lens = lengths

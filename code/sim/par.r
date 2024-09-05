@@ -106,8 +106,9 @@ cond.pars = function(P){
   P$nRR.haz_o.vio_nt = def.nRR(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
   P$nRR.ptr_o.vio_nt = def.nRR(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
   # dRR: durs
-  P$dRRu.dep_x.dep_u = def.dRR.exp(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
-  P$dRRu.haz_x.haz_u = def.dRR.exp(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  def.dRR = def.dRR.exp
+  P$dRRu.dep_x.dep_u = def.dRR(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.haz_x.haz_u = def.dRR(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
@@ -149,14 +150,19 @@ def.nRR.exp = function(mRR,nsc,z1y){
   nRR = 1 + (mRR-1) * (1-exp(-n/nsc))
 }
 
+def.nRR.ramp = function(mRR,nsc,z1y){
+  nmax = z1y*adur # nmax = all active timesteps
+  nRR = c(seq(1,mRR,len=nsc+1),rep(mRR,nmax-nsc))
+}
+
 def.nRR.rect = function(mRR,nsc,z1y){
   nmax = z1y*adur # nmax = all active timesteps
   nRR = c(rep(1,nsc),rep(mRR,nmax-nsc))
 }
 
-def.dRR.exp = function(tsc,dtz,z1y){
+def.dRR.exp = function(dsc,dtz,z1y){
   z = 1:(z1y*adur) # dmax = all active timesteps
-  dRR = exp(-z*dtz/tsc)
+  dRR = exp(-z*dtz/dsc)
 }
 
 def.tRR.rect = function(iRR,tsc,dtz){
