@@ -95,7 +95,7 @@ rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   Y = rate.data.sub(Y,t,dt,among=among)
 }
 
-rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
+rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL){
   tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){
@@ -104,13 +104,15 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
       age  = tia(i,seq(amin,amax)),      # - birthdays
       act  = tia(i,Q$age.act[i]),        # - sexual activity
       tmax = rep(t,tia(i,amax) > t))     # - clip (end obs)
+    for (e in names(e.dts)){             # - shifted events
+      Ei[[str(e,'.dt')]] = Ei[[e]]+e.dts[[e]]  }
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
     ei = gsub('\\d','',names(ti))        # obs event names
     ein = ei[-len(ti)]   # for speed
     Yi = cbind(Q[i,],
-      e  = ei[-1],       # event name
       to = ti[-len(ti)], # period start
       tx = ti[-1],       # period end
+      e  = ei[-1],       # event at period end
       vio.nt   = cumsum(ein=='vio'),
       dep.now  = cumsum(ein=='dep_o')-cumsum(ein=='dep_x'),
       dep.past = cummax(ein=='dep_o'),
@@ -121,6 +123,9 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL){
       age.1    = cumsum(ein=='age')+amin-1,
       sex.act  = cummax(ein=='act'),
     row.names=NULL)
+    for (e in names(e.dts)){ # pmin because tRR do not stack
+      Yi[[str(e,'.dt')]] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,'.dt'))) }
+    return(Yi)
   },.par=FALSE)
   # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
 }
