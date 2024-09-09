@@ -37,10 +37,10 @@ ns2 = c(10,100)
 
 val.RR = list(
   # RR age [1:4]
-  aRR.vio=list(gpar=ulist(P0),evts='vio',  strat='TODO'),
-  aRR.dep=list(gpar=ulist(P0),evts='dep_o',strat='TODO'),
-  aRR.haz=list(gpar=ulist(P0),evts='haz_o',strat='TODO'),
-  aRR.ptr=list(gpar=ulist(P0),evts='ptr_o',strat='TODO'),
+  aRR.vio=list(gpar=ulist(P0),evts='vio',  strat='age.10'),
+  aRR.dep=list(gpar=ulist(P0),evts='dep_o',strat='age.10'),
+  aRR.haz=list(gpar=ulist(P0),evts='haz_o',strat='age.10'),
+  aRR.ptr=list(gpar=ulist(P0),evts='ptr_o',strat='age.10'),
   # basic RR [5:12]
   RR.dep_o.dep_p=list(gpar=ulist(P0,RR.dep_o.dep_p=  RR3),evts='dep_o',strat='dep.past'),
   RR.haz_o.haz_p=list(gpar=ulist(P0,RR.haz_o.haz_p=  RR3),evts='haz_o',strat='haz.past'),
@@ -51,11 +51,11 @@ val.RR = list(
   RR.ptr_x.dep_w=list(gpar=ulist(P0,RR.ptr_x.dep_w=  RR3),evts='ptr_x',strat='dep.now'),
   RR.ptr_x.haz_w=list(gpar=ulist(P0,RR.ptr_x.haz_w=  RR3),evts='ptr_x',strat='haz.now'),
   # transient RR [13:17]
-  tRR.dep_o.vio_zr=list(gpar=ulist(P0,iRR.dep_o.vio_zr=  RR2,tsc.dep_o.vio_zr=ts2),evts='dep_o',strat='TODO'),
-  tRR.dep_x.vio_zr=list(gpar=ulist(P0,iRR.dep_x.vio_zr=1/RR2,tsc.dep_x.vio_zr=ts2),evts='dep_x',strat='TODO'),
-  tRR.haz_o.vio_zr=list(gpar=ulist(P0,iRR.haz_o.vio_zr=  RR2,tsc.haz_o.vio_zr=ts2),evts='haz_o',strat='TODO'),
-  tRR.haz_x.vio_zr=list(gpar=ulist(P0,iRR.haz_x.vio_zr=1/RR2,tsc.haz_x.vio_zr=ts2),evts='haz_x',strat='TODO'),
-  tRR.ptr_o.vio_zr=list(gpar=ulist(P0,iRR.ptr_o.vio_zr=  RR2,tsc.ptr_o.vio_zr=ts2),evts='ptr_o',strat='TODO'),
+  tRR.dep_o.vio_zr=list(gpar=ulist(P0,iRR.dep_o.vio_zr=  RR2,tsc.dep_o.vio_zr=ts2,tRR.shape='step'),evts='dep_o',strat='vio.dt',e.dts=list(vio=ts2)),
+  tRR.dep_x.vio_zr=list(gpar=ulist(P0,iRR.dep_x.vio_zr=1/RR2,tsc.dep_x.vio_zr=ts2,tRR.shape='step'),evts='dep_x',strat='vio.dt',e.dts=list(vio=ts2)),
+  tRR.haz_o.vio_zr=list(gpar=ulist(P0,iRR.haz_o.vio_zr=  RR2,tsc.haz_o.vio_zr=ts2,tRR.shape='step'),evts='haz_o',strat='vio.dt',e.dts=list(vio=ts2)),
+  tRR.haz_x.vio_zr=list(gpar=ulist(P0,iRR.haz_x.vio_zr=1/RR2,tsc.haz_x.vio_zr=ts2,tRR.shape='step'),evts='haz_x',strat='vio.dt',e.dts=list(vio=ts2)),
+  tRR.ptr_o.vio_zr=list(gpar=ulist(P0,iRR.ptr_o.vio_zr=  RR2,tsc.ptr_o.vio_zr=ts2,tRR.shape='step'),evts='ptr_o',strat='vio.dt',e.dts=list(vio=ts2)),
   # cumulative RR [18:20]
   nRR.dep_o.vio_nt=list(gpar=ulist(P0,mRR.dep_o.vio_nt=RR2,nsc.dep_o.vio_nt=ns2),evts='dep_o',strat='TODO'),
   nRR.haz_o.vio_nt=list(gpar=ulist(P0,mRR.haz_o.vio_nt=RR2,nsc.haz_o.vio_nt=ns2),evts='haz_o',strat='TODO'),
@@ -68,13 +68,13 @@ val.RR = list(
 # =============================================================================
 # run & plot
 
-val.run = function(name,gpar,evts,strat='.'){
+val.run = function(name,gpar,evts,strat='.',e.dts=NULL){
   status(2,'val.run: ',name,' @ ',n.seed*prod(lens(gpar)))
   Ps = grid.apply(ulist(gpar,seed=1:n.seed),get.pars)
   Ms = sim.runs(Ps)
   facet = setdiff(names(gpar)[lens(gpar)>1],strat)
   fixed = setdiff(names(gpar),c(strat,facet))
-  Y = cbind(rate.datas(Ms,p.vars=facet),.='')
+  Y = cbind(rate.datas(Ms,p.vars=facet,e.dts=e.dts),.='')
   R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,facet))
   for (evt in evts){
     g = val.plot.rate(R,evt,gpar,strat,facet,fixed)

@@ -104,10 +104,11 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL){
       age  = tia(i,seq(amin,amax)),      # - birthdays
       act  = tia(i,Q$age.act[i]),        # - sexual activity
       tmax = rep(t,tia(i,amax) > t))     # - clip (end obs)
-    for (e in names(e.dts)){             # - shifted events
-      Ei[[str(e,'.dt')]] = Ei[[e]]+e.dts[[e]]  }
+    for (e in names(e.dts)){             # - lagged events
+      for (dt in e.dts[[e]]){
+        Ei[[str(e,dt,'dt')]] = Ei[[e]]+dt }}
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
-    ei = gsub('\\d','',names(ti))        # obs event names
+    ei = gsub('\\d*$','',names(ti))      # obs event names
     ein = ei[-len(ti)]   # for speed
     Yi = cbind(Q[i,],
       to = ti[-len(ti)], # period start
@@ -123,11 +124,18 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL){
       age.1    = cumsum(ein=='age')+amin-1,
       sex.act  = cummax(ein=='act'),
     row.names=NULL)
-    for (e in names(e.dts)){ # pmin because tRR do not stack
-      Yi[[str(e,'.dt')]] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,'.dt'))) }
+    for (e in names(e.dts)){
+      for (dt in e.dts[[e]]){ # pmin because *RR do not stack
+        Yi[str(e,dt,'dt')] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,dt,'dt'))) }}
     return(Yi)
   },.par=FALSE)
+  Y$age.10 = floor(Y$age.1/10)*10
+  for (e in names(e.dts)){ # e.g. vio.dt: periods with vio in past (30,90,...) days
+    cols = str(e,e.dts[[e]],'dt')
+    Y[str(e,'.dt')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
+    Y[cols] = NULL }
   # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
+  return(Y)
 }
 
 rate.data.sub = function(Y,t,dt=t,among=quote(TRUE)){
