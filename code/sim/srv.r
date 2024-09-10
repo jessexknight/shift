@@ -95,7 +95,7 @@ rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   Y = rate.data.sub(Y,t,dt,among=among)
 }
 
-rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL){
+rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
   tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){
@@ -129,11 +129,12 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL){
         Yi[str(e,dt,'dt')] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,dt,'dt'))) }}
     return(Yi)
   },.par=FALSE)
-  Y$age.10 = floor(Y$age.1/10)*10
   for (e in names(e.dts)){ # e.g. vio.dt: periods with vio in past (30,90,...) days
     cols = str(e,e.dts[[e]],'dt')
     Y[str(e,'.dt')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
     Y[cols] = NULL }
+  for (x in names(x.cols)){
+    Y[[x]] = eval(x.cols[[x]]) }
   # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
   return(Y)
 }
