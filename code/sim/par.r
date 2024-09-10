@@ -149,39 +149,63 @@ def.RR.age = function(age,RR,eps=.001){
   RR.age = splinefun(age,RR,method='monoH.FC')(seq(amin,amax))
 }
 
+# -----------------------------------------------------------------------------
+
 def.nRR.exp = function(mRR,nsc,z1y){
   n = 0:(z1y*adur) # nmax = all active timesteps
   nRR = 1 + (mRR-1) * (1-exp(-n/nsc))
 }
 
 def.nRR.ramp = function(mRR,nsc,z1y){
-  nmax = z1y*adur # nmax = all active timesteps
-  nRR = c(seq(1,mRR,len=nsc+1),rep(mRR,nmax-nsc))
+  if (nsc==Inf){ return(rep(1,z1y*adur)) }
+  nRR = c(seq(1,mRR,len=nsc+1),rep(mRR,z1y*adur-nsc))
 }
 
 def.nRR.step = function(mRR,nsc,z1y){
-  nmax = z1y*adur # nmax = all active timesteps
-  nRR = c(rep(1,nsc),rep(mRR,nmax-nsc))
+  if (nsc==Inf){ return(rep(1,z1y*adur)) }
+  nRR = c(rep(1,nsc),rep(mRR,z1y*adur-nsc))
 }
 
-def.dRR.exp = function(dsc,dtz,z1y){
-  z = 1:(z1y*adur) # dmax = all active timesteps
-  dRR = exp(-z*dtz/dsc)
-}
+# -----------------------------------------------------------------------------
 
-def.tRR.step = function(iRR,tsc,dtz){
-  zsc = tsc/dtz # tsc in timesteps
-  tRR = 1 + (iRR-1) * c(rep(1,floor(zsc)),zsc-floor(zsc))
+def.tRR.exp = function(iRR,tsc,dtz,eps=.001){
+  z = 1:ceiling(qexp(p=1-eps,rate=1/tsc)/dtz) # zmax = cover most AUC
+  tRR = 1 + (iRR-1) * exp(-(z+.5)*dtz/tsc)
 }
 
 def.tRR.ramp = function(iRR,tsc,dtz){
-  zsc = tsc/dtz # tsc in timesteps
-  tRR = seq(iRR,1,(1-iRR)/(zsc+1))[-1]
+  tRR = 1 + (iRR-1) * def.u.ramp(tsc/dtz)
 }
 
-def.tRR.exp = function(iRR,tsc,dtz,eps=.001){
-  z = 1:ceiling(qexp(p=1-eps,rate=1/tsc)/dtz) # ensure we cover most AUC
-  tRR = 1 + (iRR-1) * exp(-z*dtz/tsc)
+def.tRR.step = function(iRR,tsc,dtz){
+  tRR = 1 + (iRR-1) * def.u.step(tsc/dtz)
+}
+
+# -----------------------------------------------------------------------------
+
+def.dRR.exp = function(dsc,dtz,z1y){
+  z = 1:(z1y*adur) # dmax = all active timesteps
+  dRR = exp(-(z+.5)*dtz/dsc)
+}
+
+def.dRR.ramp = function(dsc,dtz,z1y){
+  dRR = def.u.ramp(dsc/dtz,z1y*adur)
+}
+
+def.dRR.step = function(dsc,dtz,z1y){
+  dRR = def.u.step(dsc/dtz,z1y*adur)
+}
+
+# -----------------------------------------------------------------------------
+
+def.u.step = function(n,l=0){
+  if (n==Inf){ return(rep(1,l)) }
+  xRR = c(rep(1,floor(n)), n-floor(n), rep(0,pmax(0,l-floor(n)-1)))
+}
+
+def.u.ramp = function(n,l=0){
+  if (n==Inf){ return(rep(1,l)) }
+  xRR = c(seq(1,0,-1/(n+1))[-1], rep(0,pmax(0,l-floor(n)-1)))
 }
 
 map.tRR = function(tRRu,ze,z){
