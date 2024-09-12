@@ -25,6 +25,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
   P$all.Ri.shape = 1        # (gamma shape): all other base rates
   # *RR shapes
+  P$aRR.shape = 'spline'
   P$tRR.shape = 'exp'
   P$nRR.shape = 'exp'
   P$dRR.shape = 'exp'
@@ -93,10 +94,10 @@ cond.pars = function(P){
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
   # RR: age
-  P$aRR.vio   = def.RR.age(P$aRR.vio.ages,P$aRR.vio.RRs) # RR: age -> vio
-  P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs) # RR: age -> dep begin
-  P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs) # RR: age -> haz begin
-  P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs) # RR: age -> ptr begin
+  P$aRR.vio   = def.RR.age(P$aRR.vio.ages,  P$aRR.vio.RRs,  P$aRR.shape) # RR: age -> vio
+  P$aRR.dep_o = def.RR.age(P$aRR.dep_o.ages,P$aRR.dep_o.RRs,P$aRR.shape) # RR: age -> dep begin
+  P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs,P$aRR.shape) # RR: age -> haz begin
+  P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs,P$aRR.shape) # RR: age -> ptr begin
   # tRR: vio
   def.tRR = get(str('def.tRR.',P$tRR.shape))
   P$tRRu.dep_o.vio_zr = def.tRR(P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
@@ -133,20 +134,25 @@ null.pars = function(P,null,save){
 null.sets = list(
   Ri  = list('Ri\\.m$'=0),
   RR  = list('^RR\\.'=1),
+  aRR = list('^aRR\\..*\\.(ages|RRs)$'=1),
   tRR = list('^iRR\\.'=1,'^tsc\\.'=1e-12),
   nRR = list('^mRR\\.'=1,'^nsc\\.'=Inf),
   dRR = list('^dsc\\.'=Inf))
-null.sets$xRR = flist(null.sets[2:5])
+null.sets$xRR = flist(null.sets[2:6])
 null.sets$all = flist(null.sets)
 
 # =============================================================================
 # effect funs
 
-def.RR.age = function(age,RR,eps=.001){
+def.RR.age = function(age,RR,shape='spline',eps=.001){
   n = len(RR)
   RR  = c(RR[1],RR,RR[n])
   age = c(age[1]-eps,age,age[n]+eps)
-  RR.age = splinefun(age,RR,method='monoH.FC')(seq(amin,amax))
+  age.out = seq(amin,amax)
+  RR.age = switch(shape,
+    spline = splinefun(age,RR,method='monoH.FC')(age.out),
+    linear = approx(age,RR,age.out,method='liner',rule=2)$y,
+    const  = approx(age,RR,age.out,method='const',rule=2)$y)
 }
 
 # -----------------------------------------------------------------------------
