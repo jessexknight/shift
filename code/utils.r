@@ -146,12 +146,12 @@ wapply = function(...){
   mapply(...,SIMPLIFY=FALSE)
 }
 
-grid.apply = function(x,fun,...,.par=TRUE){
+grid.apply = function(x,fun,args,...,.par=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   xg = expand.grid(x,stringsAsFactors=FALSE)
-  args = lapply(1:nrow(xg),function(i){ ulist(as.list(xg[i,]),...) })
-  par.lapply(args,do.call,what=fun,.par=.par)
+  grid.args = lapply(1:nrow(xg),function(i){ ulist(as.list(xg[i,]),args,...) })
+  par.lapply(grid.args,do.call,what=fun,.par=.par)
 }
 
 # -----------------------------------------------------------------------------
