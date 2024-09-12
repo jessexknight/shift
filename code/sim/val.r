@@ -72,26 +72,29 @@ val.RR = list(
 # run & plot
 
 val.run = function(name,gpar,evts,strat='.',e.dts=NULL,x.cols=NULL){
-  status(2,'val.run: ',name,' @ ',n.seed*prod(lens(gpar)))
-  Ps = grid.apply(ulist(gpar,seed=1:n.seed),get.pars,.par=FALSE)
+  pars = val.par.split(gpar)
+  status(2,'val.run: ',name,' @ ',n.seed*pars$n.var)
+  Ps = grid.apply(ulist(pars$var,seed=1:n.seed),get.pars,pars$fix,.par=FALSE)
   Ms = sim.runs(Ps)
-  facet = setdiff(names(gpar)[lens(gpar)>1],strat)
-  fixed = setdiff(names(gpar),c(strat,facet))
-  Y = cbind(rate.datas(Ms,p.vars=facet,e.dts=e.dts,x.cols=x.cols),.='')
-  R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,facet))
+  Y = cbind(rate.datas(Ms,p.vars=names(pars$var),e.dts=e.dts,x.cols=x.cols),.='')
+  R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
   for (evt in evts){
-    g = val.plot.rate(R,evt,gpar,strat,facet,fixed)
-    plot.save('val',uid,str(name,'--',evt),
-      h=3,w=2+2.5*prod(lens(gpar[facet])))
+    g = val.plot.rate(R,evt,pars,strat)
+    plot.save('val',uid,str(name,'--',evt),h=3,w=2+2.5*pars$n.var)
   }
 }
 
-val.plot.rate = function(R,evt,gpar,strat,facet,fixed,t1y=364){
+val.par.split = function(par){
+  b = lens(par) > 1 & !grepl(names(null.sets$aRR),names(par))
+  p = list(var=par[b],fix=par[!b],n.var=prod(lens(par[b])))
+}
+
+val.plot.rate = function(R,evt,pars,strat,t1y=364){
   R = subset(R,event==evt)
-  R = cbind(R,facet=apply(R[facet],1,list.str,sig=3))
-  R.ref = gpar[[str(evt,'.Ri.m')]]
+  R = cbind(R,facet=apply(R[names(pars$var)],1,list.str,sig=3))
+  R.ref = pars$fix[[str(evt,'.Ri.m')]]
   R.max = max(R$R)
-  fix = list.str(gpar[fixed],sig=3)
+  fix = list.str(pars$fix,sig=3)
   g = ggplot(R,aes(x='',y=t1y*R,color=as.factor(.data[[strat]]))) +
     geom_boxplot(alpha=.3,outlier.shape=1,outlier.alpha=1) +
     geom_point(data=data.frame(R=R.ref),shape=9,color='red') +
