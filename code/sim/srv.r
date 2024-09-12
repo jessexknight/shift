@@ -151,18 +151,18 @@ rate.data.sub = function(Y,t,dt=t,among=quote(TRUE)){
 }
 
 rate.est = function(Y,e,strat='seed'){
-  Y = switch(e,
-    vio = Y,
-    dep_o = subset(Y,dep.now==0),
-    dep_x = subset(Y,dep.now==1),
-    haz_o = subset(Y,haz.now==0),
-    haz_x = subset(Y,haz.now==1),
-    ptr_o = subset(Y,sex.act & ptr.nw < ptr.max),
-    ptr_x = subset(Y,sex.act & ptr.nw > 0))
+  Y$w = switch(e, # person-time weight
+    vio   = 1,
+    dep_o = Y$dep.now==0,
+    dep_x = Y$dep.now==1,
+    haz_o = Y$haz.now==0,
+    haz_x = Y$haz.now==1,
+    ptr_o = Y$sex.act & Y$ptr.nw < Y$ptr.max,
+    ptr_x = Y$ptr.nw)
   y.split = split(1:nrow(Y),Y[strat])
   R = rbind.lapply(y.split,function(y){
     ne = sum(Y$e[y]==e)
-    dt = sum(Y$tx[y]-Y$to[y])
+    dt = sum((Y$tx[y] - Y$to[y]) * Y$w[y])
     cbind(Y[y[1],strat,drop=FALSE],
       event=e,ne=ne,dt=dt,R=ne/dt,
       # poisson 95% CI
