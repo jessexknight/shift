@@ -91,7 +91,7 @@ srv.val.RR = function(P,Q,E,t){
 rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   status(3,'rate.datas: ',len(Ms))
   if (missing( t)){  t = Ms[[1]]$P$tf }
-  Y = rbind.lapply(Ms,rate.data,t=t,...)
+  Y = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
   Y = rate.data.sub(Y,t,dt,among=among)
 }
 
