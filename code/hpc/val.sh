@@ -10,5 +10,5 @@ module add R/4.1.2-foss-2021b
 cd $PBS_O_WORKDIR
 
 for v in {1..23}; do
-  Rscript sim/val.r v=$v n=1000 n.seed=128 .cores=64
+  Rscript sim/val.r v=$v n.pop=1000 n.seed=128 .cores=64
 done
