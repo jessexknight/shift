@@ -10,5 +10,5 @@ module add R/4.1.2-foss-2021b
 cd $PBS_O_WORKDIR
 
 for v in {1..23}; do
-  /bin/time -v Rscript sim/val.r v=$v n.pop=1000 n.seed=64 .cores=64
+  /bin/time -f "`cat hpc/time.fmt`" Rscript sim/val.r v=$v n.pop=1000 n.seed=64 .cores=64
 done
