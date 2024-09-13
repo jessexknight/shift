@@ -2,4 +2,3 @@
     time: %E
  avg cpu: %P
  max mem: %M kB
- ave mem: %t kB
