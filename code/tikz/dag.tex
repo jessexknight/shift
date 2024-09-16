@@ -1,17 +1,27 @@
-\newcommand{\eff}[3]{\draw[->] (#1) edge[bend left=#3] (#2);}
-\begin{tikzpicture}[x=1.2cm,y=.6cm]
-  \node[var=grn] (vio) at (0, 0) {Violence};
-  \node[var=blu] (dep) at (2, 0) {Depression};
-  \node[var=vio] (ptr) at (3,+2) {Partner Rate};
-  \node[var=vio] (con) at (3,-2) {Condom Use};
-  \node[var=red,dots] (hiv) at (4, 0) {HIV Risk};
-  \eff{vio}{dep}{  0};
-  \eff{vio}{ptr}{+20};
-  \eff{dep}{ptr}{  0};
-  \eff{vio}{con}{-20};
-  \eff{dep}{con}{  0};
-  \eff{vio}{hiv}{+20,dots};
-  \eff{dep}{hiv}{  0,dots};
-  \eff{ptr}{hiv}{  0,dots};
-  \eff{con}{hiv}{  0,dots};
+\newcommand{\eff}[5]{\draw (#1) edge[->,#5] node[rr,#3]{#4} (#2);}
+\begin{tikzpicture}[x=22mm,y=10mm,
+  rr/.style={font=\scriptsize,gray,inner xsep=2mm,inner ysep=1mm,align=left},
+  past/.style={densely dash dot},
+  pres/.style={},
+  bold/.style={c1,very thick}]
+  \useasboundingbox (-.5,-2.5) rectangle (3.3,+2.5);
+  \node[var=grn] (vio) at (-.1,0) {SGM Violence};
+  \node[var=blu] (dep) at (1,+1) {Depression};
+  \node[var=blu] (haz) at (1,-1) {Haz Drinking};
+  \node[var=vio] (ptr) at (2,+1) {Partner Rate};
+  \node[var=vio] (cdm) at (2,-1) {Condom Use};
+  \node[var=red] (hiv) at (3, 0) {HIV Risk};
+  \eff{vio}{dep}{left,pos=.8} {\tRR{d}{v}\\\nRR{d}{v}\\\ss{tRR}{\d}{v}}{past,out=0,in=180};
+  \eff{vio}{haz}{left,pos=.8} {\tRR{h}{v}\\\nRR{h}{v}\\\ss{tRR}{\h}{v}}{past,out=0,in=180};
+  \eff{vio}{ptr}{right,pos=.9}{\tRR{p}{v}\\\nRR{p}{v}\\\tRR{\p}{v}}    {past,out=+90,in=+90,looseness=1.2};
+  \eff{vio}{cdm}{right,pos=.9}{\tRP{c}{v}\\\nRP{c}{v}}                 {past,out=-90,in=-90,looseness=1.2};
+  \eff{dep}{dep}{above}       {\RR{d}{d'}~\dRR{\d}{u}}{past,past,out=+45,in=+135,looseness=5};
+  \eff{haz}{haz}{below}       {\RR{h}{h'}~\dRR{\h}{u}}{past,past,out=-45,in=-135,looseness=5};
+  \eff{dep}{haz}{right}       {\RR{h}{d}\\\RR{\h}{d}} {pres};
+  \eff{dep}{ptr}{above}       {\RR{p}{d}\\\RR{\p}{d}} {pres};
+  \eff{dep}{cdm}{right,pos=.8}{\RP{c}{d}}             {pres,out=-15,in=+130};
+  \eff{haz}{ptr}{right,pos=.8}{\RR{p}{h},\RR{\p}{h}}  {pres,out=+15,in=-130};
+  \eff{haz}{cdm}{below}       {\RP{c}{h}}             {pres};
+  \eff{ptr}{hiv}{right}       {}{past,out=0,in=180};
+  \eff{cdm}{hiv}{right}       {}{pres,out=0,in=180};
 \end{tikzpicture}

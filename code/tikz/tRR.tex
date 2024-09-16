@@ -1,0 +1,7 @@
+\begin{tikzpicture}[x=1em,y=2em]
+  \xRRaxes{$tRR$}{Timesteps since exposure}
+  \foreach \RR in \uRRshape{ \xRRstem[c1]{1+\iRR*\RR-\RR} }
+  \xRRfill[c1]{1}
+  \draw[dots] (1,\iRR) -- (\imax+1,\iRR) node[lab,right] {$iRR$};
+  \draw[brace=1ex] (1,\iRR+.1) -- node[lab,above=1ex] {$\tau$} (\iref,\iRR+.1);
+\end{tikzpicture}

@@ -1,12 +1,17 @@
+% -----------------------------------------------------------------------------
+% imports
 \newcommand{\rootpath}{../..}
-\input{\rootpath/docs/style}
+\input{style}
 \input{colors}
 \usepackage{tikz}
+\usetikzlibrary{
+  decorations.pathreplacing,
+  arrows.meta,
+}
+% -----------------------------------------------------------------------------
+% tikz config
 \tikzset{
   > = latex,
-  every node/.style = {
-    line width = .2mm,
-  },
   df/.style = {
     draw = #1,
     fill = #1!20,
@@ -15,10 +20,40 @@
   var/.style = {
     df = #1,
     inner sep = .25em,
-    rounded corners = .5em,
-    font = \strut\footnotesize,
+    rounded corners = .25em,
+    font = \footnotesize,
   },
-  dots/.style = {
-    densely dotted,
-  }
+  lab/.style = { font = \footnotesize },
+  dots/.style = { densely dotted },
+  brace/.style = { decorate, decoration = {brace,amplitude=#1} },
+  -o/.style = { -{Circle[length=.8mm,width=.8mm]}, shorten >= -.4mm }
 }
+\newcommand{\shift}[3]{\begin{scope}[xshift=#1,yshift=#2]#3\end{scope}}
+% -----------------------------------------------------------------------------
+% symbols
+\renewcommand{\d}{\textit{\dj}}
+\newcommand  {\h}{\ensuremath{{\hbar}}}
+\newcommand  {\p}[1][\tiny]{\raisebox{1ex}{\rotatebox{180}{#1\textit{\dj}}}}
+\renewcommand{\ss}[3]{\ensuremath{{#1}^{\,#2}_{#3}}}
+\newcommand{\RR} [2]{\ss{RR} {#1}{#2}}\newcommand{\RP} [2]{\ss{RP} {#1}{#2}}
+\newcommand{\nRR}[2]{\ss{nRR}{#1}{#2}}\newcommand{\nRP}[2]{\ss{nRP}{#1}{#2}}
+\newcommand{\tRR}[2]{\ss{tRR}{#1}{#2}}\newcommand{\tRP}[2]{\ss{tRP}{#1}{#2}}
+\newcommand{\dRR}[2]{\ss{dRR}{#1}{#2}}
+% -----------------------------------------------------------------------------
+% xRR stuff
+\newcounter{i}
+\def\iRR{2.5}\def\imax{10}\def\iref{5}
+\newcommand{\xRRaxes}[2]{
+  \draw[<->] (0,\iRR+.5)
+  -- node[lab,above,rotate=90] {#1} (0,0)
+  -- node[lab,below,rotate=00] {#2} (\imax+1.5,0);
+  \foreach \i in {1,...,\imax}{ \draw (\i,0) -- (\i,-.5mm); };
+  \draw[densely dotted] (0,1) -- (\imax+1,1) node[lab,right]{1}; }
+\newcommand{\xRRstem}[2][]{ \stepcounter{i}
+  \fill[#1,opacity=.2] (\thei,1) -- (\thei,#2) -- (\thei+1,#2) -- (\thei+1,1) -- cycle;
+  \draw[#1,-o]         (\thei,1) -- (\thei,#2); }
+\newcommand{\xRRfill}[2][]{ \foreach \i in {\thei,...,\imax}{\xRRstem[#1]{#2} } }
+\def\nsc{5}
+\def\uRRstep{  1,  1,  1,  1}
+\def\uRRramp{4/4,3/4,2/4,1/4}
+\def\uRRexp {.78,.47,.29,.17,.11,.06,.04,.02,.00}
