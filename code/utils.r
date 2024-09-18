@@ -159,6 +159,11 @@ def.args = function(f,...){
   f.pre = function(...){ do.call(f,c(args,list(...))) }
 }
 
+maggregate = function(...){
+  # clean-up multiple returns from FUN
+  x = do.call(data.frame,aggregate(...))
+}
+
 # -----------------------------------------------------------------------------
 # stats
 
