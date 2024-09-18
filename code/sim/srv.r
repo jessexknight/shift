@@ -135,7 +135,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
   },.par=FALSE)
   for (e in names(e.dts)){ # e.g. vio.dt: periods with vio in past (30,90,...) days
     cols = str(e,e.dts[[e]],'dt')
-    Y[str(e,'.dt')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
+    Y[str(e,'.dt.c')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
     Y[cols] = NULL }
   for (x in names(x.cols)){
     Y[[x]] = x.cols[[x]](Y) }
