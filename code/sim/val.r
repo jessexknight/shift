@@ -73,12 +73,12 @@ val.RR = list(
 # =============================================================================
 # run & plot
 
-val.run = function(name,pars,evts,strat='.',e.dts=NULL,x.cols=NULL){
+val.run = function(name,pars,evts,strat='case',e.dts=NULL,x.cols=NULL){
   pars = val.par.split(pars)
   status(2,'val.run: ',name,' @ ',n.seed*pars$n.var)
   Ps = grid.apply(ulist(pars$var,seed=1:n.seed),get.pars,pars$fix,.par=FALSE)
   Ms = sim.runs(Ps)
-  Y = cbind(rate.datas(Ms,p.vars=names(pars$var),e.dts=e.dts,x.cols=x.cols),.='')
+  Y = rate.datas(Ms,p.vars=names(pars$var),e.dts=e.dts,x.cols=x.cols)
   R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
   for (evt in evts){
     g = val.plot.rate(R,evt,pars,strat)
