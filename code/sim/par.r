@@ -7,6 +7,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P = dt.pars(P,dtz)
   P$n.pop = 1000
   P$n.dur = 1+1
+  P$null = null
   # base rates
   P$vio.Ri.m    = 1/P$t1y    # (mean) base rate: violence
   P$dep_o.Ri.m  = 0.01/P$t1y # (mean) base rate: depression begin

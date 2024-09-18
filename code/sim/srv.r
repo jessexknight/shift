@@ -30,13 +30,14 @@ srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
   # df.compare(srv.base(M$P,Q,M$E,t),M$I) # DEBUG
 }
 
-srv.base = function(P,Q,E,t,fmt='%s'){
+srv.base = function(P,Q,E,t){
   E = clip.evts(E,t=t)
-  Q$age      = (t-Q$t.born)/P$t1y
+  Q$age      = (t - Q$t.born)/P$t1y
   Q$age.1    = floor(Q$age)
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
   Q$vio.tr   = sapply(E$vio,last)
+  Q$vio.dt   = t - Q$vio.tr
   Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
   Q$dep.past = sapply(E$dep_o,len) > 0
   Q$dep.to   = sapply(E$dep_o,last)
