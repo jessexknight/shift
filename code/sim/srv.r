@@ -17,7 +17,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
   Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars)
   for (srv in srvs){
     Qs = par.mapply(srv,Ps,Qs,Es,t) }
-  Q = do.call(rbind,Qs)
+  Q = do.call(rbind,Qs); gc()
   for (x in names(x.cols)){
     Q[[x]] = x.cols[[x]](Q) }
   return(Q)

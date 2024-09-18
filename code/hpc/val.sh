@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -j oe
 #PBS -N val
-#PBS -l walltime=01:15:00
-#PBS -l select=1:ncpus=64:mem=256gb
+#PBS -l walltime=01:30:00
+#PBS -l select=1:ncpus=64:mem=512gb
 
 module add tools/prod
 module add R/4.1.2-foss-2021b

@@ -1,4 +1,4 @@
-     cmd: %C
-    time: %E
- avg cpu: %P
- max mem: %M kB
+ >     cmd: %C
+ >    time: %E
+ > avg cpu: %P
+ > max mem: %M
