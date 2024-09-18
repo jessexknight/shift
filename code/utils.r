@@ -154,6 +154,11 @@ grid.apply = function(x,fun,args,...,.par=TRUE){
   par.lapply(grid.args,do.call,what=fun,.par=.par)
 }
 
+def.args = function(f,...){
+  args = list(...)
+  f.pre = function(...){ do.call(f,c(args,list(...))) }
+}
+
 # -----------------------------------------------------------------------------
 # stats
 
