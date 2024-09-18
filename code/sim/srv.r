@@ -8,7 +8,7 @@
 # =============================================================================
 # survey funs
 
-srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
+srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (t)
   status(3,'srv.apply: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
@@ -18,6 +18,9 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL){
   for (srv in srvs){
     Qs = par.mapply(srv,Ps,Qs,Es,t) }
   Q = do.call(rbind,Qs)
+  for (x in names(x.cols)){
+    Q[[x]] = x.cols[[x]](Q) }
+  return(Q)
 }
 
 srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
@@ -135,7 +138,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
     Y[str(e,'.dt')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
     Y[cols] = NULL }
   for (x in names(x.cols)){
-    Y[[x]] = eval(x.cols[[x]]) }
+    Y[[x]] = x.cols[[x]](Y) }
   # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
   return(Y)
 }

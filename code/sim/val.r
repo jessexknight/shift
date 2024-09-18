@@ -37,15 +37,15 @@ ns2 = c(3,10)
 age5 = c(10,20,30,40,50)
 aRR5 = c( 1, 5, 2, 4, 3)/3
 
-age.10.qc   = quote(floor(Y$age.1/10)*10)
-vio.nt.c.qc = quote(int.cut(Y$vio.nt,c(0,ns2)))
+age.10.fun   = function(Q){ floor(Q$age.1/10)*10 }
+vio.nt.c.fun = function(Q){ int.cut(Q$vio.nt,c(0,ns2)) }
 
 val.RR = list(
   # RR age [1:4]
-  aRR.vio=list(pars=ulist(P0,aRR.vio.RRs  =aRR5,aRR.vio.ages  =age5,aRR.shape='const'),evts='vio',  strat='age.10',x.cols=list(age.10=age.10.qc)),
-  aRR.dep=list(pars=ulist(P0,aRR.dep_o.RRs=aRR5,aRR.dep_o.ages=age5,aRR.shape='const'),evts='dep_o',strat='age.10',x.cols=list(age.10=age.10.qc)),
-  aRR.haz=list(pars=ulist(P0,aRR.haz_o.RRs=aRR5,aRR.haz_o.ages=age5,aRR.shape='const'),evts='haz_o',strat='age.10',x.cols=list(age.10=age.10.qc)),
-  aRR.ptr=list(pars=ulist(P0,aRR.ptr_o.RRs=aRR5,aRR.ptr_o.ages=age5,aRR.shape='const'),evts='ptr_o',strat='age.10',x.cols=list(age.10=age.10.qc)),
+  aRR.vio=list(pars=ulist(P0,aRR.vio.RRs  =aRR5,aRR.vio.ages  =age5,aRR.shape='const'),evts='vio',  strat='age.10',x.cols=list(age.10=age.10.fun)),
+  aRR.dep=list(pars=ulist(P0,aRR.dep_o.RRs=aRR5,aRR.dep_o.ages=age5,aRR.shape='const'),evts='dep_o',strat='age.10',x.cols=list(age.10=age.10.fun)),
+  aRR.haz=list(pars=ulist(P0,aRR.haz_o.RRs=aRR5,aRR.haz_o.ages=age5,aRR.shape='const'),evts='haz_o',strat='age.10',x.cols=list(age.10=age.10.fun)),
+  aRR.ptr=list(pars=ulist(P0,aRR.ptr_o.RRs=aRR5,aRR.ptr_o.ages=age5,aRR.shape='const'),evts='ptr_o',strat='age.10',x.cols=list(age.10=age.10.fun)),
   # basic RR [5:12]
   RR.dep_o.dep_p=list(pars=ulist(P0,RR.dep_o.dep_p=  RR3),evts='dep_o',strat='dep.past'),
   RR.haz_o.haz_p=list(pars=ulist(P0,RR.haz_o.haz_p=  RR3),evts='haz_o',strat='haz.past'),
@@ -62,9 +62,9 @@ val.RR = list(
   tRR.haz_x.vio_zr=list(pars=ulist(P0,iRR.haz_x.vio_zr=1/RR2,tsc.haz_x.vio_zr=ts2,tRR.shape='step'),evts='haz_x',strat='vio.dt',e.dts=list(vio=ts2)),
   tRR.ptr_o.vio_zr=list(pars=ulist(P0,iRR.ptr_o.vio_zr=  RR2,tsc.ptr_o.vio_zr=ts2,tRR.shape='step'),evts='ptr_o',strat='vio.dt',e.dts=list(vio=ts2)),
   # cumulative RR [18:20]
-  nRR.dep_o.vio_nt=list(pars=ulist(P0,mRR.dep_o.vio_nt=RR2,nsc.dep_o.vio_nt=ns2,nRR.shape='step'),evts='dep_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.qc)),
-  nRR.haz_o.vio_nt=list(pars=ulist(P0,mRR.haz_o.vio_nt=RR2,nsc.haz_o.vio_nt=ns2,nRR.shape='step'),evts='haz_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.qc)),
-  nRR.ptr_o.vio_nt=list(pars=ulist(P0,mRR.ptr_o.vio_nt=RR2,nsc.ptr_o.vio_nt=ns2,nRR.shape='step'),evts='ptr_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.qc)),
+  nRR.dep_o.vio_nt=list(pars=ulist(P0,mRR.dep_o.vio_nt=RR2,nsc.dep_o.vio_nt=ns2,nRR.shape='step'),evts='dep_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.fun)),
+  nRR.haz_o.vio_nt=list(pars=ulist(P0,mRR.haz_o.vio_nt=RR2,nsc.haz_o.vio_nt=ns2,nRR.shape='step'),evts='haz_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.fun)),
+  nRR.ptr_o.vio_nt=list(pars=ulist(P0,mRR.ptr_o.vio_nt=RR2,nsc.ptr_o.vio_nt=ns2,nRR.shape='step'),evts='ptr_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.fun)),
   # duration RR [21:22]
   dRR.dep_x.dep_u=list(pars=ulist(P0,dsc.dep_x.dep_u=ds2,dRR.shape='step'),evts='dep_x',strat='dep_o.dt',e.dts=list(dep_o=ds2)),
   dRR.haz_x.haz_u=list(pars=ulist(P0,dsc.haz_x.haz_u=ds2,dRR.shape='step'),evts='haz_x',strat='haz_o.dt',e.dts=list(haz_o=ds2))
