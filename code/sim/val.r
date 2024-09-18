@@ -80,9 +80,10 @@ val.run = function(name,pars,evts,strat='case',e.dts=NULL,x.cols=NULL){
   Ms = sim.runs(Ps)
   Y = rate.datas(Ms,p.vars=names(pars$var),e.dts=e.dts,x.cols=x.cols)
   R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
+  Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pars$var),x.cols=x.cols)
   for (evt in evts){
-    g = val.plot.rate(R,evt,pars,strat)
-    plot.save('val',uid,str(name,'--',evt),h=3,w=2+2.5*pars$n.var)
+    val.plot.rate(R,evt,pars,strat)
+    val.plot.desc(Q,evt,pars,strat)
   }
 }
 
@@ -98,19 +99,14 @@ val.plot.rate = function(R,evt,pars,strat,t1y=364){
   R.max = max(R$R)
   fix = list.str(pars$fix,sig=3)
   g = ggplot(R,aes(x='',y=t1y*R,color=as.factor(.data[[strat]]))) +
-    geom_boxplot(alpha=.3,outlier.shape=1,outlier.alpha=1) +
     geom_point(data=data.frame(R=R.ref),shape=9,color='red') +
-    facet_wrap('~facet',scales='fixed',ncol=ulen(R$facet)) +
-    labs(y=str('Rate (per year): ',evt),x='',color=str(fix,'\n\n',strat)) +
-    guides(color=guide_legend(ncol=2)) +
-    ggtitle(str(name,': ',evt)) +
-    scale_color_viridis_d() +
-    ylim(c(0,NA))
+    facet_grid('~facet') +
+    ylab(str('Rate (per year): ',evt))
   g = add.rate.label(g,R,c('facet',strat),R.max+R.ref,function(Ri){
     str(signif(median(Ri$R/R.ref),3)) })
   g = add.rate.label(g,R,c('facet',strat),0,function(Ri){
     str(round(median(Ri$ne)),'\n',round(median(Ri$dt)/t1y),'\n') })
-  g = plot.clean(g,legend.title=element_text(size=9))
+  g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
 }
 
 add.rate.label = function(g,R,strat,Ry,lab.fun){
@@ -118,6 +114,33 @@ add.rate.label = function(g,R,strat,Ry,lab.fun){
     cbind(Ri[1,strat],R=Ry,label=lab.fun(Ri)) })
   g = g + geom_text(data=R.lab,aes(label=label),size=2.5,
     position=position_dodge(width=.75),show.legend=FALSE)
+}
+
+val.plot.desc = function(Q,evt,pars,strat){
+  vars = switch(substr(evt,1,3),
+    vio = c('vio.nt', 'vio.dt'),
+    dep = c('dep.now','dep.past'),
+    haz = c('haz.now','haz.past'),
+    ptr = c('ptr.nt', 'ptr.nw'))
+  Q$facet = apply(Q[names(pars$var)],1,list.str,sig=3)
+  Q = aggregate(formula(str('value~seed+variable+facet+',strat)),
+    melt(Q,measure=setdiff(vars,strat)),mean)
+  g = ggplot(Q,aes(x='',y=value,color=as.factor(.data[[strat]]))) +
+    facet_grid('variable~facet',scales='free') +
+    ylab('Value (population mean)')
+  # TODO: add # labels (?)
+  g = val.plot.finish(g,c(name,evt,'prev'),pars,strat,nr=ulen(Q$variable))
+}
+
+val.plot.finish = function(g,name,pars,strat,nrow=1){
+  g = g + geom_boxplot(outlier.shape=1,outlier.alpha=1) +
+    guides(color=guide_legend(ncol=2)) +
+    labs(x='',color=str(list.str(pars$fix,sig=3),'\n\n',strat)) +
+    ggtitle(str(name,collapse=': ')) +
+    scale_color_viridis_d() +
+    ylim(c(0,NA))
+  g = plot.clean(g,legend.title=element_text(size=9))
+  plot.save('val',uid,str(name,collapse='--'),w=2+2*pars$n.var,h=1+2*nrow)
 }
 
 # =============================================================================

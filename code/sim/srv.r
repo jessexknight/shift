@@ -48,44 +48,16 @@ srv.base = function(P,Q,E,t){
   Q$haz.dur  = ifelse(Q$haz.now,t-Q$haz.to,NA)
   Q$ptr.nt   = sapply(E$ptr_o,len)
   Q$ptr.nw   = Q$ptr.nt - sapply(E$ptr_x,len)
-  names(Q) = sprintf(fmt,names(Q)) # format names for conflicts
   return(Q)
 }
 
-# -----------------------------------------------------------------------------
-
-srv.val.RR = function(P,Q,E,t){
+srv.e.dts = function(P,Q,E,t,e.dts){
   E = clip.evts(E,t=t)
-  Q = srv.base(P,Q,E,t)
-  Q$age.10 = floor(Q$age/10)*10
-  # events in past 1 year
-  Q$vio.n1y   = sapply(E$vio,  num.dt,t,P$t1y)
-  Q$vio.a1y   = sapply(E$vio,  any.dt,t,P$t1y)
-  Q$dep_o.a1y = sapply(E$dep_o,any.dt,t,P$t1y)
-  Q$dep_x.a1y = sapply(E$dep_x,any.dt,t,P$t1y)
-  Q$haz_o.a1y = sapply(E$haz_o,any.dt,t,P$t1y)
-  Q$haz_x.a1y = sapply(E$haz_x,any.dt,t,P$t1y)
-  Q$ptr_o.n1y = sapply(E$ptr_o,num.dt,t,P$t1y)
-  Q$ptr_x.n1y = sapply(E$ptr_x,num.dt,t,P$t1y)
-  # states 1 year prior
-  Q = cbind(Q,srv.base(P,Q,E,t-P$t1y,fmt='p1y.%s'))
-  Q$p1y.dep.dur.c = int.cut(Q$p1y.dep.dur/P$t1y,c(0,1,5))
-  Q$p1y.haz.dur.c = int.cut(Q$p1y.haz.dur/P$t1y,c(0,1,5))
-  Q$p1y.vio.nt.c  = int.cut(Q$p1y.vio.nt,c(0,3,30))
-  # events in past 3 months
-  Q$vio.n3m   = sapply(E$vio,  num.dt,t,P$t3m)
-  Q$vio.a3m   = sapply(E$vio,  any.dt,t,P$t3m)
-  Q$dep_o.a3m = sapply(E$dep_o,any.dt,t,P$t3m)
-  Q$dep_x.a3m = sapply(E$dep_x,any.dt,t,P$t3m)
-  Q$haz_o.a3m = sapply(E$haz_o,any.dt,t,P$t3m)
-  Q$haz_x.a3m = sapply(E$haz_x,any.dt,t,P$t3m)
-  Q$ptr_o.n3m = sapply(E$ptr_o,num.dt,t,P$t3m)
-  Q$ptr_x.n3m = sapply(E$ptr_x,num.dt,t,P$t3m)
-  # states 3 months prior
-  Q = cbind(Q,srv.base(P,Q,E,t-P$t3m,fmt='p3m.%s'))
-  Q$p3m.dep.dur.c = int.cut(Q$p3m.dep.dur/P$t1y,c(0,1,5))
-  Q$p3m.haz.dur.c = int.cut(Q$p3m.haz.dur/P$t1y,c(0,1,5))
-  Q$p3m.vio.nt.c  = int.cut(Q$p3m.vio.nt,c(0,3,30))
+  for (e in names(e.dts)){
+    dt.cols = sapply(e.dts[[e]],function(dt){ sapply(E[[e]],any.dt,t,dt) })
+    Q[str(e,'.dt.c')] = factor(rowSums(dt.cols),len(e.dts[[e]]):0,c(sort(e.dts[[e]]),'NR'))
+  } # TODO: ^ make common fun w/ rate.data?
+  # TODO: verify w/ df.compare
   return(Q)
 }
 
