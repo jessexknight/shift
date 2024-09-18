@@ -140,10 +140,10 @@ rate.est = function(Y,e,strat='seed'){
     ne = sum(Y$e[y]==e)
     dt = sum((Y$tx[y] - Y$to[y]) * Y$w[y])
     cbind(Y[y[1],strat,drop=FALSE],
-      event=e,ne=ne,dt=dt,R=ne/dt,
+      variable=e,ne=ne,dt=dt,value=ne/dt,
       # poisson 95% CI
-      R.lo=qchisq(.025,2*ne  )/dt/2,
-      R.hi=qchisq(.975,2*ne+2)/dt/2)
+      value.lo=qchisq(.025,2*ne  )/dt/2,
+      value.hi=qchisq(.975,2*ne+2)/dt/2)
   })
 }
 
