@@ -100,9 +100,9 @@ val.plot.rate = function(name,R,evt,pars,strat,t1y=364){
     geom_point(data=data.frame(value=R.ref),shape=9,color='red') +
     ylab('Rate (per year)')
   g = val.plot.label(g,R,c('facet',strat),value=max(R$value)+R.ref,
-    function(Ri){ str(sm(Ri$value/R.ref)) })
+    function(Ri){ signif(median(Ri$value/R.ref),3) })
   g = val.plot.label(g,R,c('facet',strat),value=0,
-    function(Ri){ str(sm(Ri$ne),'\n',sm(Ri$dt/t1y),'\n') })
+    function(Ri){ str(rmed(Ri$ne),'\n',rmed(Ri$dt/t1y),'\n') })
   g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
 }
 
@@ -119,7 +119,7 @@ val.plot.prev = function(name,Q,evt,pars,strat){
   g = ggplot(Q,aes(x='',y=value.p,color=as.factor(.data[[strat]]))) +
     ylab('Value (population mean)')
   g = val.plot.label(g,Q,c('variable','facet',strat),value.p=0,
-    function(Qi){ str(sm(Qi$value.s),'\n',sm(Qi$value.n),'\n') })
+    function(Qi){ str(rmed(Qi$value.s),'\n',rmed(Qi$value.n),'\n') })
   g = val.plot.finish(g,c(name,evt,'prev'),pars,strat,nr=ulen(Q$variable))
 }
 
@@ -142,7 +142,7 @@ val.plot.finish = function(g,name,pars,strat,nrow=1){
   plot.save('val',uid,str(name,collapse='--'),w=2.5+2*pars$n.var,h=1+2*nrow)
 }
 
-sm = function(x,sig=3){ signif(median(x),sig) }
+rmed = function(x){ round(median(x)) }
 
 # =============================================================================
 # main
