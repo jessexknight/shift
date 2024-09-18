@@ -14,9 +14,9 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
   if (missing(t)){ t = Ms[[1]]$P$tf }
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')
-  Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars)
+  Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars); gc()
   for (srv in srvs){
-    Qs = par.mapply(srv,Ps,Qs,Es,t) }
+    Qs = par.mapply(srv,Ps,Qs,Es,t) }; gc()
   Q = do.call(rbind,Qs); gc()
   for (x in names(x.cols)){
     Q[[x]] = x.cols[[x]](Q) }
