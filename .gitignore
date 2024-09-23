@@ -1,5 +1,6 @@
 # hidden folders
 .coa/
+.log/
 .old/
 .sub/
 .tmp/
