@@ -5,16 +5,17 @@ library('reshape2')
 # -----------------------------------------------------------------------------
 # config
 x = list(
-  dtz=c(1,3,7,15),
+  dtz=c(1,3,7,14),
   tsc=c(7,30,90))
 iRR  = 3
-tmax = 360
+tmax = 120
 tRR.exp = function(t,iRR,tsc,dtz){
-  RR = 1+(iRR-1)*exp(-(t+dtz/2)/tsc)
+  tsc = tsc/5 # HACK
+  RR = 1+(iRR-1)*exp(-(t-dtz/2)/tsc)
 }
 tRR.ramp = function(t,iRR,tsc,dtz){
   n  = tsc/dtz
-  RR = seq(iRR,1,(1-iRR)/(n+1))[-1]
+  RR = 1+(iRR-1)*seq(1-.5/n,0,-1/n)
   RR = c(RR,rep(1,len(t)-len(RR)))
 }
 tRR.step = function(t,iRR,tsc,dtz){
@@ -28,7 +29,7 @@ for (type in c('step','ramp','exp')){
   tRR.fun = get(str('tRR.',type))
   # generate tRR vectors
   tRR = grid.apply(x,function(dtz,tsc){
-    t = seq(1,tmax,dtz)
+    t = seq(dtz,tmax,dtz)
     RR = tRR.fun(t,iRR,tsc,dtz)
     cbind(dtz=dtz,tsc=tsc,t=t,RR=RR,cRR=1+cumsum(RR-1)*dtz)
   },.par=FALSE)
@@ -44,7 +45,7 @@ for (type in c('step','ramp','exp')){
     geom_text(data=lab,aes(x=tmax,y=y,label=signif(value,3)),
       size=3,hjust=1,show.legend=FALSE) +
     scale_color_viridis_d() +
-    geom_step(alpha=.5) +
+    geom_step(alpha=.5,direction='vh') +
     geom_point(size=.1) +
     labs(x='time (days)',color='timestep\n(days)')
   g = plot.clean(g)
