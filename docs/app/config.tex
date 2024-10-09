@@ -1,0 +1,70 @@
+% style
+\input{style}
+\usepackage{xcolor,bm,setspace}
+\renewcommand{\bibfont}{\footnotesize}
+% pdf links & comments
+\definecolor{hl}{HTML}{ffff99}
+\definecolor{c1}{HTML}{cc0066}
+\definecolor{c2}{HTML}{0099cc}
+\definecolor{c3}{HTML}{9900cc}
+\PassOptionsToPackage{
+  colorlinks,
+  citecolor=c3,
+  linkcolor=c1,
+  urlcolor=c2,
+}{hyperref}
+\AtBeginDocument{\sethlcolor{hl}}
+\usepackage[author={Jesse Knight},color={hl}]{pdfcomment}
+\newcommand{\note}[3][]{\hl{#2}\pdfmargincomment[#1]{#3}}
+% spacing
+\usepackage[marginal,bottom]{footmisc}
+\renewcommand{\topfraction}{.85}
+\renewcommand{\bottomfraction}{.7}
+\renewcommand{\textfraction}{.15}
+\renewcommand{\floatpagefraction}{.67}
+\widowpenalty9999
+\clubpenalty9999
+% paths
+\def\root{../..}
+\def\app{.}
+\usepackage{graphicx}
+\addbibresource{~/refs/library.bib}
+\renewbibmacro{in:}{}
+\graphicspath{
+  {\root/out/fig/tikz/}
+  % {\root/out/fig/par/}
+}
+% floats
+\usepackage{booktabs,tikz,subcaption}
+\newcommand{\tabsection}[1]{\midrule\bf#1\\\midrule}
+\newcommand{\hazdrink}{hazardous drinking\xspace}
+% floatfoot
+\newcommand{\floatfoot}[2][1]{\nopagebreak\par\addvspace{1ex}
+  \parbox{#1\linewidth}{\footnotesize#2}}
+% small macros
+% generic
+\usepackage{xparse,xspace}
+\newcommand{\eg}{e.g.,\xspace}
+\newcommand{\ie}{i.e.,\xspace}
+\newcommand{\vs}{vs\xspace}
+\newcommand{\txs}[1]{\text{~~#1~~}}
+\newcommand{\tn}[1]{\textsuperscript{\,#1}}
+\newcommand{\tnt}[2][*]{\textsuperscript{#1\,}{#2}}
+\newcommand{\hreftt}[2][https://]{\href{#1#2}{\texttt{#2}}}
+\renewcommand{\eqref}[1]{Eq.~(\ref{#1})}
+\newcommand{\sref}[1]{\S\,\ref{#1}}
+% variables
+\renewcommand{\d}{\textit{\dj}}
+\newcommand  {\h}{\ensuremath{\hbar}}
+\newcommand  {\p}[1][\scriptsize]{\raisebox{1ex}{\rotatebox{180}{#1\textit{\dj}}}}
+\newcommand  {\du}{\ensuremath{u}\xspace}
+\newcommand  {\dt}[1][]{\ensuremath{\Delta_t^{#1}}\xspace}
+\renewcommand{\ss}[3]{\ensuremath{{#1}^{\ifempty{#2}{}{\,#2}}_{#3}}}
+\newcommand  {\xss}[1]{\expandafter\newcommand\csname#1\endcsname[2]{\ss{#1}{##1}{##2}}}
+\newcommand  {\xsi}[1]{\expandafter\newcommand\csname#1i\endcsname[1]{\ss{#1}{##1}{i}}}
+\newcommand  {\Gi}[1]{\ss{\bm{R}}{#1}{i}}
+\renewcommand{\Pi}[1]{\ss{P}{#1}{i}}
+\xsi{M}\xsi{R}\xsi{N}
+\xss{RR}\xss{tRR}\xss{nRR}\xss{dRR}\xss{iRR}\xss{mRR}
+\xss{RP}\xss{tRP}\xss{nRP}
+\newcommand{\pois}{\operatorname{Pois}}
