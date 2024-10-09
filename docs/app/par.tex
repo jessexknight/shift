@@ -1,0 +1,460 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Simulation Model Parameterization}\label{mod.par}
+Table~\ref{tab:par} summarizes the model parameters,
+while the details of the modelled processes are given below.
+\begin{table}
+  \vskip-2\baselineskip
+  \caption{\note{Overview of model parameters}
+    {Many of the RR "values" include several sub-strata (e.g. ages)
+     or reflect non-linear functions (e.g. transient and cumulative effects),
+     so I've opted to provide links to Tables with more details these RR,
+     e.g. underlying parameters  example RR.
+     Also Might need to split this up or split across pages
+     once the actual values (and ranges) for both priors \& posteriors are added.}}
+  \label{tab:par}
+  \centering\input{tab.par}
+\end{table}
+%==============================================================================
+\subsection{Active Population}\label{mod.par.act}
+The active population is defined as SGM individuals aged 10--59,
+which aims to capture the majority of sexual activity among SGM \cite{??},
+plus exposure to SGM violence, depression, and \hazdrink,
+including possibly prior to sexual activity.
+Individuals become sexually active at a randomly sampled age
+\note{from the distribution}
+     {This could come from data -- at least loosely.
+      It is currently set to a linear ramp from 0-100\% between ages 10 and 20.}
+given in Table~\ref{tab:age.act}.
+Individuals exit the active population by reaching age 60,
+\note{or through background mortality before age 60.}
+     {This is not currently implemented
+      and we may want to discuss whether it is needed in the validation study.
+      Well, I will implement it and see how it affects any results.}
+Mortality rates are given in Table~\ref{tab:rr.age},
+loosely reflecting ??
+\begin{table}
+  \caption{Ages of first sexual activity}
+  \label{tab:age.act}
+  \centering\input{tab.age.act}
+\end{table}
+%==============================================================================
+\subsection{Event Rates}\label{mod.par.evt}
+Event rates are modelled as a product of
+randomly sampled \emph{individual-specific} base rates \Ri{} and
+fixed \emph{population-level} relative rates $RR$
+given an individual's current age,
+prior SGM violence exposure(s), depression status, and \hazdrink status.
+The resulting rate of event~$e$ for individual~$i$ is denoted $\Gi{e}$.
+\par
+Some events are assumed to occur up to once per timestep per individual:
+depression onset, depression recovery,
+\hazdrink onset, and \hazdrink recovery.
+For these events, the probability of the event occurring to individual~$i$
+during the timestep $\dt$ is defined as:
+\begin{equation}\label{eq:r2p}
+  \Pi{e} = 1 - \exp(-\Gi{e}\dt)
+\end{equation}
+Other events are modelled to occur
+any number of times per timestep per individual:
+exposure to SGM violence,
+sexual partnership formation,
+and sex within partnerships.
+For these events, the number of events occurring to individual~$i$
+during the timestep $\dt$ is defined as:%
+\footnote{\eqref{eq:r2p} simply reflects
+  the probability of $\Ni{e} > 0$ in \eqref{eq:r2n}.}
+\begin{equation}\label{eq:r2n}
+  \Ni{e} \sim \pois(\Gi{e}\dt)
+\end{equation}
+%------------------------------------------------------------------------------
+\begin{table}
+  \caption{Rates / relative rates of events by age}
+  \label{tab:rr.age}
+  \centering\input{tab.rr.age}
+\end{table}
+\begin{figure}[t]
+  \centering[TODO]
+  \caption{Relative rates of events by age}
+  \label{fig:age.rr}
+\end{figure}
+%------------------------------------------------------------------------------
+\subsubsection{Exposure to SGM Violence}\label{mod.par.evt.vex}
+Individuals are modelled to have
+unique base rate of exposure to SGM violence (\Ri{v}),
+reflecting differences in family, friends, and the broader local community
+\cite{??}.
+This base rate is modelled as
+fixed for each individual's lifetime
+and drawn from a population-level distribution (Figure~\ref{??}).
+\note{A calibrated relative rate by age}
+     {I have set this to 1 for now.}
+\RR{v}{a} is also applied equally to all individuals.
+% TODO: read more papers to inform this
+% As shown in Figure~\ref{fig:age.rr},
+% this relative rate:
+% increases during ages
+% 10--20,
+% possibly reflecting increasing vulnerability while coming out
+% and identifying safe family, friends, and locations;
+% and later decreases during ages 30--60 \cite{Muller2021},
+% possibly reflecting reduced sexual activity and/or
+% accumulation of knowledge and behaviours
+% about how to avoid SGM violence.
+Thus, the rate of
+exposure to SGM violence for individual~$i$ is modelled~as:
+\begin{equation}
+  \Gi{v} = \Ri{v} \cdot \RR{v}{a}(a_i)
+\end{equation}
+where $a_i$ is the age of individual~$i$.
+An individual's history of exposure to SGM violence
+is then represented by the set of times in which they were exposed: $t^v_i$,
+which can include duplicate values,
+if the individual was exposed more than once in any timestep
+--- \ie \eqref{eq:r2n} $> 1$.
+%------------------------------------------------------------------------------
+\subsubsection{Effects of SGM Violence}\label{mod.par.evt.vef}
+Exposure to SGM violence is modelled to have two types of effects,
+both applied as relative rates of downstream events:
+transient ($\tRR{}{}(t^v_i)$, where
+$t^v_i$ is the set of times of recent exposures for individual~$i$), and
+cumulative ($\nRR{}{}(n^v_i)$, where
+$n^v_i$ is the total number of lifetime exposures for individual~$i$).
+%------------------------------------------------------------------------------
+\paragraph{Transient Effects}
+Transient effects of SGM violence are applied as relative rates of:
+depression onset (\tRR{d}{v}),
+depression recovery (\tRR{\d}{v}),
+\hazdrink onset (\tRR{h}{v}),
+\hazdrink recovery (\tRR{\h}{v}),
+partnership formation (\tRR{p}{v}), and
+partnership dissolution (\tRR{\p}{v}), plus
+\note{a relative \emph{probability} of condom use}
+     {I have not implemented this yet either.}
+(\tRP{c}{v}).%
+\footnote{To ensure this probability remains bounded $\in [0,1]$,
+  we model either $RP \le 1$ of condom use, or $RP \le 1$ of condom non-use.}
+These relative rates are modelled to wane
+\note{exponentially towards $RR = 1$}
+     {As you know, we can have other shapes,
+      and I am actually leaning towards linear (ramp)
+      for the first paper since it is a nice compromise between
+      having precise properties (area under the curve, time to RR=1)
+      while still seeming "visually plausible".}
+(\ie no effect) with
+\note{time since the most recent exposure}
+     {Originally, I had an additive model,
+      where two exposures in the same timestep would effectively double the tRR.
+      However, in this new version, the most recent exposure
+      will simply "reset" the tRR to its maximum (iRR),
+      so there will be no difference between 1 or 2+ exposures in the same timestep.
+      Honestly, this was motivated by code speed-up
+      which only works with the new approach, but I can revert if needed.
+      It may be hard to find data to support either approach.}
+$\du^v_i = t - t^v_i$.
+The transient effects of the most recent exposure is thus specified as follows:
+\begin{equation}\label{eq:tRR}
+  \tRR{}{}(\du^v_i) = 1+(\iRR{}{}-1)\exp(-\du^v_i/\tau)
+\end{equation}
+where:
+\iRR{}{} is an initial relative rate, and
+$\tau$ is a scale parameter controlling the duration of effect.%
+\footnote{For example, \tRR{}{} decays to $\approx 0.37~\iRR{}{}$ by $t = \tau$.}
+\par
+When considering discrete timesteps (indexed $z$, with length \dt),
+we replace $t$ above with $z\,\dt$ and $t^v_i$ with $z^v_i$.
+Transient effects of violence are further assumed to
+\note{only begin during the timestep following exposure,}
+     {This part is quite tricky when considering
+      *when* within a timestep events occur ---
+      and thus when the effect is at it's maximum
+      and by how much it has decayed *during* the next timestep.
+      I have gone back-and-forth with offsets of 1/2 timestep,
+      so it might be good to discuss (with Mike \& with pictures!)
+      --- Edit: I now think we probably need some kind of integration
+      over the continuous-time definition of tRR for each subsequent timestep,
+      (with violence exposure defined as the mid-point
+      and thus with a half-effect within the *same* timestep).}
+and thus only define \tRR{}{} for $\du^v_i > 0$.
+Figure~\ref{fig:tRR} illustrates
+an example transient effect $\tRR{}{}(\du^v_i)$ given by \eqref{eq:tRR}.
+\begin{figure}
+  \centering
+  \begin{subfigure}{.5\linewidth}
+    \includegraphics[width=\linewidth]{tRR.exp}
+    \caption{Transient effect ($tRR$) \vs timesteps since exposure}
+    \label{fig:tRR}
+  \end{subfigure}%
+  \begin{subfigure}{.5\linewidth}
+    \includegraphics[width=\linewidth]{nRR.exp}
+    \caption{Cumulative effect ($nRR$) \vs number of exposures}
+    \label{fig:nRR}
+  \end{subfigure}
+  \begin{subfigure}{.5\linewidth}
+    \includegraphics[width=\linewidth]{dRR.exp}
+    \caption{Duration effect ($nRR$) \vs duration since onset}
+    \label{fig:dRR}
+  \end{subfigure}
+  \caption{Illustration of transient, cumulative, and duration effects as relative rates}
+  \label{fig:xRR}
+\end{figure}
+%------------------------------------------------------------------------------
+\paragraph{Cumulative Effects}
+Cumulative effects of SGM violence are applied as relative rates of
+depression onset (\nRR{d}{v}),
+\hazdrink onset (\nRR{h}{v}), and
+partnership formation (\nRR{p}{v}), plus
+a relative \emph{probability} of condom use (\nRP{c}{v}).
+These relative rates are modelled to accumulate exponentially
+with each additional exposure, up to a maximum value:
+\begin{equation}\label{eq:nRR}
+  \nRR{}{}(n^v_i) = 1+(\mRR{}{}-1)(1-\exp(-n^v_i/\eta))
+\end{equation}
+where $n^v_i$ reflects the cumulative number of
+exposures to SGM violence for individual~$i$.
+Cumulative effects are thus also specified via 2 parameters:
+a maximum relative rate \mRR{}{}, and a scale parameter $\eta$.%
+\footnote{Specifically, $\nRR{}{} \approx 1 + 0.63 (\mRR{}{}-1)$
+  after $n = \eta$ cumulative exposures.}
+Figure~\ref{fig:nRR} illustrates the general shape of \nRR{}{}
+with an increasing number of cumulative exposures.
+Like transient effects, cumulative effects are also assumed
+to begin the next timestep following exposure.
+\begin{table}
+  \caption{Summary of modelled non-linear effects (relative rates) due to
+    exposure to SGM violence and
+    duration of depression/\hazdrink episodes}
+  \label{tab:xrr}
+  \centering\input{tab.xrr}
+\end{table}
+% TODO: depression tRR -> dRR (fundamentally different)
+%------------------------------------------------------------------------------
+\subsubsection{Depression}\label{mod.par.evt.dep}
+Although depression is likely a complex and dynamic system \cite{Cramer2016},
+for simplicity, we conceptualize depression as binary,
+using a working definition of
+\note{PHQ-9 score $\ge 10$}
+     {We may need to review whether PHQ-9 has been validated on younger ages
+      --- the Kroenke2001 paper had ages 18+}
+\cite{Kroenke2001}.
+Depression status is denoted:
+$d_i = 1$ if individual~$i$ is currently depressed and $d_i = 0$ otherwise; plus
+$d'_i = 1$ if individual~$i$ was ever previously depressed and $d'_i = 0$ otherwise.
+Each individual is initialized with
+a base rate of depression onset (\Ri{d}) and
+a base rate of depression recovery (\Ri{\d}),
+reflecting differences in susceptibility to depression \cite{Hankin2015}.
+%------------------------------------------------------------------------------
+\paragraph{Depression Onset}
+Individuals are modelled to be at risk of depression onset
+from age 10 and not before~\cite{Solmi2022}.
+The rate of depression onset is modelled to
+\note{increase over ages 10--20 and decline after age 30}
+     {As before, all age RRs are currently set to 1.}
+(\RR{d}{a}, Table~\ref{tab:rr.age}, Figure~\ref{fig:age.rr})
+\cite{Patten2010,Hankin2015,Solmi2022}.
+The rate of depression onset is also modelled to increase
+by \RR{d}{d'}
+\note{with any previous depression}
+     {It may be hard to untangle this effect from
+      individual-level heterogeneity (Ri) in susceptibility to onset,
+      as they would both manifest as
+      the rate of onset (relapse) among previously depressed being greater than
+      the rate of onset among those never depressed.}
+\cite{Kendler2010},
+and increase with exposure to SGM violence
+via transient (\tRR{d}{v}) and cumulative (\nRR{d}{v}) effects,
+as described in \sref{mod.par.evt.vef}.
+Thus, the rate of depression onset for individual~$i$
+(who is not currently depressed) is given by
+\begin{equation}
+  \Gi{d} = \Ri{d}
+     \cdot \RR{d}{a}(a_i)
+     \cdot \RR{d}{d'}(d'_i)
+     \cdot \tRR{d}{v}(t^v_i)
+     \cdot \nRR{d}{v}(n^v_i)
+\end{equation}
+In a small abuse of notation, let
+\note{$RR(x)$ denote $1+x{\cdot}(RR-1)$}
+     {Not sure how you feel about this notation?
+      Spelling out the math fully in each equation looks very messy.}
+when $x \in \{0,1\}$
+--- \ie $\{RR\txs{if}x=1\txs{else}1\}$.
+\paragraph{Depression Recovery}
+Individuals are modelled to potentially recover from depression ($\d$)
+in the timestep immediately after onset,
+although the minimum duration of symptoms
+in clinical criteria for depression is 2 weeks \cite{APA2013}.
+The relative rate of depression recovery is modelled to decline
+with longer and longer duration depressed during this episode $\du^d_i$,
+as suggested by prior empirical modelling \cite{Patten2005}
+\note{.}{When calibrating to data, we should consider another Patten paper:
+         https://doi.org/10.1186/1471-244X-10-85
+         which suggests some people fail to recall past depression episodes
+         --- though I don't think our 3 longitudinal datasets
+         ask about *past* depression anyways.}
+This effect is thus modelled to wane exponentially from 1 to 0:
+\begin{equation}\label{eq:dRR}
+  \dRR{}{}(\du^d_i) = \exp(-\du^d_i/\tau)
+\end{equation}
+where: $\tau$ is a scale parameter as before.
+Figure~\ref{fig:dRR} illustrates
+an example transient effect $\dRR{}{}(\du^d_i)$ given by \eqref{eq:dRR}.
+The rate of depression recovery is also modelled to
+transiently decrease with exposure to SGM violence (\tRR{\d}{v}),
+as described in \sref{mod.par.evt.vef}.
+Effects of age on recovery are not considered.
+Thus, the rate of depression recovery for depressed individual~$i$ is given by:
+\begin{equation}
+  \Gi{\d} = \Ri{\d}
+    \cdot \dRR{\d}{\du}(\du^d_i)
+    \cdot \tRR{\d}{v}(t^v_i)
+\end{equation}
+%------------------------------------------------------------------------------
+\subsubsection{Hazardous Drinking}\label{mod.par.evt.haz}
+Hazardous drinking is also conceptualized as binary,
+using the working definition of AUDIT-C score $\ge 4$ \cite{Bush1998}.
+It is modelled almost identically to depression
+(with different parameter values),
+except that effects of current depression status ($d$)
+on \hazdrink onset and recovery are also considered,
+per the hypothesized causal pathway (Figure~\ref{fig:dag}).
+%------------------------------------------------------------------------------
+\paragraph{Hazardous Drinking Onset}
+Thus, the rate of \hazdrink onset for individual~$i$
+is modelled as the product of
+an individual-specific base rate \Ri{h},
+relative rates for age (\RR{h}{a}),
+current depression (\RR{h}{d}),
+and any previous \hazdrink (\RR{h}{h'}), plus
+transient and cumulative relative rates for exposures to SGM violence
+(\tRR{h}{v}, \nRR{h}{v})
+\note{:}
+     {As Mike noted, having many RR could result in implausibly high total rates.
+      So, we can revisit some ways to constrain it later.}
+\begin{equation}
+  \Gi{h} = \Ri{h}
+     \cdot \RR{h}{a}(a_i)
+     \cdot \RR{h}{h'}(h'_i)
+     \cdot \RR{h}{d}(d_i)
+     \cdot \tRR{h}{v}(t^v_i)
+     \cdot \nRR{h}{v}(n^v_i)
+\end{equation}
+%------------------------------------------------------------------------------
+\paragraph{Hazardous Drinking Recovery}
+Likewise, the rate of \hazdrink recovery for individual~$i$
+is modelled as the product of
+an individual-specific base rate \Ri{\h},
+relative rates for duration drinking hazardously (\dRR{\h}{\du}),
+and current depression (\RR{\h}{d}), plus
+a transient relative rate for exposure to SGM violence (\tRR{\h}{v}):
+\begin{equation}
+  \Gi{\h} = \Ri{\h}
+    \cdot \RR{\h}{d}(d_i)
+    \cdot \dRR{\h}{\du}(\du^h_i)
+    \cdot \tRR{\h}{v}(t^v_i)
+\end{equation}
+%------------------------------------------------------------------------------
+\subsubsection{Sexual Partnerships}\label{mod.par.evt.ptr}
+Only sexual partnerships formed within the modelled SGM population are considered.
+That is, no ``external'' or heterosexual partnerships are modelled,
+and all sexual partnerships formed by individuals in the modelled population
+are assumed to be formed with other individuals in the modelled population.
+%------------------------------------------------------------------------------
+\paragraph{Sexual Partnership Formation}
+Each individual is modelled to have two unchanging characteristics
+that influence their rate of sexual partnership formation:
+a maximum number of concurrent partners \Mi{p}, and
+a base rate of sexual partnership formation \Ri{p}
+(while having fewer than \Mi{p} partners).
+\par
+Relative rates of sexual partnership formation are also implemented for
+individuals' age (\RR{p}{a}),
+exposure to SGM violence (\tRR{p}{v}, \nRR{p}{v}),
+current depression status (\RR{p}{d}), and
+current \hazdrink status (\RR{p}{h}).
+Thus, the rate of sexual partnership formation for individual~$i$
+(who has fewer than \Mi{p} current partners) is given by:
+\begin{equation}
+  \Gi{p} = \Ri{p}
+    \cdot \RR{p}{a}(a_i)
+    \cdot \tRR{p}{v}(t^v_i)
+    \cdot \nRR{p}{v}(n^v_i)
+    \cdot \RR{p}{d}(d_i)
+    \cdot \RR{p}{h}(h_i)
+\end{equation}
+Individuals may form multiple new sexual partnership per timestep via \eqref{eq:r2n}.
+%------------------------------------------------------------------------------
+\paragraph{Sexual Partnership Dissolution}
+Sexual partnerships are modelled to dissolve at a rate
+influenced equally by the characteristics of both partners (denoted $i,j$\,).
+A base rate is modelled as the mean of individual-specific base rates:
+$\frac12(\ss R\p i + \ss R\p j)$.
+This base rate is then multiplied by relative rates for
+\note{\emph{each} partner's}
+     {e.g. if both partners are depressed, and RR = 2, then we currently have RR total = 4;
+      We could alternatively chose the maximum of effects (of each variable) among the 2 partners,
+      or something similar to this
+      --- I think this came up one meeting with Mike.}
+age (\RR{\p}{a}),
+recent exposure to SGM violence (\tRR{\p}{v}),
+current depression status (\RR{\p}{d}), and
+current \hazdrink status (\RR{\p}{h}),
+to obtain the overall rate:
+\begin{align}
+  \Gi{\p} = \textstyle\frac12 (\Ri{\p} + \ss R\p j)
+   &\cdot \RR{\p}{a}(a_i)
+    \cdot \tRR{\p}{v}(t^v_i)
+    \cdot \RR{\p}{d}(d_i)
+    \cdot \RR{\p}{h}(h_i)
+    \nonumber \\
+   &\cdot \RR{\p}{a}(a_j)
+    \cdot \tRR{\p}{v}(z^v_j)
+    \cdot \RR{\p}{d}(d_j)
+    \cdot \RR{\p}{h}(h_j)
+\end{align}
+\note{All partnerships are modelled to last at least 1 timestep (7 days).}
+     {Well, this assumption may need to be revised based on the validation findings
+      (results in underestimation of dissolution rate).}
+%------------------------------------------------------------------------------
+\subsubsection{Anal Sex \& Condom Use}
+[TODO]
+% \max(\ss Pci, \ss Pcj)
+%------------------------------------------------------------------------------
+\subsubsection{Correlated Parameters}
+\note{[TODO]}
+     {I implemented crude correlations among individual-level base rates to capture the fact that
+      individuals who are susceptible to depression onset are also less likely to recover,
+      and likewise for hazdrink; similarly for partnerships:
+      individuals with higher maximum number of concurrent partners
+      will have higher formation + dissolution rates.
+      However since we have been focusing on homogeneous populations for validation,
+      this currently has no effect.}
+% These characteristics are modelled to be correlated,
+% reflecting empirically observed correlations between
+% sexual partnership concurrency and numbers of lifetime sexual partners \cite{Warren2015};
+% this correlation is implemented using a Gaussian copula \cite{Sklar1959}
+% with correlation coefficient $\rho$.
+%------------------------------------------------------------------------------
+\subsubsection{Summary}\label{mod.par.evt.sum}
+In total, 29 relative rates (RR) or relative probabilities (RP) are considered
+in the simulation model (Table~\ref{tab:par}, Figure~\ref{fig:dag}), including:
+\begin{itemize}
+  \item 6 RR associated with individuals' ages
+  \item 11 RR due to SGM violence exposure (%
+    7 transient and 4 cumulative)
+  \item 7 RR due to depression status/history (%
+    1 for any previous depression,
+    1 for current depression episode duration, and
+    5 for current depression status)
+  \item 5 RR due to \hazdrink status/history (%
+    1 for any previous \hazdrink,
+    1 for current \hazdrink episode duration, and
+    3 for current \hazdrink status).
+\end{itemize}
+%==============================================================================
+\subsection{Sexual Mixing}\label{mod.par.mix}
+Sexual mixing refers to non-random formation of sexual partnerships
+according to individuals' characteristics.
+Among individuals who are determined to form new sexual partnerships
+within a given timestep (see \sref{mod.par.evt.ptr}),
+sexual mixing is currently assumed to be fully random.

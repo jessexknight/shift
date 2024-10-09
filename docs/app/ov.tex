@@ -1,0 +1,90 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Simulation Model Overview}\label{mod.ov}
+The simulation model is a discrete-time, stochastic individual-based model
+representing an open population
+of approximately $N$ sexual and gender minority (SGM) individuals aged
+\note{10--59}
+     {From some reading, it seems school is a major context where SGM violence occurs,
+      and this can start before SGM are "out",
+      so I changed the minimum age for modelling events to 10 from 15.}
+including men who have sex with men (MSM) and transgender women (TGW) in
+\note{an illustrative Sub-Saharan African context.}{To discuss eventually ...}
+The model aims to represent the sexual life-course events of SGM with respect to
+the potential causal pathways in Figure~\ref{fig:dag},
+with the approximate representation shown in Figure~\ref{fig:model}:
+\begin{enumerate}[label=\roman*)]
+  \item exposure to SGM violence
+  \item distal mediators, including:
+        depression and hazardous drinking
+  \item proximal determinants of HIV risk, including:
+        sexual partnership dynamics and condom use
+\end{enumerate}
+SGM violence is conceptualized as
+\note{any verbal and/or physical violence}
+     {I know we may want to split up verbal and physical violence later,
+      but leaving as combined for now ...}
+on the basis of an individuals' gender and/or sexual identity.
+\par
+Individuals enter the model in a ``null state'', reflecting
+no prior SGM violence, depression, \hazdrink, or sexual activity.
+At each timestep, individuals in the model can then experience
+any combination of the following events:
+exposure to SGM violence,
+depression onset or recovery,
+hazardous drinking onset or recovery,
+non-heterosexual partnership formation or dissolution,
+and sex within modelled partnerships (including whether a condom is used).
+Rates of ``downstream'' events are influenced by
+the current and possibly past states of individuals' ``upstream'' variables,
+as described below in \sref{mod.par.evt}.
+\begin{figure}[b]
+  \centering\includegraphics[scale=1]{dag}
+  \caption{Directed graph of the modelled causal pathways}
+  \label{fig:dag}
+  \floatfoot{
+    \emph{Colours} denote:
+    green: structural factor;
+    blue: distal mediators;
+    purple: proximal determinants;
+    red: outcome.
+    \emph{Lines} denote that the modelled effect depends on:
+    solid: current state of upstream variable;
+    dashed: current and past state of upstream variable.
+    \emph{RR} denote relative rates
+    (see Table~\ref{tab:par} for definitions).
+    Not shown: effect of age on all variables.}
+\end{figure}
+\begin{figure}
+  \centering\includegraphics[scale=1]{model}
+  \caption{Conceptual diagram of states related to
+    SGM violence, depression, and \hazdrink}
+  \floatfoot{
+    \emph{Colours} denote approximate HIV risk
+    (mediated by sexual partnership turnover and condom use)
+    where blue: lowest HIV risk, red: highest HIV risk.
+    \emph{Arrows} denote possible state transitions, where
+    depression and \hazdrink transitions are shown for first layer only,
+    and SGM violence transitions are applied to all compartment stacks.}
+  \label{fig:model}
+\end{figure}
+\begin{table}
+  \caption{Notation reference}
+  \label{tab:notation}
+  \centering\input{tab.notation}
+\end{table}
+%------------------------------------------------------------------------------
+\paragraph{Implementation}
+The model uses a fixed timestep of $\dt = 7$ days,%
+\footnote{One year is thus defined as $52\dt$.}
+reflecting a trade-off between temporal resolution and computational efficiency.
+Event-scheduling approaches were considered infeasible because
+multiple ``upstream'' events are modelled to have
+immediate effects on the rates of ``downstream'' events
+(\eg exposure to SGM violence
+immediately increases the rate of depression onset);
+thus, ``downstream'' events cannot be scheduled.
+Instead, each timestep, the probability of each event occurring
+is computed for all individuals aged 10--59, using vectorized code.
+The model is implemented in R (v3.6.3), with code available online.%
+\footnote{\hreftt{github.com/jessexknight/shift}}
+Table~\ref{tab:notation} provides a notation reference.

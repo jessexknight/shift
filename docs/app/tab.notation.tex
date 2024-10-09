@@ -1,0 +1,37 @@
+\begin{tabular}{ll}
+  \toprule
+  Symbol & Meaning \\
+  \midrule
+  $i$    & \emph{index:} individual \\
+  $k$    & \emph{index:} partnership \\
+  $z$    & \emph{index:} timestep \\
+  $t$    & \emph{index:} time (days) \\
+  $\dt$  & \emph{duration:} one timestep \\
+  \midrule
+  $a$    & \emph{status:} individual's age \\
+  $v$    & \emph{event:} SGM violence exposure \\
+  $d$    & \emph{event:} depression onset / \emph{status:} current depression \\
+  $d'$   & \emph{status:} any previous depression \\
+  $\d$   & \emph{event:} depression recovery \\
+  $h$    & \emph{event:} \hazdrink onset / \emph{status:} current \hazdrink \\
+  $h'$   & \emph{status:} any previous \hazdrink \\
+  $\h$   & \emph{event:} \hazdrink recovery \\
+  $\du$  & \emph{duration:} time since violence exposure or depression / \hazdrink onset \\
+  $p$    & \emph{event:} sexual partnership formation \\
+  $\p[]$ & \emph{event:} sexual partnership dissolution \\
+  $c$    & \emph{event:} condom use \\
+  \midrule
+  $\Gi{e}$ & overall rate of $e$ for individual~$i$ \\
+  $\Ri{e}$ & base rate of $e$ for individual~$i$ \\
+  $\RR{e}{x}$ & rate ratio of $e$ given $x$ \\
+  $tRR$    & transient rate ratio\tn{1} \\
+  $dRR$    & duration rate ratio\tn{1} \\
+  $\tau$   & time scale of $tRR$ and $dRR$\tn{1} \\
+  $iRR$    & initial value of $tRR$\tn{1} \\
+  $nRR$    & cumulative rate ratio\tn{1} \\
+  $\eta$   & count scale of $nRR$\tn{1} \\
+  $mRR$    & maximum / minimum value of $nRR$\tn{1} \\
+  \bottomrule
+\end{tabular}
+\floatfoot{\centering
+  \tnt[1]{See \sref{mod.par.evt.vef} for details.}}

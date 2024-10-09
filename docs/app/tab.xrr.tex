@@ -1,0 +1,36 @@
+\newcommand{\unit}[1]{\quad$\clap{#1:}$}
+\newcommand{\xmidrule}{\cmidrule(rl){1-1}\cmidrule(rl){2-3}\cmidrule(rl){5-9}}
+\begin{tabular}{lccrrrrrr}
+  \toprule
+  Affected Rate\tn{1} & \multicolumn{2}{c}{Parameter values\tn{2}} & &\multicolumn{5}{c}{Example \RR{}{}} \\
+  \midrule
+  Transient effects of violence
+  & Initial RR (\iRR{}{}) & Time scale ($\tau$) & \unit{\du} & 1 &  3 & 10 & 30 & 100 \\
+  \xmidrule
+  \tRR{d}{v}:  depression onset        & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRR{\d}{v}: depression recovery     & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRR{h}{v}:  \hazdrink onset         & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRR{\h}{v}: \hazdrink recovery      & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRR{p}{v}:  partnership formation   & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRR{\p}{v}: partnership dissolution & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \tRP{c}{v}:  condom use              & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \midrule
+  Cumulative effects of violence
+  & Max RR (\mRR{}{}) & Count scale ($\eta$) & \unit{$n$} & 1 &  3 & 10 & 30 & 100 \\
+  \xmidrule
+  \nRR{d}{v}: depression onset       & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \nRR{h}{v}: \hazdrink onset        & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \nRR{p}{v}: partnership formation  & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \nRP{c}{v}: condom use             & ?? & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \midrule
+  Effects of episode duration
+  &  & Time scale ($\tau$) & \unit{\du} & 1 & 3 & 10 & 30 & 100 \\
+  \xmidrule
+  \dRR{\du}{d}: depression recovery &   & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \dRR{\du}{h}: \hazdrink recovery  &   & ?? & & ?? & ?? & ?? & ?? & ?? \\
+  \bottomrule
+\end{tabular}
+\floatfoot{
+  \tnt[1]{All durations in days; all rates in per-day.}
+  \tnt[2]{See Eqs.~(\ref{eq:tRR}--\ref{eq:nRRv}), (\ref{eq:nRRd}) for parameter details.}
+}
