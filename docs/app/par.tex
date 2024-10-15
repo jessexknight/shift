@@ -17,9 +17,13 @@ while the details of the modelled processes are given below.
 %==============================================================================
 \subsection{Active Population}\label{mod.par.act}
 The active population is defined as SGM individuals aged 10--59,
+% MCB: do you mean sexually active? & is it what we want to model ?
 which aims to capture the majority of sexual activity among SGM \cite{??},
 plus exposure to SGM violence, depression, and \hazdrink,
 including possibly prior to sexual activity.
+% MCB: i dont understand what you mean here -
+%      above MSM enters unexposed to everything and you model sexually active
+%      so how can experience before sexual activity be represented?
 Individuals become sexually active at a randomly sampled age
 \note{from the distribution}
      {This could come from data -- at least loosely.
@@ -41,14 +45,18 @@ loosely reflecting ??
 \subsection{Event Rates}\label{mod.par.evt}
 Event rates are modelled as a product of
 randomly sampled \emph{individual-specific} base rates \Ri{} and
+% MCB: these should be defined per year and rescaled in the code
 fixed \emph{population-level} relative rates $RR$
 given an individual's current age,
 prior SGM violence exposure(s), depression status, and \hazdrink status.
 The resulting rate of event~$e$ for individual~$i$ is denoted $\Gi{e}$.
+% MCB: i think you called is overall rate above
 \par
 Some events are assumed to occur up to once per timestep per individual:
+% MCB: do you mean a maximum of once pet time step? Can more than one event happens per time step?
 depression onset, depression recovery,
 \hazdrink onset, and \hazdrink recovery.
+% MCB: why?
 For these events, the probability of the event occurring to individual~$i$
 during the timestep $\dt$ is defined as:
 \begin{equation}\label{eq:r2p}
@@ -58,9 +66,12 @@ Other events are modelled to occur
 any number of times per timestep per individual:
 exposure to SGM violence,
 sexual partnership formation,
+% MCB: why? because of partnerships with only one contact of with FSW?
+%      what about dissolution ? make sure you have really described everything
 and sex within partnerships.
+% acts - do you have a symbol for each event? need to
 For these events, the number of events occurring to individual~$i$
-during the timestep $\dt$ is defined as:%
+during the timestep $\dt$ is:%
 \footnote{\eqref{eq:r2p} simply reflects
   the probability of $\Ni{e} > 0$ in \eqref{eq:r2n}.}
 \begin{equation}\label{eq:r2n}
@@ -80,12 +91,11 @@ during the timestep $\dt$ is defined as:%
 %------------------------------------------------------------------------------
 \subsubsection{Exposure to SGM Violence}\label{mod.par.evt.vex}
 Individuals are modelled to have
-unique base rate of exposure to SGM violence (\Ri{v}),
-reflecting differences in family, friends, and the broader local community
+a unique base rate of exposure to SGM violence (\Ri{v}) throughout their life,
+% MCB: do you mean all individuals are assumed to have the same unique base rate?
+reflecting differences in individuals, family, friends, and the broader local community
 \cite{??}.
-This base rate is modelled as
-fixed for each individual's lifetime
-and drawn from a population-level distribution (Figure~\ref{??}).
+This base rate is drawn from a population-level distribution (Figure~\ref{??}).
 \note{A calibrated relative rate by age}
      {I have set this to 1 for now.}
 \RR{v}{a} is also applied equally to all individuals.
@@ -107,21 +117,30 @@ exposure to SGM violence for individual~$i$ is modelled~as:
 \end{equation}
 where $a_i$ is the age of individual~$i$.
 An individual's history of exposure to SGM violence
+% MCB: lifecourse
 is then represented by the set of times in which they were exposed: $t^v_i$,
+% MCB: when they were exposed- is that a single event or a period of time?
 which can include duplicate values,
+% MCB: not clear what this means
 if the individual was exposed more than once in any timestep
 --- \ie \eqref{eq:r2n} $> 1$.
+% MCB: you could have a little diagram over time of what it can look like
+%      i.e. just an arrow and representing the violence events -
+%      and you can carry this representation to the next sections
+%      to add the different events so we can see how this may look like for an individual i
 %------------------------------------------------------------------------------
 \subsubsection{Effects of SGM Violence}\label{mod.par.evt.vef}
 Exposure to SGM violence is modelled to have two types of effects,
-both applied as relative rates of downstream events:
-transient ($\tRR{}{}(t^v_i)$, where
-$t^v_i$ is the set of times of recent exposures for individual~$i$), and
-cumulative ($\nRR{}{}(n^v_i)$, where
-$n^v_i$ is the total number of lifetime exposures for individual~$i$).
+% MCB: assumed instead of modelled?
+both applied as selected relative rates of downstream events:
+a transient effect ($\tRR{}{}(t^v_i)$, where
+$t^v_i$ is the set of times of recent exposure to SGM violence for individual~$i$), and
+a cumulative effect ($\nRR{}{}(n^v_i)$, where
+$n^v_i$ is the total number of lifetime exposures to SGM violence for individual~$i$).
 %------------------------------------------------------------------------------
 \paragraph{Transient Effects}
 Transient effects of SGM violence are applied as relative rates of:
+% MCB: maybe would be easier to visualise if you listed these a bullet points below
 depression onset (\tRR{d}{v}),
 depression recovery (\tRR{\d}{v}),
 \hazdrink onset (\tRR{h}{v}),
@@ -130,9 +149,14 @@ partnership formation (\tRR{p}{v}), and
 partnership dissolution (\tRR{\p}{v}), plus
 \note{a relative \emph{probability} of condom use}
      {I have not implemented this yet either.}
+% MCB: per sex act? and could be per non condom use
+% MCB: i dont think you have explained you notation
+%      for example what do you use the supercript to denote, subscript,etc
+%      - not the specific but the general notation
 (\tRP{c}{v}).%
 \footnote{To ensure this probability remains bounded $\in [0,1]$,
   we model either $RP \le 1$ of condom use, or $RP \le 1$ of condom non-use.}
+% MCB: this need to be clear which one is used
 These relative rates are modelled to wane
 \note{exponentially towards $RR = 1$}
      {As you know, we can have other shapes,
@@ -140,6 +164,11 @@ These relative rates are modelled to wane
       for the first paper since it is a nice compromise between
       having precise properties (area under the curve, time to RR=1)
       while still seeming "visually plausible".}
+% MCB: here you could write "are modelled as a function
+%      that has the ability to reflect waning of effect over time"
+%      but default s value is ... whatever you are representing.
+%      it will be very important that it is clear what the model can do
+%      and what you actually assumed in the simulations, which can be different
 (\ie no effect) with
 \note{time since the most recent exposure}
      {Originally, I had an additive model,
@@ -151,16 +180,19 @@ These relative rates are modelled to wane
       which only works with the new approach, but I can revert if needed.
       It may be hard to find data to support either approach.}
 $\du^v_i = t - t^v_i$.
+% MCB: did you define both before? and in particular t?
 The transient effects of the most recent exposure is thus specified as follows:
 \begin{equation}\label{eq:tRR}
   \tRR{}{}(\du^v_i) = 1+(\iRR{}{}-1)\exp(-\du^v_i/\tau)
 \end{equation}
 where:
 \iRR{}{} is an initial relative rate, and
+% MCB: is the notation correct - is IRR specific to individual i?
 $\tau$ is a scale parameter controlling the duration of effect.%
 \footnote{For example, \tRR{}{} decays to $\approx 0.37~\iRR{}{}$ by $t = \tau$.}
 \par
 When considering discrete timesteps (indexed $z$, with length \dt),
+% MCB: what is this number of time steps?
 we replace $t$ above with $z\,\dt$ and $t^v_i$ with $z^v_i$.
 Transient effects of violence are further assumed to
 \note{only begin during the timestep following exposure,}
@@ -182,6 +214,8 @@ an example transient effect $\tRR{}{}(\du^v_i)$ given by \eqref{eq:tRR}.
   \begin{subfigure}{.5\linewidth}
     \includegraphics[width=\linewidth]{tRR.exp}
     \caption{Transient effect ($tRR$) \vs timesteps since exposure}
+    % MCB: (iRR) why are all tRR below this value- should it not start at this?
+    %      Also, add symbols in brackets (x axis label)
     \label{fig:tRR}
   \end{subfigure}%
   \begin{subfigure}{.5\linewidth}
@@ -195,10 +229,12 @@ an example transient effect $\tRR{}{}(\du^v_i)$ given by \eqref{eq:tRR}.
     \label{fig:dRR}
   \end{subfigure}
   \caption{Illustration of transient, cumulative, and duration effects as relative rates}
+  % MCB: might need more explanation in figure legend in words
   \label{fig:xRR}
 \end{figure}
 %------------------------------------------------------------------------------
 \paragraph{Cumulative Effects}
+% MCB: edit as suggested above
 Cumulative effects of SGM violence are applied as relative rates of
 depression onset (\nRR{d}{v}),
 \hazdrink onset (\nRR{h}{v}), and
@@ -209,16 +245,22 @@ with each additional exposure, up to a maximum value:
 \begin{equation}\label{eq:nRR}
   \nRR{}{}(n^v_i) = 1+(\mRR{}{}-1)(1-\exp(-n^v_i/\eta))
 \end{equation}
+% MCB: again here you need to say we can do this
+%      but also make the simplext asumption of constant effect for x time steps
 where $n^v_i$ reflects the cumulative number of
 exposures to SGM violence for individual~$i$.
+% MCB: is their a recall period over which we cumulate experiences?
 Cumulative effects are thus also specified via 2 parameters:
 a maximum relative rate \mRR{}{}, and a scale parameter $\eta$.%
 \footnote{Specifically, $\nRR{}{} \approx 1 + 0.63 (\mRR{}{}-1)$
   after $n = \eta$ cumulative exposures.}
+% MCB: is that (eta) defined?
 Figure~\ref{fig:nRR} illustrates the general shape of \nRR{}{}
 with an increasing number of cumulative exposures.
 Like transient effects, cumulative effects are also assumed
 to begin the next timestep following exposure.
+% MCB: so essentially instantaneously  - could that by varied?
+%      for eg could we use function a) to have an increasing function instead?
 \begin{table}
   \caption{Summary of modelled non-linear effects (relative rates) due to
     exposure to SGM violence and
@@ -239,6 +281,9 @@ using a working definition of
 Depression status is denoted:
 $d_i = 1$ if individual~$i$ is currently depressed and $d_i = 0$ otherwise; plus
 $d'_i = 1$ if individual~$i$ was ever previously depressed and $d'_i = 0$ otherwise.
+% MCB: this goes after the following sentence- you first model depression onset and recovery
+%      and depression is based on such and such definition
+%      & we keep track of  with the following indicators
 Each individual is initialized with
 a base rate of depression onset (\Ri{d}) and
 a base rate of depression recovery (\Ri{\d}),
@@ -248,11 +293,13 @@ reflecting differences in susceptibility to depression \cite{Hankin2015}.
 Individuals are modelled to be at risk of depression onset
 from age 10 and not before~\cite{Solmi2022}.
 The rate of depression onset is modelled to
+% MCB: base rate?
 \note{increase over ages 10--20 and decline after age 30}
      {As before, all age RRs are currently set to 1.}
 (\RR{d}{a}, Table~\ref{tab:rr.age}, Figure~\ref{fig:age.rr})
 \cite{Patten2010,Hankin2015,Solmi2022}.
 The rate of depression onset is also modelled to increase
+% MCB: to be increased by a multiplicative factor  with ...
 by \RR{d}{d'}
 \note{with any previous depression}
      {It may be hard to untangle this effect from
@@ -270,6 +317,7 @@ Thus, the rate of depression onset for individual~$i$
   \Gi{d} = \Ri{d}
      \cdot \RR{d}{a}(a_i)
      \cdot \RR{d}{d'}(d'_i)
+     % MCB: what is this (d') again?
      \cdot \tRR{d}{v}(t^v_i)
      \cdot \nRR{d}{v}(n^v_i)
 \end{equation}
@@ -280,13 +328,15 @@ In a small abuse of notation, let
 when $x \in \{0,1\}$
 --- \ie $\{RR\txs{if}x=1\txs{else}1\}$.
 \paragraph{Depression Recovery}
-Individuals are modelled to potentially recover from depression ($\d$)
+Individuals may recover from depression ($\d$)
 in the timestep immediately after onset,
 although the minimum duration of symptoms
 in clinical criteria for depression is 2 weeks \cite{APA2013}.
 The relative rate of depression recovery is modelled to decline
 with longer and longer duration depressed during this episode $\du^d_i$,
+% MCB: maybe replace by increasingly longer xxx
 as suggested by prior empirical modelling \cite{Patten2005}
+% MCB: hum - not sure what this means - is it empirical data or modelling?
 \note{.}{When calibrating to data, we should consider another Patten paper:
          https://doi.org/10.1186/1471-244X-10-85
          which suggests some people fail to recall past depression episodes
@@ -303,6 +353,7 @@ The rate of depression recovery is also modelled to
 transiently decrease with exposure to SGM violence (\tRR{\d}{v}),
 as described in \sref{mod.par.evt.vef}.
 Effects of age on recovery are not considered.
+% MCB: "We assum that age does not influence xxx"
 Thus, the rate of depression recovery for depressed individual~$i$ is given by:
 \begin{equation}
   \Gi{\d} = \Ri{\d}
@@ -311,6 +362,7 @@ Thus, the rate of depression recovery for depressed individual~$i$ is given by:
 \end{equation}
 %------------------------------------------------------------------------------
 \subsubsection{Hazardous Drinking}\label{mod.par.evt.haz}
+% MCB: see similar suggestions as depression for order of info presented
 Hazardous drinking is also conceptualized as binary,
 using the working definition of AUDIT-C score $\ge 4$ \cite{Bush1998}.
 It is modelled almost identically to depression
@@ -338,6 +390,8 @@ transient and cumulative relative rates for exposures to SGM violence
      \cdot \RR{h}{d}(d_i)
      \cdot \tRR{h}{v}(t^v_i)
      \cdot \nRR{h}{v}(n^v_i)
+     % MCB: for all these risk factors we will want flexibility
+     %      on how these are modelled because they may end up being quite high.
 \end{equation}
 %------------------------------------------------------------------------------
 \paragraph{Hazardous Drinking Recovery}
@@ -356,16 +410,21 @@ a transient relative rate for exposure to SGM violence (\tRR{\h}{v}):
 %------------------------------------------------------------------------------
 \subsubsection{Sexual Partnerships}\label{mod.par.evt.ptr}
 Only sexual partnerships formed within the modelled SGM population are considered.
+% MCB: wording perhaps a bit strange
+%      Perhaps re write saying the the individuals can only form partnerships
+%      within the simulated population and not with individual outside of the population.
 That is, no ``external'' or heterosexual partnerships are modelled,
 and all sexual partnerships formed by individuals in the modelled population
 are assumed to be formed with other individuals in the modelled population.
 %------------------------------------------------------------------------------
 \paragraph{Sexual Partnership Formation}
 Each individual is modelled to have two unchanging characteristics
+% MCB: for life?
 that influence their rate of sexual partnership formation:
 a maximum number of concurrent partners \Mi{p}, and
 a base rate of sexual partnership formation \Ri{p}
 (while having fewer than \Mi{p} partners).
+% MCB: that is bounded by the max number of concurrent partners that they can have
 \par
 Relative rates of sexual partnership formation are also implemented for
 individuals' age (\RR{p}{a}),
@@ -421,6 +480,7 @@ to obtain the overall rate:
 % \max(\ss Pci, \ss Pcj)
 %------------------------------------------------------------------------------
 \subsubsection{Correlated Parameters}
+% MCB: ?
 \note{[TODO]}
      {I implemented crude correlations among individual-level base rates to capture the fact that
       individuals who are susceptible to depression onset are also less likely to recover,
@@ -453,8 +513,13 @@ in the simulation model (Table~\ref{tab:par}, Figure~\ref{fig:dag}), including:
 \end{itemize}
 %==============================================================================
 \subsection{Sexual Mixing}\label{mod.par.mix}
-Sexual mixing refers to non-random formation of sexual partnerships
+Sexual mixing refers to formation of sexual partnerships
 according to individuals' characteristics.
 Among individuals who are determined to form new sexual partnerships
 within a given timestep (see \sref{mod.par.evt.ptr}),
 sexual mixing is currently assumed to be fully random.
+% MCB: or do you mean proportionate? - random is a bit ambiguous.
+%      I think you need to say how you define the mixing -
+%      i dont have a good sens of how it is specificed in the model-
+%      how the mixing probability are derived as should be based on
+%      number of partners and number of people and preference matrix

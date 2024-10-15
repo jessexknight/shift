@@ -1,13 +1,17 @@
 \begin{tabular}{llll}
   \toprule
   Variable & Stratification & \clap{Symbol\tn{1}} & Value\tn{2} \\
+  % MCB: maybe use same definition as in table A.1 and also Relative rate or rate ratio etc
   \midrule
   Active population size           &             & $N$     &  10,000 \\
+  % MCB: i would specific sexually active
   Active population ages           &             & ---     & [10,~60) \\
   Age of starting sexual activity  &             & ---     & Table~\ref{tab:age.act} \\
   Background rate of mortality     & for age $a$ & \ss Rma & Table~\ref{tab:rr.age} \\
   \midrule
   Base rate of violence exposure             & *                                   & \Ri{v}       & ?? \\
+  % MCB: what is this supposed to represent - base rate for overall pop
+  %      in absence of age effect or base rate for younger ones or?
   Relative rate of violence exposure         & for age $a$ (years)                 & \RR{v}{a}    & Table~\ref{tab:rr.age} \\
   \midrule
   Base rate of depression onset              & *                                   & \Ri{d}       & ?? \\
@@ -15,9 +19,12 @@
                                              & if any previous depression          & \RR{d}{d'}   & ?? \\
                                              & for violence exposure \du days ago  &\tRR{d}{v}    & Table~\ref{tab:xrr} \\
                                              & per violence exposure (ever)        &\nRR{d}{v}    & Table~\ref{tab:xrr} \\
+  % MCB: per number of exposures? if u=lifetime above does that mean that we are multiplying the RR twice if we also specify RR>1 here?
+  %      also, what does this (n) represent?
   Base rate of depression recovery           & *                                   & \Ri{\d}      & ?? \\
   Relative rate of depression recovery       & for episode duration \du days       &\dRR{\d}{\du} & Table~\ref{tab:xrr} \\
                                              & for violence exposure \du days ago  &\tRR{\d}{v}   & Table~\ref{tab:xrr} \\
+  % MCB: maybe use the term onset here and above where relevant
   \midrule
   Base rate of \hazdrink onset               & *                                   & \Ri{h}       & ?? \\
   Relative rates of \hazdrink onset          & for age $a$ (years)                 & \RR{h}{a}    & Table~\ref{tab:rr.age} \\
@@ -29,10 +36,12 @@
   Relative rate of \hazdrink recovery        & for episode duration \du days       &\dRR{\h}{\du} & Table~\ref{tab:xrr} \\
                                              & for violence exposure \du days ago  &\tRR{\h}{v}   & Table~\ref{tab:xrr} \\
                                              & if current depression               & \RR{\h}{d}   & ?? \\
+  % MCB: "currently depressed"
   \midrule
   Maximum number of concurrent partners      & *                                   & \Mi{p}       & \sref{mod.par.evt.ptr} \\
   Base rate of partnership formation         & *                                   & \Ri{p}       & ?? \\
   Relative rate of partnership formation     & for age $a$ (years)                 & \RR{p}{a}    & Table~\ref{tab:rr.age} \\
+  % MCB: we need to be relative to what here and elsewhere to avoid ambiguity
                                              & for violence exposure \du days ago  &\tRR{p}{v}    & Table~\ref{tab:xrr} \\
                                              & per violence exposure (ever)        &\nRR{p}{v}    & Table~\ref{tab:xrr} \\
                                              & if current depression               & \RR{p}{d}    & ?? \\
@@ -45,6 +54,7 @@
   \midrule
   Base probability of condom use per sex act & *                                   & \Pi{c}       & ?? \\
   Relative probability of condom use         & for age $a$ (years)                 & \RP{c}{a}    & Table~\ref{tab:rr.age} \\
+  % MCB: per sex act? should be - or could also be non  condom use if condom use is high
                                              & for violence exposure \du days ago  &\tRP{c}{v}    & Table~\ref{tab:xrr} \\
                                              & per violence exposure (ever)        &\nRP{c}{v}    & Table~\ref{tab:xrr} \\
                                              & if current depression               & \RP{c}{d}    & ?? \\
@@ -57,5 +67,8 @@
   \RR{}{}: population-level relative rate;
   \tRR{}{} / \nRR{}{}: transient / cumulative relative rates
     (see \sref{mod.par.evt.vef} for details);
+  % MCB: might be better to include in the table
   \tnt[2]{all durations in days; all rates in per-day}
+  % MCB: per capita
 }
+% MCB: also needs an idea of all these combined
