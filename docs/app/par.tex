@@ -4,13 +4,13 @@ Table~\ref{tab:par} summarizes the model parameters,
 while the details of the modelled processes are given below.
 \begin{table}
   \vskip-2\baselineskip
-  \caption{\note{Overview of model parameters}
-    {Many of the RR "values" include several sub-strata (e.g. ages)
-     or reflect non-linear functions (e.g. transient and cumulative effects),
-     so I've opted to provide links to Tables with more details these RR,
-     e.g. underlying parameters  example RR.
-     Also Might need to split this up or split across pages
-     once the actual values (and ranges) for both priors \& posteriors are added.}}
+  \caption{Overview of model parameters}
+% JK: Many of the RR "values" include several sub-strata (e.g. ages)
+%     or reflect non-linear functions (e.g. transient and cumulative effects),
+%     so I've opted to provide links to Tables with more details these RR,
+%     e.g. underlying parameters  example RR.
+%     Also Might need to split this up or split across pages
+%     once the actual values (and ranges) for both priors \& posteriors are added.
   \label{tab:par}
   \centering\input{tab.par}
 \end{table}
@@ -24,16 +24,15 @@ including possibly prior to sexual activity.
 % MCB: i dont understand what you mean here -
 %      above MSM enters unexposed to everything and you model sexually active
 %      so how can experience before sexual activity be represented?
-Individuals become sexually active at a randomly sampled age
-\note{from the distribution}
-     {This could come from data -- at least loosely.
-      It is currently set to a linear ramp from 0-100\% between ages 10 and 20.}
+Individuals become sexually active at a randomly sampled age from the distribution
+% JK: This could come from data -- at least loosely.
+%     It is currently set to a linear ramp from 0-100\% between ages 10 and 20.
 given in Table~\ref{tab:age.act}.
 Individuals exit the active population by reaching age 60,
-\note{or through background mortality before age 60.}
-     {This is not currently implemented
-      and we may want to discuss whether it is needed in the validation study.
-      Well, I will implement it and see how it affects any results.}
+or through background mortality before age 60.
+% JK: This is not currently implemented
+%     and we may want to discuss whether it is needed in the validation study.
+%     Well, I will implement it and see how it affects any results.
 Mortality rates are given in Table~\ref{tab:rr.age},
 loosely reflecting ??
 \begin{table}
@@ -96,8 +95,8 @@ a unique base rate of exposure to SGM violence (\Ri{v}) throughout their life,
 reflecting differences in individuals, family, friends, and the broader local community
 \cite{??}.
 This base rate is drawn from a population-level distribution (Figure~\ref{??}).
-\note{A calibrated relative rate by age}
-     {I have set this to 1 for now.}
+A calibrated relative rate by age
+% JK: I have set this to 1 for now.
 \RR{v}{a} is also applied equally to all individuals.
 % TODO: read more papers to inform this
 % As shown in Figure~\ref{fig:age.rr},
@@ -147,8 +146,8 @@ depression recovery (\tRR{\d}{v}),
 \hazdrink recovery (\tRR{\h}{v}),
 partnership formation (\tRR{p}{v}), and
 partnership dissolution (\tRR{\p}{v}), plus
-\note{a relative \emph{probability} of condom use}
-     {I have not implemented this yet either.}
+a relative \emph{probability} of condom use
+% JK: I have not implemented this yet either.
 % MCB: per sex act? and could be per non condom use
 % MCB: i dont think you have explained you notation
 %      for example what do you use the supercript to denote, subscript,etc
@@ -157,28 +156,26 @@ partnership dissolution (\tRR{\p}{v}), plus
 \footnote{To ensure this probability remains bounded $\in [0,1]$,
   we model either $RP \le 1$ of condom use, or $RP \le 1$ of condom non-use.}
 % MCB: this need to be clear which one is used
-These relative rates are modelled to wane
-\note{exponentially towards $RR = 1$}
-     {As you know, we can have other shapes,
-      and I am actually leaning towards linear (ramp)
-      for the first paper since it is a nice compromise between
-      having precise properties (area under the curve, time to RR=1)
-      while still seeming "visually plausible".}
+These relative rates are modelled to wane exponentially towards $RR = 1$
+% JK: As you know, we can have other shapes,
+%     and I am actually leaning towards linear (ramp)
+%     for the first paper since it is a nice compromise between
+%     having precise properties (area under the curve, time to RR=1)
+%     while still seeming "visually plausible".
 % MCB: here you could write "are modelled as a function
 %      that has the ability to reflect waning of effect over time"
 %      but default s value is ... whatever you are representing.
 %      it will be very important that it is clear what the model can do
 %      and what you actually assumed in the simulations, which can be different
-(\ie no effect) with
-\note{time since the most recent exposure}
-     {Originally, I had an additive model,
-      where two exposures in the same timestep would effectively double the tRR.
-      However, in this new version, the most recent exposure
-      will simply "reset" the tRR to its maximum (iRR),
-      so there will be no difference between 1 or 2+ exposures in the same timestep.
-      Honestly, this was motivated by code speed-up
-      which only works with the new approach, but I can revert if needed.
-      It may be hard to find data to support either approach.}
+(\ie no effect) with time since the most recent exposure
+% JK: Originally, I had an additive model,
+%     where two exposures in the same timestep would effectively double the tRR.
+%     However, in this new version, the most recent exposure
+%     will simply "reset" the tRR to its maximum (iRR),
+%     so there will be no difference between 1 or 2+ exposures in the same timestep.
+%     Honestly, this was motivated by code speed-up
+%     which only works with the new approach, but I can revert if needed.
+%     It may be hard to find data to support either approach.
 $\du^v_i = t - t^v_i$.
 % MCB: did you define both before? and in particular t?
 The transient effects of the most recent exposure is thus specified as follows:
@@ -195,17 +192,17 @@ When considering discrete timesteps (indexed $z$, with length \dt),
 % MCB: what is this number of time steps?
 we replace $t$ above with $z\,\dt$ and $t^v_i$ with $z^v_i$.
 Transient effects of violence are further assumed to
-\note{only begin during the timestep following exposure,}
-     {This part is quite tricky when considering
-      *when* within a timestep events occur ---
-      and thus when the effect is at it's maximum
-      and by how much it has decayed *during* the next timestep.
-      I have gone back-and-forth with offsets of 1/2 timestep,
-      so it might be good to discuss (with Mike \& with pictures!)
-      --- Edit: I now think we probably need some kind of integration
-      over the continuous-time definition of tRR for each subsequent timestep,
-      (with violence exposure defined as the mid-point
-      and thus with a half-effect within the *same* timestep).}
+only begin during the timestep following exposure,
+% JK: This part is quite tricky when considering
+%     *when* within a timestep events occur ---
+%     and thus when the effect is at it's maximum
+%     and by how much it has decayed *during* the next timestep.
+%     I have gone back-and-forth with offsets of 1/2 timestep,
+%     so it might be good to discuss (with Mike \& with pictures!)
+%     --- Edit: I now think we probably need some kind of integration
+%     over the continuous-time definition of tRR for each subsequent timestep,
+%     (with violence exposure defined as the mid-point
+%     and thus with a half-effect within the *same* timestep).
 and thus only define \tRR{}{} for $\du^v_i > 0$.
 Figure~\ref{fig:tRR} illustrates
 an example transient effect $\tRR{}{}(\du^v_i)$ given by \eqref{eq:tRR}.
@@ -273,10 +270,9 @@ to begin the next timestep following exposure.
 \subsubsection{Depression}\label{mod.par.evt.dep}
 Although depression is likely a complex and dynamic system \cite{Cramer2016},
 for simplicity, we conceptualize depression as binary,
-using a working definition of
-\note{PHQ-9 score $\ge 10$}
-     {We may need to review whether PHQ-9 has been validated on younger ages
-      --- the Kroenke2001 paper had ages 18+}
+using a working definition of PHQ-9 score $\ge 10$
+% JK: We may need to review whether PHQ-9 has been validated on younger ages
+%     --- the Kroenke2001 paper had ages 18+
 \cite{Kroenke2001}.
 Depression status is denoted:
 $d_i = 1$ if individual~$i$ is currently depressed and $d_i = 0$ otherwise; plus
@@ -294,19 +290,18 @@ Individuals are modelled to be at risk of depression onset
 from age 10 and not before~\cite{Solmi2022}.
 The rate of depression onset is modelled to
 % MCB: base rate?
-\note{increase over ages 10--20 and decline after age 30}
-     {As before, all age RRs are currently set to 1.}
+increase over ages 10--20 and decline after age 30
+% JK: As before, all age RRs are currently set to 1.
 (\RR{d}{a}, Table~\ref{tab:rr.age}, Figure~\ref{fig:age.rr})
 \cite{Patten2010,Hankin2015,Solmi2022}.
 The rate of depression onset is also modelled to increase
 % MCB: to be increased by a multiplicative factor  with ...
-by \RR{d}{d'}
-\note{with any previous depression}
-     {It may be hard to untangle this effect from
-      individual-level heterogeneity (Ri) in susceptibility to onset,
-      as they would both manifest as
-      the rate of onset (relapse) among previously depressed being greater than
-      the rate of onset among those never depressed.}
+by \RR{d}{d'} with any previous depression
+% JK: It may be hard to untangle this effect from
+%     individual-level heterogeneity (Ri) in susceptibility to onset,
+%     as they would both manifest as
+%     the rate of onset (relapse) among previously depressed being greater than
+%     the rate of onset among those never depressed.
 \cite{Kendler2010},
 and increase with exposure to SGM violence
 via transient (\tRR{d}{v}) and cumulative (\nRR{d}{v}) effects,
@@ -321,10 +316,9 @@ Thus, the rate of depression onset for individual~$i$
      \cdot \tRR{d}{v}(t^v_i)
      \cdot \nRR{d}{v}(n^v_i)
 \end{equation}
-In a small abuse of notation, let
-\note{$RR(x)$ denote $1+x{\cdot}(RR-1)$}
-     {Not sure how you feel about this notation?
-      Spelling out the math fully in each equation looks very messy.}
+In a small abuse of notation, let $RR(x)$ denote $1+x{\cdot}(RR-1)$
+% JK: Not sure how you feel about this notation?
+%     Spelling out the math fully in each equation looks very messy.
 when $x \in \{0,1\}$
 --- \ie $\{RR\txs{if}x=1\txs{else}1\}$.
 \paragraph{Depression Recovery}
@@ -335,13 +329,13 @@ in clinical criteria for depression is 2 weeks \cite{APA2013}.
 The relative rate of depression recovery is modelled to decline
 with longer and longer duration depressed during this episode $\du^d_i$,
 % MCB: maybe replace by increasingly longer xxx
-as suggested by prior empirical modelling \cite{Patten2005}
+as suggested by prior empirical modelling \cite{Patten2005}.
 % MCB: hum - not sure what this means - is it empirical data or modelling?
-\note{.}{When calibrating to data, we should consider another Patten paper:
-         https://doi.org/10.1186/1471-244X-10-85
-         which suggests some people fail to recall past depression episodes
-         --- though I don't think our 3 longitudinal datasets
-         ask about *past* depression anyways.}
+% JK: When calibrating to data, we should consider another Patten paper:
+%       https://doi.org/10.1186/1471-244X-10-85
+%       which suggests some people fail to recall past depression episodes
+%       --- though I don't think our 3 longitudinal datasets
+%       ask about *past* depression anyways.
 This effect is thus modelled to wane exponentially from 1 to 0:
 \begin{equation}\label{eq:dRR}
   \dRR{}{}(\du^d_i) = \exp(-\du^d_i/\tau)
@@ -379,10 +373,9 @@ relative rates for age (\RR{h}{a}),
 current depression (\RR{h}{d}),
 and any previous \hazdrink (\RR{h}{h'}), plus
 transient and cumulative relative rates for exposures to SGM violence
-(\tRR{h}{v}, \nRR{h}{v})
-\note{:}
-     {As Mike noted, having many RR could result in implausibly high total rates.
-      So, we can revisit some ways to constrain it later.}
+(\tRR{h}{v}, \nRR{h}{v}):
+% JK: As Mike noted, having many RR could result in implausibly high total rates.
+%     So, we can revisit some ways to constrain it later.
 \begin{equation}
   \Gi{h} = \Ri{h}
      \cdot \RR{h}{a}(a_i)
@@ -448,12 +441,11 @@ Sexual partnerships are modelled to dissolve at a rate
 influenced equally by the characteristics of both partners (denoted $i,j$\,).
 A base rate is modelled as the mean of individual-specific base rates:
 $\frac12(\ss R\p i + \ss R\p j)$.
-This base rate is then multiplied by relative rates for
-\note{\emph{each} partner's}
-     {e.g. if both partners are depressed, and RR = 2, then we currently have RR total = 4;
-      We could alternatively chose the maximum of effects (of each variable) among the 2 partners,
-      or something similar to this
-      --- I think this came up one meeting with Mike.}
+This base rate is then multiplied by relative rates for \emph{each} partner's
+% JK: e.g. if both partners are depressed, and RR = 2, then we currently have RR total = 4;
+%     We could alternatively chose the maximum of effects (of each variable) among the 2 partners,
+%     or something similar to this
+%     --- I think this came up one meeting with Mike.
 age (\RR{\p}{a}),
 recent exposure to SGM violence (\tRR{\p}{v}),
 current depression status (\RR{\p}{d}), and
@@ -471,9 +463,9 @@ to obtain the overall rate:
     \cdot \RR{\p}{d}(d_j)
     \cdot \RR{\p}{h}(h_j)
 \end{align}
-\note{All partnerships are modelled to last at least 1 timestep (7 days).}
-     {Well, this assumption may need to be revised based on the validation findings
-      (results in underestimation of dissolution rate).}
+All partnerships are modelled to last at least 1 timestep (7 days).
+% JK: Well, this assumption may need to be revised based on the validation findings
+%     (results in underestimation of dissolution rate).
 %------------------------------------------------------------------------------
 \subsubsection{Anal Sex \& Condom Use}
 [TODO]
@@ -481,14 +473,14 @@ to obtain the overall rate:
 %------------------------------------------------------------------------------
 \subsubsection{Correlated Parameters}
 % MCB: ?
-\note{[TODO]}
-     {I implemented crude correlations among individual-level base rates to capture the fact that
-      individuals who are susceptible to depression onset are also less likely to recover,
-      and likewise for hazdrink; similarly for partnerships:
-      individuals with higher maximum number of concurrent partners
-      will have higher formation + dissolution rates.
-      However since we have been focusing on homogeneous populations for validation,
-      this currently has no effect.}
+[TODO]
+% JK: I implemented crude correlations among individual-level base rates to capture the fact that
+%     individuals who are susceptible to depression onset are also less likely to recover,
+%     and likewise for hazdrink; similarly for partnerships:
+%     individuals with higher maximum number of concurrent partners
+%     will have higher formation + dissolution rates.
+%     However since we have been focusing on homogeneous populations for validation,
+%     this currently has no effect.
 % These characteristics are modelled to be correlated,
 % reflecting empirically observed correlations between
 % sexual partnership concurrency and numbers of lifetime sexual partners \cite{Warren2015};
