@@ -78,9 +78,9 @@ init.ptrs = function(P,I,i,z){
   K = cbind(
     i1 = I$i[i1], # i of partner 1
     i2 = I$i[i2], # i of partner 2
+    zo = z, # timestep ptr begins
     f.sex = I$sex.Ri[i1]/2 + I$sex.Ri[i2]/2, # sex freq
-    p.cdm = I$cdm.Pi[i1]/2 + I$cdm.Pi[i2]/2, # condom prob
-    zo = z # timestep ptr begins
+    p.cdm = I$cdm.Pi[i1]/2 + I$cdm.Pi[i2]/2  # condom prob
   )
 }
 
@@ -146,11 +146,12 @@ rate.ptr_o = function(P,J,R,aj,z){
     * P$nRR.ptr_o.vio_nt[J$vio.nt[j]+1] # nRR vio
 ); return(R) }
 
-rate.ptr_x = function(P,K,I){
+rate.ptr_x = function(P,K,I,z){
   i1 = K[,1]
   i2 = K[,2]
   R = ( # among all (ptrs)
-      0.5 * (I$ptr_x.Ri[i1] + I$ptr_x.Ri[i2])
+      0.5 * (I$ptr_x.Ri[i1] + I$ptr_x.Ri[i2]) # base rate
+    # * (1 - 0.5 * (K[,3] == z)) # adjustment: 1/2 duration at risk - TODO
     # TODO: RR age
     * (1 + P$RRu.ptr_x.dep_w * (I$dep.now[i1] + I$dep.now[i2])) # RR dep now
     * (1 + P$RRu.ptr_x.haz_w * (I$haz.now[i1] + I$haz.now[i2])) # RR haz now
@@ -171,12 +172,6 @@ sim.run = function(P,sub='act'){
     # if (z %% P$z1y == 0) { print(z/P$z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
     I$age = I$age + 1/P$z1y
-    # end ptrs ----------------------------------------------------------------
-    b = rate.to.bool(rate.ptr_x(P,K,I),P$dtz)
-    ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
-    I$ptr.nw = I$ptr.nw - ni
-    E$ptr_x[z,] = ni
-    K = K[!b,]
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age <= amax)
     J = I[i,] # read only copy of active
@@ -215,6 +210,12 @@ sim.run = function(P,sub='act'){
     K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
     # sex in ptrs -------------------------------------------------------------
     # TODO
+    # end ptrs ----------------------------------------------------------------
+    b = rate.to.bool(rate.ptr_x(P,K,I,z),P$dtz)
+    ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
+    I$ptr.nw = I$ptr.nw - ni
+    E$ptr_x[z,] = ni
+    K = K[!b,]
   }
   # clean-up ------------------------------------------------------------------
   x = c('vio.zr','dep.zo','haz.zo')
