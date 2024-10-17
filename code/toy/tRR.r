@@ -1,53 +1,53 @@
 source('utils.r')
 source('sim/plot.r')
-library('ggplot2')
-library('reshape2')
 # -----------------------------------------------------------------------------
 # config
-x = list(
-  dtz=c(1,3,7,14),
-  tsc=c(7,30,90))
-iRR  = 3
-tmax = 120
-tRR.exp = function(t,iRR,tsc,dtz){
-  tsc = tsc/5 # HACK
-  RR = 1+(iRR-1)*exp(-(t-dtz/2)/tsc)
-}
-tRR.ramp = function(t,iRR,tsc,dtz){
-  n  = tsc/dtz
-  RR = 1+(iRR-1)*seq(1-.5/n,0,-1/n)
-  RR = c(RR,rep(1,len(t)-len(RR)))
-}
-tRR.step = function(t,iRR,tsc,dtz){
-  n  = tsc/dtz
-  RR = 1+(iRR-1)*c(rep(1,floor(n)),n-floor(n))
-  RR = c(RR,rep(1,len(t)-len(RR)))
-}
+tmax = 50  # maximum time
+dti  = .01 # integral timestep
+dtw  = 7   # model timestep
+nint = 10  # num integrals to plot
+# time vectors
+tw = seq(0,tmax,dtw)    # end of timestep windows
+tx = seq(0,tmax,dti)    # for plotting
+ti = seq(dti-dtw,0,dti) # for integrating (to be shifted)
+# shape funs
+tRR.funs = list(
+ exp  = function(t,tsc=10,iRR=2){ tRR = 1+(t>0)*(iRR-1)*exp(-t/tsc) },
+ ramp = function(t,tsc=30,iRR=2){ tRR = 1+(t>0)*(iRR-1)*pmax(0,1-t/tsc) },
+ step = function(t,tsc=30,iRR=2){ tRR = 1+(t>0)*(iRR-1)*(t<=tsc) } )
+# integral function
+tRR.int = function(tRR.fun,te,tw){
+  # te: event time, tw = end of window
+  sum(tRR.fun(ti-te+tw)*dti/dtw)} # integrate over window & normalize
 # -----------------------------------------------------------------------------
-# run & plot
-for (type in c('step','ramp','exp')){
-  tRR.fun = get(str('tRR.',type))
-  # generate tRR vectors
-  tRR = grid.apply(x,function(dtz,tsc){
-    t = seq(dtz,tmax,dtz)
-    RR = tRR.fun(t,iRR,tsc,dtz)
-    cbind(dtz=dtz,tsc=tsc,t=t,RR=RR,cRR=1+cumsum(RR-1)*dtz)
-  },.par=FALSE)
-  tRR = melt(as.data.frame(do.call(rbind,tRR)),m=c('RR','cRR'))
-  # compute cum RR ratios vs dtz = 1
-  lab = aggregate(value~dtz+tsc,subset(tRR,variable='cRR'),last)
-  lab = cbind(lab,variable='cRR')
-  lab$y = max(lab$value)*as.numeric(factor(lab$dtz))/(1+len(x$dtz))
-  # -----------------------------------------------------------------------------
-  # plot
-  g = ggplot(tRR,aes(x=t,y=value,color=factor(dtz))) +
-    facet_grid(variable~tsc,scales='free',labeller='label_both') +
-    geom_text(data=lab,aes(x=tmax,y=y,label=signif(value,3)),
-      size=3,hjust=1,show.legend=FALSE) +
-    scale_color_viridis_d() +
-    geom_step(alpha=.5,direction='vh') +
-    geom_point(size=.1) +
-    labs(x='time (days)',color='timestep\n(days)')
-  g = plot.clean(g)
-  plot.save('toy','tRR',str('tRR.',type),w=8,h=4)
-}
+# integrate windows
+X.win = do.call(rbind,lapply(names(tRR.funs),function(shape){
+  tRR.fun = tRR.funs[[shape]]
+  tRR.w.all  = rowMeans(sapply(ti,function(tei){
+               sapply(tw,tRR.int,tRR.fun=tRR.fun,te=tei) }))
+  tRR.w.mean = sapply(tw,tRR.int,tRR.fun=tRR.fun,te=-dtw/2)
+  Xi = cbind(shape=shape,rbind(
+      data.frame(t=tw,tRR=tRR.w.mean,case='midpoint'),
+      data.frame(t=tw,tRR=tRR.w.all, case='complete') ))
+}))
+X.int = do.call(rbind,lapply(names(tRR.funs),function(shape){
+  tRR.fun = tRR.funs[[shape]]
+  Xi = merge(all=TRUE,cbind(i=0:nint),
+    data.frame(shape=shape,case='',t=c(0,tx),tRR=c(1,tRR.fun(tx))))
+}))
+# -----------------------------------------------------------------------------
+# plot
+g = ggplot(X.win,aes(x=t,y=tRR,shape=case,color=case)) +
+  facet_grid('shape') +
+  geom_ribbon(data=X.int,aes(x=t+dtw*i/nint,ymin=1,ymax=tRR,fill=i,group=i),
+    alpha=2/nint,color=NA,show.legend=FALSE) +
+  geom_step(aes(lty=case)) +
+  scale_linetype_manual(name='Integral',values=c('solid','33')) +
+  scale_color_manual(name='Integral',values=c('purple','black','black')) +
+  scale_fill_distiller(palette='Spectral') +
+  scale_x_continuous(breaks=tw) +
+  labs(x='Time since event (days)',y='Transient Rate Ratio (tRR)') +
+  theme_light()
+g = plot.clean(g)
+plot.save('toy','tRR',str('tRR.int'),w=8,h=5)
+
