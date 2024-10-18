@@ -174,7 +174,7 @@ def.tRR = function(shape,iRR,tsc,dtz){
     ramp = function(t){ 1 + (t>=0)*(iRR-1) * pmax(0,1-t/tsc) },
     step = function(t){ 1 + (t>=0)*(iRR-1) * (t <= tsc) })
   tmax = switch(shape,exp=8*tsc,ramp=tsc,step=tsc) + dtz
-  tRR = adj.tRR(int.tRR(tRR.t,dtz,tmax)/dtz)
+  tRR = int.tRR(tRR.t,dtz,tmax)/dtz
 }
 
 def.dRR = function(shape,dsc,dtz,t1y){
@@ -184,7 +184,7 @@ def.dRR = function(shape,dsc,dtz,t1y){
     ramp = function(d){ (d<0) + (d>=0) * pmax(0,1-d/dsc) },
     step = function(d){ (d<0) + (d>=0) * (d <= dsc) })
   dmax = t1y*adur # dmax = all active timesteps
-  dRR = adj.tRR(int.tRR(dRR.d,dtz,dmax)/dtz)
+  dRR = int.tRR(dRR.d,dtz,dmax)/dtz
 }
 
 int.tRR = function(tRR.t,dtz,tmax){
@@ -194,19 +194,16 @@ int.tRR = function(tRR.t,dtz,tmax){
   tRR = sapply(tz,function(ti){ integrate(tRR.t,ti,ti+dtz)$value })
 }
 
-adj.tRR = function(tRR){
-  # remove tRR[1] and add tRR[1]-1 to tRR[2]
-  # why: we don't model same-timestep tRR & dRR effects
-  #      but we need to conserve RR-1 mass / AUC
-  n = len(tRR)
-  if (n==1) return( tRR )
-  if (n==2) return( tRR[1]-1+tRR[2] )
-  return( c(tRR[1]-1+tRR[2],tRR[3:n]) )
+map.nRR = function(nRR,n,ze,z){
+  # lookup nRR kernel for the number (n) of exposures
+  # note: if z = ze, we average nRR[n] & nRR[n-1]
+  #       since same-timestep exposure has half effect
+  RR = 0.5 * (nRR[n+1] + nRR[n+na.to.num(z>ze,1)])
 }
 
 map.tRR = function(tRRu,ze,z){
   # lookup tRR kernel for now (z) given most recent event (ze)
-  # note: if [z-ze] is out-of-bounds: NA -> 0 so RR = 1 + 0
-  # note: z > ze is guaranteed in sim.r via J vs I
-  RR = 1 + na.to.num(tRRu[z-ze])
+  # note: if [z-ze+1] is out-of-bounds: NA -> 0 so RR = 1 + 0
+  # note: we add +1 since tRRu[1] reflects same-timestep (0)
+  RR = 1 + na.to.num(tRRu[z-ze+1])
 }

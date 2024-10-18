@@ -104,7 +104,7 @@ rate.dep_o = function(P,J,R,aj,z){
     * P$aRR.dep_o[aj[j]] # RR age
     * (1 + P$RRu.dep_o.dep_p * J$dep.past[j]) # RR dep past
     * map.tRR(P$tRRu.dep_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * P$nRR.dep_o.vio_nt[J$vio.nt[j]+1] # nRR vio
+    * map.nRR(P$nRR.dep_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.dep_x = function(P,J,R,aj,z){
@@ -123,7 +123,7 @@ rate.haz_o = function(P,J,R,aj,z){
     * (1 + P$RRu.haz_o.haz_p * J$haz.past[j]) # RR haz past
     * (1 + P$RRu.haz_o.dep_w * J$dep.now[j]) # RR dep now
     * map.tRR(P$tRRu.haz_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * P$nRR.haz_o.vio_nt[J$vio.nt[j]+1] # nRR vio
+    * map.nRR(P$nRR.haz_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.haz_x = function(P,J,R,aj,z){
@@ -143,7 +143,7 @@ rate.ptr_o = function(P,J,R,aj,z){
     * (1 + P$RRu.ptr_o.dep_w * J$dep.now[j]) # RR dep now
     * (1 + P$RRu.ptr_o.haz_w * J$haz.now[j]) # RR haz now
     * map.tRR(P$tRRu.ptr_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * P$nRR.ptr_o.vio_nt[J$vio.nt[j]+1] # nRR vio
+    * map.nRR(P$nRR.ptr_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.ptr_x = function(P,K,I,z){
@@ -174,30 +174,32 @@ sim.run = function(P,sub='act'){
     I$age = I$age + 1/P$z1y
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age <= amax)
-    J = I[i,] # read only copy of active
+    J = I[i,] # (mostly) read-only copy of active
     ij = match(J$i,I$i) # map j -> j
     aj = floor(J$age-amin+1) # age vector for j
     R0 = numeric(nrow(J)) # init rate = 0 for j
+    # note: we only update J as needed for within-timestep effects
+    #       we also ignore within-timestep dep & haz relapse
     # vio events --------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.vio(P,J,aj),P$dtz))]
-    I$vio.zr[i] = z
-    I$vio.nt[i] = I$vio.nt[i] + 1
+    j = which(rate.to.bool(rate.vio(P,J,aj),P$dtz)); i = ij[j]
+    I$vio.zr[i] = z;               J$vio.zr[j] = z
+    I$vio.nt[i] = I$vio.nt[i] + 1; J$vio.nt[j] = J$vio.nt[j] + 1
     E$vio[z,i]  = TRUE
     # begin dep ---------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz))]
-    I$dep.now[i] = TRUE
+    j = which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
     I$dep.past[i] = TRUE
-    I$dep.zo[i] = z
+    I$dep.now[i] = TRUE;  J$dep.now[j] = TRUE
+    I$dep.zo[i] = z;      J$dep.zo[j] = z
     E$dep_o[z,i] = TRUE
     # end dep -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
     I$dep.now[i] = FALSE
     E$dep_x[z,i] = TRUE
     # begin haz ---------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz))]
-    I$haz.now[i] = TRUE
+    j = which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
     I$haz.past[i] = TRUE
-    I$haz.zo[i] = z
+    I$haz.now[i] = TRUE;  J$haz.now[j] = TRUE
+    I$haz.zo[i] = z;      J$haz.zo[j] = z
     E$haz_o[z,i] = TRUE
     # end haz -----------------------------------------------------------------
     i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
