@@ -100,21 +100,18 @@ cond.pars = function(P){
   P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs,P$aRR.shape) # RR: age -> haz begin
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs,P$aRR.shape) # RR: age -> ptr begin
   # tRR: vio
-  def.tRR = get(str('def.tRR.',P$tRR.shape))
-  P$tRRu.dep_o.vio_zr = def.tRR(P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
-  P$tRRu.dep_x.vio_zr = def.tRR(P$iRR.dep_x.vio_zr,P$tsc.dep_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep end
-  P$tRRu.haz_o.vio_zr = def.tRR(P$iRR.haz_o.vio_zr,P$tsc.haz_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz begin
-  P$tRRu.haz_x.vio_zr = def.tRR(P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
-  P$tRRu.ptr_o.vio_zr = def.tRR(P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
+  P$tRRu.dep_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
+  P$tRRu.dep_x.vio_zr = def.tRR(P$tRR.shape,P$iRR.dep_x.vio_zr,P$tsc.dep_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep end
+  P$tRRu.haz_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.haz_o.vio_zr,P$tsc.haz_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz begin
+  P$tRRu.haz_x.vio_zr = def.tRR(P$tRR.shape,P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
+  P$tRRu.ptr_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  def.nRR = get(str('def.nRR.',P$nRR.shape))
-  P$nRR.dep_o.vio_nt = def.nRR(P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
-  P$nRR.haz_o.vio_nt = def.nRR(P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
-  P$nRR.ptr_o.vio_nt = def.nRR(P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
+  P$nRR.dep_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
+  P$nRR.haz_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
+  P$nRR.ptr_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
   # dRR: durs
-  def.dRR = get(str('def.dRR.',P$dRR.shape))
-  P$dRRu.dep_x.dep_u = def.dRR(P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
-  P$dRRu.haz_x.haz_u = def.dRR(P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.dep_x.dep_u = def.dRR(P$dRR.shape,P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.haz_x.haz_u = def.dRR(P$dRR.shape,P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
@@ -158,64 +155,58 @@ def.RR.age = function(age,RR,shape='spline',eps=.001){
 
 # -----------------------------------------------------------------------------
 
-def.nRR.exp = function(mRR,nsc,z1y){
+def.nRR = function(shape,mRR,nsc,z1y){
+  # cumulative RR: chose shape function for count: no timestep issues
+  if (nsc==Inf){ return(rep(1,z1y*adur)) }
   n = 0:(z1y*adur) # nmax = all active timesteps
-  nRR = 1 + (mRR-1) * (1-exp(-n/nsc))
-}
-
-def.nRR.ramp = function(mRR,nsc,z1y){
-  if (nsc==Inf){ return(rep(1,z1y*adur)) }
-  nRR = c(seq(1,mRR,len=nsc+1),rep(mRR,z1y*adur-nsc))
-}
-
-def.nRR.step = function(mRR,nsc,z1y){
-  if (nsc==Inf){ return(rep(1,z1y*adur)) }
-  nRR = c(rep(1,nsc),rep(mRR,z1y*adur-nsc))
+  nRR = 1 + (mRR-1) * switch(shape,
+    exp  = 1 - exp(-n/nsc),
+    ramp = pmin(1, n/nsc),
+    step = n >= nsc)
 }
 
 # -----------------------------------------------------------------------------
 
-def.tRR.exp = function(iRR,tsc,dtz,eps=.001){
-  z = 1:ceiling(qexp(p=1-eps,rate=1/tsc)/dtz) # zmax = cover most AUC
-  tRR = 1 + (iRR-1) * exp(-(z+.5)*dtz/tsc)
+def.tRR = function(shape,iRR,tsc,dtz){
+  # transient RR: chose shape function & tmax, then integrate & adjust
+  tRR.t = switch(shape,
+    exp  = function(t){ 1 + (t>=0)*(iRR-1) * exp(-t/tsc) },
+    ramp = function(t){ 1 + (t>=0)*(iRR-1) * pmax(0,1-t/tsc) },
+    step = function(t){ 1 + (t>=0)*(iRR-1) * (t <= tsc) })
+  tmax = switch(shape,exp=8*tsc,ramp=tsc,step=tsc) + dtz
+  tRR = adj.tRR(int.tRR(tRR.t,dtz,tmax)/dtz)
 }
 
-def.tRR.ramp = function(iRR,tsc,dtz){
-  tRR = 1 + (iRR-1) * def.u.ramp(tsc/dtz)
+def.dRR = function(shape,dsc,dtz,z1y){
+  # duration RR: chose shape function & dmax, then integrate & adjust
+  dRR.d = switch(shape,
+    exp  = function(d){ (d<0) + (d>=0) * exp(-d/dsc) },
+    ramp = function(d){ (d<0) + (d>=0) * pmax(0,1-d/dsc) },
+    step = function(d){ (d<0) + (d>=0) * (d <= dsc) })
+  dmax = z1y*adur # dmax = all active timesteps
+  dRR = adj.tRR(int.tRR(dRR.d,dtz,dmax)/dtz)
 }
 
-def.tRR.step = function(iRR,tsc,dtz){
-  tRR = 1 + (iRR-1) * def.u.step(tsc/dtz)
+int.tRR = function(tRR.t,dtz,tmax){
+  # integrates tRR.t on intervals {0,dtz,...,tmax} - dtz/2
+  # note: this approximates double integral via interval midpoints
+  tz = seq(0,tmax,dtz) - dtz/2 # lower bounds
+  tRR = sapply(tz,function(ti){ integrate(tRR.t,ti,ti+dtz)$value })
 }
 
-# -----------------------------------------------------------------------------
-
-def.dRR.exp = function(dsc,dtz,z1y){
-  z = 1:(z1y*adur) # dmax = all active timesteps
-  dRR = exp(-(z+.5)*dtz/dsc)
-}
-
-def.dRR.ramp = function(dsc,dtz,z1y){
-  dRR = def.u.ramp(dsc/dtz,z1y*adur)
-}
-
-def.dRR.step = function(dsc,dtz,z1y){
-  dRR = def.u.step(dsc/dtz,z1y*adur)
-}
-
-# -----------------------------------------------------------------------------
-
-def.u.step = function(n,l=0){
-  if (n==Inf){ return(rep(1,l)) }
-  xRR = c(rep(1,floor(n)), n-floor(n), rep(0,pmax(0,l-floor(n)-1)))
-}
-
-def.u.ramp = function(n,l=0){
-  if (n==Inf){ return(rep(1,l)) }
-  xRR = c(seq(1,0,-1/(n+1))[-1], rep(0,pmax(0,l-floor(n)-1)))
+adj.tRR = function(tRR){
+  # remove tRR[1] and add tRR[1]-1 to tRR[2]
+  # why: we don't model same-timestep tRR & dRR effects
+  #      but we need to conserve RR-1 mass / AUC
+  n = len(tRR)
+  if (n==1) return( tRR )
+  if (n==2) return( tRR[1]-1+tRR[2] )
+  return( c(tRR[1]-1+tRR[2],tRR[3:n]) )
 }
 
 map.tRR = function(tRRu,ze,z){
-  # lookup & sum RR kernel for now (z) given prior events (ze)
-  RR = 1 + na.to.num(tRRu[z+1-ze])
+  # lookup tRR kernel for now (z) given most recent event (ze)
+  # note: if [z-ze] is out-of-bounds: NA -> 0 so RR = 1 + 0
+  # note: z > ze is guaranteed in sim.r via J vs I
+  RR = 1 + na.to.num(tRRu[z-ze])
 }
