@@ -175,8 +175,8 @@ sim.run = function(P,sub='act'){
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age <= amax)
     J = I[i,] # (mostly) read-only copy of active
-    ij = match(J$i,I$i) # map j -> j
-    aj = floor(J$age-amin+1) # age vector for j
+    ij = match(J$i,I$i) # maps j -> j
+    aj = floor(J$age-amin+1) # integer age vector for j
     R0 = numeric(nrow(J)) # init rate = 0 for j
     # note: we only update J as needed for within-timestep effects
     #       we also ignore within-timestep dep & haz relapse

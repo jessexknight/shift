@@ -204,6 +204,6 @@ map.nRR = function(nRR,n,ze,z){
 map.tRR = function(tRRu,ze,z){
   # lookup tRR kernel for now (z) given most recent event (ze)
   # note: if [z-ze+1] is out-of-bounds: NA -> 0 so RR = 1 + 0
-  # note: we add +1 since tRRu[1] reflects same-timestep (0)
+  # note: we add +1 since tRRu[1] reflects same-timestep
   RR = 1 + na.to.num(tRRu[z-ze+1])
 }
