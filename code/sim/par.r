@@ -106,12 +106,12 @@ cond.pars = function(P){
   P$tRRu.haz_x.vio_zr = def.tRR(P$tRR.shape,P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
   P$tRRu.ptr_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
-  P$nRR.dep_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$z1y) # nRR: vio -> dep begin
-  P$nRR.haz_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$z1y) # nRR: vio -> haz begin
-  P$nRR.ptr_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$z1y) # nRR: vio -> ptr begin
+  P$nRR.dep_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$t1y) # nRR: vio -> dep begin
+  P$nRR.haz_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$t1y) # nRR: vio -> haz begin
+  P$nRR.ptr_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$t1y) # nRR: vio -> ptr begin
   # dRR: durs
-  P$dRRu.dep_x.dep_u = def.dRR(P$dRR.shape,P$dsc.dep_x.dep_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
-  P$dRRu.haz_x.haz_u = def.dRR(P$dRR.shape,P$dsc.haz_x.haz_u,P$dtz,P$z1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.dep_x.dep_u = def.dRR(P$dRR.shape,P$dsc.dep_x.dep_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
+  P$dRRu.haz_x.haz_u = def.dRR(P$dRR.shape,P$dsc.haz_x.haz_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
@@ -155,10 +155,10 @@ def.RR.age = function(age,RR,shape='spline',eps=.001){
 
 # -----------------------------------------------------------------------------
 
-def.nRR = function(shape,mRR,nsc,z1y){
+def.nRR = function(shape,mRR,nsc,t1y){
   # cumulative RR: chose shape function for count: no timestep issues
-  if (nsc==Inf){ return(rep(1,z1y*adur)) }
-  n = 0:(z1y*adur) # nmax = all active timesteps
+  if (nsc==Inf){ return(rep(1,t1y*adur)) }
+  n = 0:(t1y*adur) # nmax = all active timesteps
   nRR = 1 + (mRR-1) * switch(shape,
     exp  = 1 - exp(-n/nsc),
     ramp = pmin(1, n/nsc),
@@ -177,13 +177,13 @@ def.tRR = function(shape,iRR,tsc,dtz){
   tRR = adj.tRR(int.tRR(tRR.t,dtz,tmax)/dtz)
 }
 
-def.dRR = function(shape,dsc,dtz,z1y){
+def.dRR = function(shape,dsc,dtz,t1y){
   # duration RR: chose shape function & dmax, then integrate & adjust
   dRR.d = switch(shape,
     exp  = function(d){ (d<0) + (d>=0) * exp(-d/dsc) },
     ramp = function(d){ (d<0) + (d>=0) * pmax(0,1-d/dsc) },
     step = function(d){ (d<0) + (d>=0) * (d <= dsc) })
-  dmax = z1y*adur # dmax = all active timesteps
+  dmax = t1y*adur # dmax = all active timesteps
   dRR = adj.tRR(int.tRR(dRR.d,dtz,dmax)/dtz)
 }
 
