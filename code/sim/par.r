@@ -27,9 +27,9 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$all.Ri.shape = 1        # (gamma shape): all other base rates
   # *RR shapes
   P$aRR.shape = 'spline'
-  P$tRR.shape = 'exp'
-  P$nRR.shape = 'exp'
-  P$dRR.shape = 'exp'
+  P$tRR.shape = 'ramp'
+  P$nRR.shape = 'ramp'
+  P$dRR.shape = 'ramp'
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
