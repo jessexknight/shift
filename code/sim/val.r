@@ -63,7 +63,11 @@ vals = list(
   nRR.ptr_o.vio_nt=list(pars=ulist(P0,mRR.ptr_o.vio_nt=RR2,nsc.ptr_o.vio_nt=ns2,nRR.shape='step'),evts='ptr_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.fun)),
   # duration RR [22:23]
   dRR.dep_x.dep_u=list(pars=ulist(P0,dsc.dep_x.dep_u=ds2,dRR.shape='step'),evts='dep_x',strat='dep_o.dt.c',e.dts=list(dep_o=ds2)),
-  dRR.haz_x.haz_u=list(pars=ulist(P0,dsc.haz_x.haz_u=ds2,dRR.shape='step'),evts='haz_x',strat='haz_o.dt.c',e.dts=list(haz_o=ds2))
+  dRR.haz_x.haz_u=list(pars=ulist(P0,dsc.haz_x.haz_u=ds2,dRR.shape='step'),evts='haz_x',strat='haz_o.dt.c',e.dts=list(haz_o=ds2)),
+  # partnership dynamics [24:26]
+  n.pop  =list(pars=ulist(P0,n.pop=c(100,300,900)),evts=c('ptr_o','ptr_x')),
+  ptr.max=list(pars=ulist(P0,ptr.max.m=c(1,3,30)), evts=c('ptr_o','ptr_x')),
+  dtz.ptr=list(pars=ulist(P0,dtz=1:7),             evts=c('ptr_o','ptr_x'))
 )
 
 # =============================================================================
