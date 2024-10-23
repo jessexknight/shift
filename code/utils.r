@@ -107,9 +107,9 @@ filter.names = function(x,re,b=TRUE){
   names(x)[grepl(re,names(x),perl=TRUE)==b]
 }
 
-list.str = function(x,def=' = ',join='\n',sig=Inf){
+list.str = function(x,def=' = ',join='\n',sig=Inf,rnd=Inf){
   # e.g. list.str(list(a=1,b=2)) -> 'a = 1\nb = 2'
-  f = function(x){ ifelse(is.numeric(x),signif(x,sig),x) }
+  f = function(x){ ifelse(is.numeric(x),signif(round(x,rnd),sig),x) }
   paste(names(x),lapply(x,f),sep=def,collapse=join)
 }
 
@@ -146,7 +146,7 @@ wapply = function(...){
   mapply(...,SIMPLIFY=FALSE)
 }
 
-grid.apply = function(x,fun,args,...,.par=TRUE){
+grid.apply = function(x,fun,args=list(),...,.par=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   xg = expand.grid(x,stringsAsFactors=FALSE)
