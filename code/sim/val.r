@@ -96,7 +96,7 @@ val.par.split = function(par){
 val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
   # TODO: clean-up t1y & Ri.my
   R = subset(R,variable==evt)
-  R$facet = apply(R[names(pars$var)],1,list.str,sig=3,rnd=9)
+  R$facet = facet.label(R[names(pars$var)])
   R.ref = pars$fix[[str(evt,'.Ri.my')]] / t1y
   g = ggplot(R,aes(x='',y=t1y*value,color=as.factor(.data[[strat]]))) +
     geom_point(data=data.frame(value=R.ref),shape=9,color='red') +
@@ -108,13 +108,14 @@ val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
   g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
 }
 
-val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt=NULL){
+val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt='null'){
   vars = c(vars,switch(substr(evt,1,3),
     vio = c('vio.nt', 'vio.dt'),
     dep = c('dep.now','dep.past'),
     haz = c('haz.now','haz.past'),
-    ptr = c('ptr.nt', 'ptr.nw')))
-  Q$facet = apply(Q[names(pars$var)],1,list.str,sig=3,rnd=9)
+    ptr = c('ptr.nt', 'ptr.nw'),
+    nul = NULL))
+  Q$facet = facet.label(Q[names(pars$var)])
   Q = melt(Q,measure=setdiff(vars,strat))
   Q = maggregate(formula(str('value~seed+variable+facet+',strat)),Q,
     function(x){ c(p=mean(x),s=sum(x),n=len(x)) })
@@ -145,6 +146,10 @@ val.plot.finish = function(g,name,pars,strat,nrow=1){
 }
 
 rmed = function(x){ round(median(x)) }
+facet.label = function(X){ # fix level order
+  f = apply(X,1,list.str,sig=3,rnd=9)
+  f = factor(f,levels=unique(f))
+}
 
 # =============================================================================
 # main
