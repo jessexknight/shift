@@ -223,6 +223,7 @@ sim.run = function(P,sub='act'){
   x = c('vio.zr','dep.zo','haz.zo')
   I[gsub('z','t',x)] = P$dtz * I[x]; I[x] = NULL # convert *.z -> *.t
   E = lapply(E,apply,2,rep.int,x=P$dtz*(1:P$zf)) # n mat -> t vecs
+  for (e in evts[lens(E)==0]){ E[[e]] = lapply(rep(0,P$n.tot),integer) } # BUGFIX
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub) # collect
 }
 
