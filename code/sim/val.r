@@ -12,10 +12,10 @@ fig.dir = 'val'
 
 P0 = list(
   n.pop = n.pop,
-  vio.Ri.m   = .001,
-  dep_o.Ri.m = .001, dep_x.Ri.m = .002,
-  haz_o.Ri.m = .001, haz_x.Ri.m = .002,
-  ptr_o.Ri.m = .01,  ptr_x.Ri.m = .02,  ptr.max.m = 3,
+  vio.Ri.my   = .50,
+  dep_o.Ri.my = .10, dep_x.Ri.my = 1.0,
+  haz_o.Ri.my = .10, haz_x.Ri.my = 1.0,
+  ptr_o.Ri.my = 3.0, ptr_x.Ri.my = 3.0, ptr.max.m = 3,
   all.Ri.shape = 1e6,
   ptr.Ri.shape = 1e6,
   null = 'xRR')
@@ -94,9 +94,10 @@ val.par.split = function(par){
 }
 
 val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
+  # TODO: clean-up t1y & Ri.my
   R = subset(R,variable==evt)
   R$facet = apply(R[names(pars$var)],1,list.str,sig=3,rnd=9)
-  R.ref = pars$fix[[str(evt,'.Ri.m')]]
+  R.ref = pars$fix[[str(evt,'.Ri.my')]] / t1y
   g = ggplot(R,aes(x='',y=t1y*value,color=as.factor(.data[[strat]]))) +
     geom_point(data=data.frame(value=R.ref),shape=9,color='red') +
     ylab('Rate (per year)')

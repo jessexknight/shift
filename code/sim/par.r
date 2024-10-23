@@ -8,16 +8,16 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$n.pop = 1000
   P$n.dur = 1+1
   P$null = null
-  # base rates
-  P$vio.Ri.m    = 1/P$t1y    # (mean) base rate: violence
-  P$dep_o.Ri.m  = 0.01/P$t1y # (mean) base rate: depression begin
-  P$dep_x.Ri.m  = 1.00/P$t1y # (mean) base rate: depression end
-  P$haz_o.Ri.m  = 0.01/P$t1y # (mean) base rate: hazdrink begin
-  P$haz_x.Ri.m  = 1.00/P$t1y # (mean) base rate: hazdrink end
-  P$ptr_o.Ri.m  = 1/30       # (mean) base rate: partner begin
-  P$ptr_x.Ri.m  = 1/30       # (mean) base rate: partner end
-  P$sex.Ri.95   = c(.1,.5)   # (95% CI) base rate: sex within ptr
-  P$cdm.Pi.95   = c(.2,.8)   # (95% CI) prob: condom use
+  # base rates (per year)
+  P$vio.Ri.my   = 1.00     # (mean) base rate: violence
+  P$dep_o.Ri.my =  .01     # (mean) base rate: depression begin
+  P$dep_x.Ri.my = 1.00     # (mean) base rate: depression end
+  P$haz_o.Ri.my =  .01     # (mean) base rate: hazdrink begin
+  P$haz_x.Ri.my = 1.00     # (mean) base rate: hazdrink end
+  P$ptr_o.Ri.my = 12       # (mean) base rate: partner begin
+  P$ptr_x.Ri.my = 12       # (mean) base rate: partner end
+  P$sex.Ri.95   = c(.1,.5) # (95% CI) base rate: sex within ptr
+  P$cdm.Pi.95   = c(.2,.8) # (95% CI) prob: condom use
   # base rate covariance, shapes, etc.
   P$ptr.max.m   = 1.50      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
@@ -112,6 +112,10 @@ cond.pars = function(P){
   # dRR: durs
   P$dRRu.dep_x.dep_u = def.dRR(P$dRR.shape,P$dsc.dep_x.dep_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
   P$dRRu.haz_x.haz_u = def.dRR(P$dRR.shape,P$dsc.haz_x.haz_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
+  # pre-compute Ri.m (per day) from Ri.my (per year)
+  for (x in filter.names(P,'Ri\\.my$')){
+    P[[gsub('my$','m',x)]] = P[[x]] / P$t1y
+  }
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1
@@ -130,7 +134,7 @@ null.pars = function(P,null,save){
 }
 
 null.sets = list(
-  Ri  = list('Ri\\.m$'=0),
+  Ri  = list('Ri\\.m'=0),
   RR  = list('^RR\\.'=1),
   aRR = list('^aRR\\..*\\.(ages|RRs)$'=1),
   tRR = list('^iRR\\.'=1,'^tsc\\.'=1e-12),
