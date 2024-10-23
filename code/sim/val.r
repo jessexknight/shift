@@ -3,9 +3,10 @@ source('sim/meta.r')
 # =============================================================================
 # config
 
-v      = cli.arg('v',     1:23)
+v      = cli.arg('v',     0)
 n.pop  = cli.arg('n.pop', 333)
 n.seed = cli.arg('n.seed',7)
+fig.dir = 'val'
 
 # -----------------------------------------------------------------------------
 
@@ -82,8 +83,8 @@ val.run = function(name,pars,evts,strat='case',e.dts=NULL,x.cols=NULL){
   R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
   Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pars$var),x.cols=x.cols)
   for (evt in evts){
-    val.plot.rate(name,R,evt,pars,strat)
-    val.plot.prev(name,Q,evt,pars,strat)
+    val.plot.rate(name,R,pars,strat,evt=evt)
+    val.plot.prev(name,Q,pars,strat,evt=evt)
   }
 }
 
@@ -92,9 +93,9 @@ val.par.split = function(par){
   p = list(var=par[b],fix=par[!b],n.var=prod(lens(par[b])))
 }
 
-val.plot.rate = function(name,R,evt,pars,strat,t1y=364){
+val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
   R = subset(R,variable==evt)
-  R$facet = apply(R[names(pars$var)],1,list.str,sig=3)
+  R$facet = apply(R[names(pars$var)],1,list.str,sig=3,rnd=9)
   R.ref = pars$fix[[str(evt,'.Ri.m')]]
   g = ggplot(R,aes(x='',y=t1y*value,color=as.factor(.data[[strat]]))) +
     geom_point(data=data.frame(value=R.ref),shape=9,color='red') +
@@ -106,13 +107,13 @@ val.plot.rate = function(name,R,evt,pars,strat,t1y=364){
   g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
 }
 
-val.plot.prev = function(name,Q,evt,pars,strat){
-  vars = switch(substr(evt,1,3),
+val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt=NULL){
+  vars = c(vars,switch(substr(evt,1,3),
     vio = c('vio.nt', 'vio.dt'),
     dep = c('dep.now','dep.past'),
     haz = c('haz.now','haz.past'),
-    ptr = c('ptr.nt', 'ptr.nw'))
-  Q$facet = apply(Q[names(pars$var)],1,list.str,sig=3)
+    ptr = c('ptr.nt', 'ptr.nw')))
+  Q$facet = apply(Q[names(pars$var)],1,list.str,sig=3,rnd=9)
   Q = melt(Q,measure=setdiff(vars,strat))
   Q = maggregate(formula(str('value~seed+variable+facet+',strat)),Q,
     function(x){ c(p=mean(x),s=sum(x),n=len(x)) })
@@ -134,12 +135,12 @@ val.plot.finish = function(g,name,pars,strat,nrow=1){
   g = g + geom_boxplot(outlier.shape=1,outlier.alpha=1) +
     facet_grid('variable~facet',scales='free') +
     guides(color=guide_legend(ncol=2)) +
-    labs(x='',color=str(list.str(pars$fix,sig=3),'\n\n',strat)) +
+    labs(x='',color=str(list.str(pars$fix,sig=3,rnd=9),'\n\n',strat)) +
     ggtitle(str(name,collapse=': ')) +
     scale_color_viridis_d() +
     ylim(c(0,NA))
   g = plot.clean(g,legend.title=element_text(size=9))
-  plot.save('val',uid,str(name,collapse='--'),w=2.5+2*pars$n.var,h=1+2*nrow)
+  plot.save(fig.dir,uid,str(name,collapse='--'),w=2.5+2*pars$n.var,h=1+2*nrow)
 }
 
 rmed = function(x){ round(median(x)) }
