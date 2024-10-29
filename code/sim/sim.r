@@ -90,6 +90,7 @@ init.ptrs = function(P,I,i,z){
 rate.to.prob = function(R,dtz){ p = 1-exp(-R*dtz) }
 rate.to.bool = function(R,dtz){ b = runif(len(R)) < (1-exp(-R*dtz)) }
 rate.to.num  = function(R,dtz){ n = rpois(len(R),R*dtz) }
+# TODO: define I$xxx.Ri = xxx.Ri * dtz -> avoid R*dtz here -> speedup?
 
 rate.vio = function(P,J,aj){
   R = ( # among all
@@ -212,6 +213,7 @@ sim.run = function(P,sub='act'){
     K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
     # sex in ptrs -------------------------------------------------------------
     # TODO
+    # TODO: new partners must have sex during z
     # end ptrs ----------------------------------------------------------------
     b = rate.to.bool(rate.ptr_x(P,K,I,z),P$dtz)
     ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)

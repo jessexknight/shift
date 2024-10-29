@@ -108,8 +108,8 @@ val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
   g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
 }
 
-val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt='null'){
-  vars = c(vars,switch(substr(evt,1,3),
+val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt=NULL){
+  vars = c(vars,switch(substr(ifelse(len(evt),evt,'null'),1,3),
     vio = c('vio.nt', 'vio.dt'),
     dep = c('dep.now','dep.past'),
     haz = c('haz.now','haz.past'),

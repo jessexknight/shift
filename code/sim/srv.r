@@ -34,6 +34,7 @@ srv.base = function(P,Q,E,t){
   E = clip.evts(E,t=t)
   Q$age      = (t - Q$t.born)/P$t1y
   Q$age.1    = floor(Q$age)
+  Q$age.10   = int.cut(Q$age,seq(10,50,10))
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
   Q$vio.tr   = sapply(E$vio,last)
@@ -66,12 +67,13 @@ srv.e.dts = function(P,Q,E,t,e.dts){
 
 rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   status(3,'rate.datas: ',len(Ms))
-  if (missing( t)){  t = Ms[[1]]$P$tf }
+  if (missing(t)){ t = Ms[[1]]$P$tf }
   Y = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
   Y = rate.data.sub(Y,t,dt,among=among)
 }
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
+  # TODO: think carefully about if/where dtz / 2 is needed
   status(4,M$P$id)
   tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
@@ -84,9 +86,10 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
     for (e in names(e.dts)){             # - lagged events
       for (dt in e.dts[[e]]){
         Ei[[str(e,dt,'dt')]] = Ei[[e]]+dt }}
+    # TODO: add event order to sort to ensure correct PT attribution
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
     ei = gsub('\\d*$','',names(ti))      # obs event names
-    ein = ei[-len(ti)]   # for speed
+    ein = ei[-len(ei)]   # for speed
     Yi = cbind(Q[i,],
       to = ti[-len(ti)], # period start
       tx = ti[-1],       # period end
