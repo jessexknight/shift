@@ -3,11 +3,18 @@
 # pars
 
 get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
-  P = list(case=case,seed=seed,id=sprintf('%6d',seed))
-  P = dt.pars(P,dtz)
+  P = list(case=case,seed=seed,id=sprintf('%6d',seed)) # meta
+  P = add.pars.def(P)         # default (upstream)
+  P = add.pars.time(P,dtz)    # timestep-related
+  P = null.pars(P,null,save)  # null some Ri,RR
+  P = ulist(P,...)            # overwrite any (upstream)
+  P = add.pars.cond(P)        # conditional (downstream)
+}
+
+add.pars.def = function(P=NULL){
+  # pop size & duration
   P$n.pop = 1000
   P$n.dur = 1+1
-  P$null = null
   # base rates (per year)
   P$vio.Ri.my   = 1.00     # (mean) base rate: violence
   P$dep_o.Ri.my =  .01     # (mean) base rate: depression begin
@@ -46,7 +53,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$mRR.dep_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> dep begin
   P$nsc.dep_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> dep begin
   # RR: * -> dep end
-  P$dsc.dep_x.dep_u  = P$t1y # (dur scale)  duration RR: dep dur -> dep end
+  P$dsc.dep_x.dep_u  = 365   # (dur scale)  duration RR: dep dur -> dep end
   P$iRR.dep_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> dep end
   P$tsc.dep_x.vio_zr = 30    # (time scale) transient RR: vio -> dep end
   # RR: * -> haz begin
@@ -58,7 +65,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   P$nsc.haz_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> haz begin
   # RR: * -> haz end
   P$ RR.haz_x.dep_w  = 1/3   # RR: dep now -> haz end
-  P$dsc.haz_x.haz_u  = P$t1y # (dur scale)  duration RR: haz dur -> haz end
+  P$dsc.haz_x.haz_u  = 365   # (dur scale)  duration RR: haz dur -> haz end
   P$iRR.haz_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> haz end
   P$tsc.haz_x.vio_zr = 30    # (time scale) transient RR: vio -> haz end
   # RR: * -> ptr begin
@@ -71,13 +78,10 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
   # RR: * -> ptr end
   P$ RR.ptr_x.dep_w  = 2     # RR: dep now -> ptr end
   P$ RR.ptr_x.haz_w  = 2     # RR: haz now -> ptr end
-  # overwrite & add conditional
-  P = null.pars(P,null,save)
-  P = ulist(P,...)
-  P = cond.pars(P)
+  return(P)
 }
 
-dt.pars = function(P,dtz){
+add.pars.time = function(P,dtz){
   P$dtz  = dtz              # days in 1 timestep
   P$z3m  = round(364/dtz/4) # timesteps in 3 months
   P$z6m  = 2 * P$z3m        # timesteps in 6 months
@@ -88,7 +92,7 @@ dt.pars = function(P,dtz){
   return(P)
 }
 
-cond.pars = function(P){
+add.pars.cond = function(P){
   P$zf    = P$n.dur*adur*P$z1y # final timestep
   P$tf    = P$zf * P$dtz       # final time (days)
   P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
@@ -125,6 +129,8 @@ cond.pars = function(P){
 }
 
 null.pars = function(P,null,save){
+  P$null = null    # store config
+  P$save = save    # store config
   P.save = P[save] # save exempt
   map = flist(null.sets[null]) # merge regex list
   for (re in names(map)){ # for each regex
