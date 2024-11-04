@@ -41,19 +41,19 @@ plot.common = function(X,...,geom='box'){
   g = plot.clean(g)
 }
 
-plot.prev = function(Q,vars=NULL,evt=NULL,facet=NULL,strat=NULL){
+plot.prev = function(Q,vars=NULL,evt=NULL,facet=NULL,strat='.',wts='.'){
   vars = c(vars,evt.vars(evt)) # select vars
   Q$facet = facet.label(Q[facet]) # clean-up facet label
   Q$strat = do.call(interaction,Q[strat]) # strat
   Q = melt(Q,measure=vars,var='var') # wide -> long
-  Q = maggregate(value~seed+var+facet+strat,Q,aggr.prev) # agg
-  g = plot.common(Q,y=value.p,x=strat,color=strat) +
+  Q = aggr.prev(Q,g=c('seed','var','facet','strat'),w=wts) # agg
+  g = plot.common(Q,y=p,x=strat,color=strat) +
     labs(y='Value (population mean)',x=strat,color=strat)
-  g = add.label(g,Q,vs='strat',value.p=0,
-    function(Qi){ str(rmed(Qi$value.k),'\n',rmed(Qi$value.n),'\n') })
+  g = add.label(g,Q,vs='strat',p=0,
+    function(Qi){ str(rmed(Qi$k),'\n',rmed(Qi$n),'\n') })
 }
 
-plot.rate = function(R,evt=NULL,facet=NULL,strat=NULL,ref=NA){
+plot.rate = function(R,evt=NULL,facet=NULL,strat='.',ref=NA){
   R = subset(R,var==evt) # select evt
   R$facet = facet.label(R[facet]) # clean-up facet label
   R$strat = as.factor(R[[strat]]) # strat
@@ -72,7 +72,7 @@ add.label = function(g,X,label.fun,vs=NULL,...){
   X.label = rbind.lapply(split(X,X[strat]),
     function(Xi){ cbind(Xi[1,strat],label=label.fun(Xi),...) })
   g = g + geom_text(data=X.label,aes(label=label),size=2.5,
-    position=position_dodge(width=.75),show.legend=FALSE)
+    position=pos,show.legend=FALSE)
 }
 
 add.info = function(g,x){
@@ -86,6 +86,15 @@ facet.label = function(X){
   f = factor(f,unique(f))
 }
 
-aggr.prev = function(x){ c(p=mean(x),k=sum(x),n=len(x)) }
+aggr.prev = function(X,y='value',g='.',w='.'){
+  Xa = rbind.lapply(split(X,X[g]),function(Xi){
+    Xia = Xi[1,g]
+    Xia$k = sum(Xi[[w]]*Xi[[y]])
+    Xia$n = sum(Xi[[w]])
+    Xia$p = Xia$k / Xia$n
+    return(Xia)
+  })
+}
 
+pos  = position_dodge(width=.75)
 rmed = function(x){ round(median(x)) }

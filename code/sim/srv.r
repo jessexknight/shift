@@ -26,7 +26,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
 srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
   p.vars = unique(c(.p.vars,p.vars))
   i.vars = unique(c(.i.vars,i.vars))
-  Q = cbind(M$P[p.vars],t=t,M$I[i.vars]) # init Q ~= I
+  Q = cbind(M$P[p.vars],.=1,t=t,M$I[i.vars]) # init Q ~= I
   # df.compare(srv.base(M$P,Q,M$E,t),M$I) # DEBUG
 }
 

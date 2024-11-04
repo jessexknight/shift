@@ -139,7 +139,7 @@ par.mapply = function(...){
 }
 
 rbind.lapply = function(...){
-  do.call(rbind,c(par.lapply(...),list(make.row.names=FALSE)))
+  do.call(rbind,c(par.lapply(...)))
 }
 
 wapply = function(...){
@@ -157,11 +157,6 @@ grid.apply = function(x,fun,args=list(),...,.par=TRUE){
 def.args = function(f,...){
   args = list(...)
   f.pre = function(...){ do.call(f,c(args,list(...))) }
-}
-
-maggregate = function(...){
-  # clean-up multiple returns from FUN
-  x = do.call(data.frame,aggregate(...))
 }
 
 # -----------------------------------------------------------------------------

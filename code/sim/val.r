@@ -74,7 +74,7 @@ vals = list(
 # =============================================================================
 # run & plot
 
-val.run = function(name,pars,evts,strat='case',e.dts=NULL,x.cols=NULL){
+val.run = function(name,pars,evts,strat='.',e.dts=NULL,x.cols=NULL){
   pars = val.par.split(pars)
   status(2,'val.run: ',name,' @ ',n.seed*pars$n.var)
   Ps = grid.apply(ulist(pars$var,seed=1:n.seed),get.pars,pars$fix,.par=FALSE)
