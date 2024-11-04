@@ -32,7 +32,7 @@ ns2 = c(3,10)
 age5 = c(10,20,30,40,50)
 aRR5 = c( 1, 5, 2, 4, 3)/3
 
-age.10.fun   = function(Q){ floor(Q$age.1/10)*10 }
+age.10.fun   = function(Q){ int.cut(Q$age.1,seq(10,50,10)) }
 vio.nt.c.fun = function(Q){ int.cut(Q$vio.nt,c(0,ns2)) }
 
 vals = list(
@@ -83,72 +83,28 @@ val.run = function(name,pars,evts,strat='case',e.dts=NULL,x.cols=NULL){
   R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
   Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pars$var),x.cols=x.cols)
   for (evt in evts){
-    val.plot.rate(name,R,pars,strat,evt=evt)
-    val.plot.prev(name,Q,pars,strat,evt=evt)
+    val.plot.rate(name,R,pars,strat,evt)
+    val.plot.prev(name,Q,pars,strat,evt)
   }
 }
 
 val.par.split = function(par){
+  # split up variable vs fixed par, & count total var combo
   b = lens(par) > 1 & !grepl(names(null.sets$aRR),names(par))
   p = list(var=par[b],fix=par[!b],n.var=prod(lens(par[b])))
 }
 
-val.plot.rate = function(name,R,pars,strat,evt,t1y=364){
-  # TODO: clean-up t1y & Ri.my
-  R = subset(R,variable==evt)
-  R$facet = facet.label(R[names(pars$var)])
-  R.ref = pars$fix[[str(evt,'.Ri.my')]] / t1y
-  g = ggplot(R,aes(x='',y=t1y*value,color=as.factor(.data[[strat]]))) +
-    geom_point(data=data.frame(value=R.ref),shape=9,color='red') +
-    ylab('Rate (per year)')
-  g = val.plot.label(g,R,c('facet',strat),value=max(R$value)+R.ref,
-    function(Ri){ signif(median(Ri$value/R.ref),3) })
-  g = val.plot.label(g,R,c('facet',strat),value=0,
-    function(Ri){ str(rmed(Ri$ne),'\n',rmed(Ri$dt/t1y),'\n') })
-  g = val.plot.finish(g,c(name,evt,'rate'),pars,strat)
+val.plot.rate = function(name,R,pars,strat,evt){
+  ref = pars$fix[[str(evt,'.Ri.my')]]/365
+  g = plot.rate(R,evt=evt,strat=strat,facet=names(pars$var),ref=ref)
+  g = add.info(g,pars$fix)
+  plot.save(g,fig.dir,uid,str(c(name,evt,'rate'),collapse='--'))
 }
 
-val.plot.prev = function(name,Q,pars,strat,vars=NULL,evt=NULL){
-  vars = c(vars,switch(substr(ifelse(len(evt),evt,'null'),1,3),
-    vio = c('vio.nt', 'vio.dt'),
-    dep = c('dep.now','dep.past'),
-    haz = c('haz.now','haz.past'),
-    ptr = c('ptr.nt', 'ptr.nw'),
-    nul = NULL))
-  Q$facet = facet.label(Q[names(pars$var)])
-  Q = melt(Q,measure=setdiff(vars,strat))
-  Q = maggregate(formula(str('value~seed+variable+facet+',strat)),Q,
-    function(x){ c(p=mean(x),s=sum(x),n=len(x)) })
-  g = ggplot(Q,aes(x='',y=value.p,color=as.factor(.data[[strat]]))) +
-    ylab('Value (population mean)')
-  g = val.plot.label(g,Q,c('variable','facet',strat),value.p=0,
-    function(Qi){ str(rmed(Qi$value.s),'\n',rmed(Qi$value.n),'\n') })
-  g = val.plot.finish(g,c(name,evt,'prev'),pars,strat,nr=ulen(Q$variable))
-}
-
-val.plot.label = function(g,X,strat,lab.fun,...){
-  X.lab = rbind.lapply(split(X,X[strat]),function(Xi){
-    cbind(Xi[1,strat],label=lab.fun(Xi),...) })
-  g = g + geom_text(data=X.lab,aes(label=label),size=2.5,
-    position=position_dodge(width=.75),show.legend=FALSE)
-}
-
-val.plot.finish = function(g,name,pars,strat,nrow=1){
-  g = g + geom_boxplot(outlier.shape=1,outlier.alpha=1) +
-    facet_grid('variable~facet',scales='free') +
-    guides(color=guide_legend(ncol=2)) +
-    labs(x='',color=str(list.str(pars$fix,sig=3,rnd=9),'\n\n',strat)) +
-    ggtitle(str(name,collapse=': ')) +
-    scale_color_viridis_d() +
-    ylim(c(0,NA))
-  g = plot.clean(g,legend.title=element_text(size=9))
-  plot.save(fig.dir,uid,str(name,collapse='--'),w=2.5+2*pars$n.var,h=1+2*nrow)
-}
-
-rmed = function(x){ round(median(x)) }
-facet.label = function(X){ # fix level order
-  f = apply(X,1,list.str,sig=3,rnd=9)
-  f = factor(f,levels=unique(f))
+val.plot.prev = function(name,Q,pars,strat,evt){
+  g = plot.prev(Q,evt=evt,strat=strat,facet=names(pars$var))
+  g = add.info(g,pars$fix)
+  plot.save(g,fig.dir,uid,str(c(name,evt,'prev'),collapse='--'))
 }
 
 # =============================================================================
