@@ -19,7 +19,7 @@ add.pars.def = function(P=NULL){
   P$vio.Ri.my   = 1.00     # (mean) base rate: violence
   P$dep_o.Ri.my =  .015    # (mean) base rate: depression begin
   P$dep_x.Ri.my = 0.25     # (mean) base rate: depression end
-  P$haz_o.Ri.my =  .03     # (mean) base rate: hazdrink begin
+  P$haz_o.Ri.my =  .06     # (mean) base rate: hazdrink begin
   P$haz_x.Ri.my = 0.25     # (mean) base rate: hazdrink end
   P$ptr_o.Ri.my = 1.00     # (mean) base rate: partner begin
   P$ptr_x.Ri.my = 0.50     # (mean) base rate: partner end
