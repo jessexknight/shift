@@ -16,8 +16,8 @@ P0 = list(
   dep_o.Ri.my = .10, dep_x.Ri.my = 1.0,
   haz_o.Ri.my = .10, haz_x.Ri.my = 1.0,
   ptr_o.Ri.my = 3.0, ptr_x.Ri.my = 3.0, ptr.max.m = 3,
-  all.Ri.shape = 1e6,
-  ptr.Ri.shape = 1e6,
+  all.Ri.cv   = .001,
+  ptr.Ri.cv   = .001,
   null = 'xRR')
 
 # =============================================================================

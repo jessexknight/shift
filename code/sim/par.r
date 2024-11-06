@@ -25,13 +25,15 @@ add.pars.def = function(P=NULL){
   P$ptr_x.Ri.my = 0.50     # (mean) base rate: partner end
   P$sex.Ri.95   = c(.1,.5) # (95% CI) base rate: sex within ptr
   P$cdm.Pi.95   = c(.2,.8) # (95% CI) prob: condom use
-  # base rate covariance, shapes, etc.
+  # base rate covariance, CoV, etc.
   P$ptr.max.m   = 2.00      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
-  P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
-  P$all.Ri.shape = 1        # (gamma shape): all other base rates
+  P$vio.Ri.cv   = 2        # (gamma CoV): vio
+  P$dep.Ri.cv   = 0.5      # (gamma CoV): dep_o,dep_x
+  P$haz.Ri.cv   = 0.5      # (gamma CoV): haz_o,haz_x
+  P$ptr.Ri.cv   = 0.5      # (gamma CoV): ptr_o,ptr_x
   # *RR shapes & aggr
   P$aggr.rate = 'mult'
   P$aRR.shape = 'spline'
