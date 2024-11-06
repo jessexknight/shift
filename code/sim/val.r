@@ -102,7 +102,7 @@ val.plot.rate = function(name,R,pars,strat,evt){
 }
 
 val.plot.prev = function(name,Q,pars,strat,evt){
-  g = plot.prev(Q,evt=evt,strat=strat,facet=names(pars$var))
+  g = plot.mean(Q,evt=evt,strat=strat,facet=names(pars$var))
   g = add.info(g,pars$fix)
   plot.save(g,fig.dir,uid,str(c(name,evt,'prev'),collapse='--'))
 }

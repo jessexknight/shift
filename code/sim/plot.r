@@ -41,16 +41,16 @@ plot.common = function(X,...,geom='box'){
   g = plot.clean(g)
 }
 
-plot.prev = function(Q,vars=NULL,evt=NULL,facet=NULL,strat='.',wts='.'){
+plot.mean = function(Q,vars=NULL,evt=NULL,facet=NULL,strat='.',wts='.'){
   vars = c(vars,evt.vars(evt)) # select vars
   Q$facet = facet.label(Q[facet]) # clean-up facet label
   Q$strat = do.call(interaction,Q[strat]) # strat
   Q = melt(Q,measure=vars,var='var') # wide -> long
-  Q = aggr.prev(Q,g=c('seed','var','facet','strat'),w=wts) # agg
-  g = plot.common(Q,y=p,x=strat,color=strat) +
+  Q = aggr.mean(Q,g=c('seed','var','facet','strat'),w=wts) # agg
+  g = plot.common(Q,y=value,x=strat,color=strat) +
     labs(y='Value (population mean)',x=strat,color=strat)
-  g = add.label(g,Q,vs='strat',p=0,
-    function(Qi){ str(rmed(Qi$k),'\n',rmed(Qi$n),'\n') })
+  g = add.label(g,Q,vs='strat',value=0,
+    function(Qi){ str(rmed(Qi$num),'\n',rmed(Qi$den),'\n') })
 }
 
 plot.rate = function(R,evt=NULL,facet=NULL,strat='.',ref=NA){
@@ -86,12 +86,12 @@ facet.label = function(X){
   f = factor(f,unique(f))
 }
 
-aggr.prev = function(X,y='value',g='.',w='.'){
+aggr.mean = function(X,y='value',g='.',w='.'){
   Xa = rbind.lapply(split(X,X[g]),function(Xi){
     Xia = Xi[1,g]
-    Xia$k = sum(Xi[[w]]*Xi[[y]])
-    Xia$n = sum(Xi[[w]])
-    Xia$p = Xia$k / Xia$n
+    Xia$num = sum(Xi[[w]]*Xi[[y]])
+    Xia$den = sum(Xi[[w]])
+    Xia$value = Xia$num / Xia$den
     return(Xia)
   })
 }
