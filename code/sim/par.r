@@ -17,10 +17,10 @@ add.pars.def = function(P=NULL){
   P$n.dur = 1+1
   # base rates (per year)
   P$vio.Ri.my   = 1.00     # (mean) base rate: violence
-  P$dep_o.Ri.my =  .01     # (mean) base rate: depression begin
-  P$dep_x.Ri.my = 1.00     # (mean) base rate: depression end
-  P$haz_o.Ri.my =  .01     # (mean) base rate: hazdrink begin
-  P$haz_x.Ri.my = 1.00     # (mean) base rate: hazdrink end
+  P$dep_o.Ri.my =  .015    # (mean) base rate: depression begin
+  P$dep_x.Ri.my = 0.25     # (mean) base rate: depression end
+  P$haz_o.Ri.my =  .03     # (mean) base rate: hazdrink begin
+  P$haz_x.Ri.my = 0.25     # (mean) base rate: hazdrink end
   P$ptr_o.Ri.my = 1.00     # (mean) base rate: partner begin
   P$ptr_x.Ri.my = 0.50     # (mean) base rate: partner end
   P$sex.Ri.95   = c(.1,.5) # (95% CI) base rate: sex within ptr
@@ -41,10 +41,10 @@ add.pars.def = function(P=NULL){
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
-  P$aRR.dep_o.ages = c(amin,amax) # (age points) RR: age -> dep begin
-  P$aRR.dep_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> dep begin
-  P$aRR.haz_o.ages = c(amin,amax) # (age points) RR: age -> haz begin
-  P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz begin
+  P$aRR.dep_o.ages = c(amin,  30,amax) # (age points) RR: age -> dep begin
+  P$aRR.dep_o.RRs  = c(2.00,1.00,1.00) # (RR  points) RR: age -> dep begin
+  P$aRR.haz_o.ages = c(amin,  30,amax) # (age points) RR: age -> haz begin
+  P$aRR.haz_o.RRs  = c(2.00,1.00,1.00) # (RR  points) RR: age -> haz begin
   P$aRR.ptr_o.ages = c(amin,  20,  25,amax) # (age points) RR: age -> ptr begin
   P$aRR.ptr_o.RRs  = c(2.00,1.50,1.00,0.50) # (RR  points) RR: age -> ptr begin
   # RR: * -> dep begin
