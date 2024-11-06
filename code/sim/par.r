@@ -21,12 +21,12 @@ add.pars.def = function(P=NULL){
   P$dep_x.Ri.my = 1.00     # (mean) base rate: depression end
   P$haz_o.Ri.my =  .01     # (mean) base rate: hazdrink begin
   P$haz_x.Ri.my = 1.00     # (mean) base rate: hazdrink end
-  P$ptr_o.Ri.my = 12       # (mean) base rate: partner begin
-  P$ptr_x.Ri.my = 12       # (mean) base rate: partner end
+  P$ptr_o.Ri.my = 1.00     # (mean) base rate: partner begin
+  P$ptr_x.Ri.my = 0.50     # (mean) base rate: partner end
   P$sex.Ri.95   = c(.1,.5) # (95% CI) base rate: sex within ptr
   P$cdm.Pi.95   = c(.2,.8) # (95% CI) prob: condom use
   # base rate covariance, shapes, etc.
-  P$ptr.max.m   = 1.50      # (mean) max num partners
+  P$ptr.max.m   = 2.00      # (mean) max num partners
   P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
@@ -45,8 +45,8 @@ add.pars.def = function(P=NULL){
   P$aRR.dep_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> dep begin
   P$aRR.haz_o.ages = c(amin,amax) # (age points) RR: age -> haz begin
   P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz begin
-  P$aRR.ptr_o.ages = c(amin,amax) # (age points) RR: age -> ptr begin
-  P$aRR.ptr_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> ptr begin
+  P$aRR.ptr_o.ages = c(amin,  20,  25,amax) # (age points) RR: age -> ptr begin
+  P$aRR.ptr_o.RRs  = c(2.00,1.50,1.00,0.50) # (RR  points) RR: age -> ptr begin
   # RR: * -> dep begin
   P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
   P$iRR.dep_o.vio_zr = 2     # (initial RR) transient RR: vio -> dep begin
@@ -142,13 +142,14 @@ null.pars = function(P,null,save){
 
 null.sets = list(
   Ri  = list('Ri\\.m'=0),
-  RR  = list('^RR\\.'=1),
   aRR = list('^aRR\\..*\\.(ages|RRs)$'=1),
+   RR = list('^RR\\.'=1),
   tRR = list('^iRR\\.'=1,'^tsc\\.'=1e-12),
   nRR = list('^mRR\\.'=1,'^nsc\\.'=Inf),
   dRR = list('^dsc\\.'=Inf))
-null.sets$xRR = flist(null.sets[2:6])
-null.sets$all = flist(null.sets)
+null.sets$all = flist(null.sets)      # no events
+null.sets$xRR = flist(null.sets[2:6]) # only Ri
+null.sets$eRR = flist(null.sets[3:6]) # only Ri & aRR
 
 # =============================================================================
 # effect funs
