@@ -32,7 +32,8 @@ add.pars.def = function(P=NULL){
   P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
   P$ptr.Ri.shape = 3        # (gamma shape): ptr_o,ptr_x
   P$all.Ri.shape = 1        # (gamma shape): all other base rates
-  # *RR shapes
+  # *RR shapes & aggr
+  P$aggr.rate = 'mult'
   P$aRR.shape = 'spline'
   P$tRR.shape = 'ramp'
   P$nRR.shape = 'ramp'

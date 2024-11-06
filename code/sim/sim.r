@@ -92,70 +92,78 @@ rate.to.bool = function(R,dtz){ b = runif(len(R)) < (1-exp(-R*dtz)) }
 rate.to.num  = function(R,dtz){ n = rpois(len(R),R*dtz) }
 # TODO: define I$xxx.Ri = xxx.Ri * dtz -> avoid R*dtz here -> speedup?
 
+aggr.rate.mult = function(Ri,RR1=1,RR2=1,RR3=1,RR4=1,RR5=1){
+  Ri * RR1 * RR2 * RR3 * RR4 * RR5 }
+
+aggr.rate.add = function(Ri,RR1=1,RR2=1,RR3=1,RR4=1,RR5=1){
+  Ri * (RR1 + RR2 + RR3 + RR4 + RR5 - 4) }
+
+# -----------------------------------------------------------------------------
+
 rate.vio = function(P,J,aj){
-  R = ( # among all
+  R = aggr.rate( # among all
       J$vio.Ri # base rate
-    * P$aRR.vio[aj] # RR age
+    , P$aRR.vio[aj] # RR age
 ); return(R) }
 
 rate.dep_o = function(P,J,R,aj,z){
   j = which(!J$dep.now)
-  R[j] = ( # among not dep
+  R[j] = aggr.rate( # among not dep
       J$dep_o.Ri[j] # base rate
-    * P$aRR.dep_o[aj[j]] # RR age
-    * (1 + P$RRu.dep_o.dep_p * J$dep.past[j]) # RR dep past
-    * map.tRR(P$tRRu.dep_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * map.nRR(P$nRR.dep_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
+    , P$aRR.dep_o[aj[j]] # RR age
+    , (1 + P$RRu.dep_o.dep_p * J$dep.past[j]) # RR dep past
+    , map.tRR(P$tRRu.dep_o.vio_zr,J$vio.zr[j],z) # tRR vio
+    , map.nRR(P$nRR.dep_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.dep_x = function(P,J,R,aj,z){
   j = which(J$dep.now)
-  R[j] = ( # among dep
+  R[j] = aggr.rate( # among dep
       J$dep_x.Ri[j] # base rate
-    * map.tRR(P$dRRu.dep_x.dep_u,J$dep.zo[j],z) # RR dep dur
-    * map.tRR(P$tRRu.dep_x.vio_zr,J$vio.zr[j],z) # tRR vio
+    , map.tRR(P$dRRu.dep_x.dep_u,J$dep.zo[j],z) # RR dep dur
+    , map.tRR(P$tRRu.dep_x.vio_zr,J$vio.zr[j],z) # tRR vio
 ); return(R) }
 
 rate.haz_o = function(P,J,R,aj,z){
   j = which(!J$haz.now)
-  R[j] = ( # among not haz
+  R[j] = aggr.rate( # among not haz
       J$haz_o.Ri[j] # base rate
-    * P$aRR.haz_o[aj[j]] # RR age
-    * (1 + P$RRu.haz_o.haz_p * J$haz.past[j]) # RR haz past
-    * (1 + P$RRu.haz_o.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * map.nRR(P$nRR.haz_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
+    , P$aRR.haz_o[aj[j]] # RR age
+    , (1 + P$RRu.haz_o.haz_p * J$haz.past[j]) # RR haz past
+    , (1 + P$RRu.haz_o.dep_w * J$dep.now[j]) # RR dep now
+    , map.tRR(P$tRRu.haz_o.vio_zr,J$vio.zr[j],z) # tRR vio
+    , map.nRR(P$nRR.haz_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.haz_x = function(P,J,R,aj,z){
   j = which(J$haz.now)
-  R[j] = ( # among haz
+  R[j] = aggr.rate( # among haz
       J$haz_x.Ri[j] # base rate
-    * map.tRR(P$dRRu.haz_x.haz_u,J$haz.zo[j],z) # RR haz dur
-    * (1 + P$RRu.haz_x.dep_w * J$dep.now[j]) # RR dep now
-    * map.tRR(P$tRRu.haz_x.vio_zr,J$vio.zr[j],z) # tRR vio
+    , map.tRR(P$dRRu.haz_x.haz_u,J$haz.zo[j],z) # RR haz dur
+    , (1 + P$RRu.haz_x.dep_w * J$dep.now[j]) # RR dep now
+    , map.tRR(P$tRRu.haz_x.vio_zr,J$vio.zr[j],z) # tRR vio
 ); return(R) }
 
 rate.ptr_o = function(P,J,R,aj,z){
   j = which(J$age > J$age.act & J$ptr.nw < J$ptr.max)
-  R[j] = ( # among sex active & avail
+  R[j] = aggr.rate( # among sex active & avail
       J$ptr_o.Ri[j] # base rate
-    * P$aRR.ptr_o[aj[j]] # RR age
-    * (1 + P$RRu.ptr_o.dep_w * J$dep.now[j]) # RR dep now
-    * (1 + P$RRu.ptr_o.haz_w * J$haz.now[j]) # RR haz now
-    * map.tRR(P$tRRu.ptr_o.vio_zr,J$vio.zr[j],z) # tRR vio
-    * map.nRR(P$nRR.ptr_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
+    , P$aRR.ptr_o[aj[j]] # RR age
+    , (1 + P$RRu.ptr_o.dep_w * J$dep.now[j]) # RR dep now
+    , (1 + P$RRu.ptr_o.haz_w * J$haz.now[j]) # RR haz now
+    , map.tRR(P$tRRu.ptr_o.vio_zr,J$vio.zr[j],z) # tRR vio
+    , map.nRR(P$nRR.ptr_o.vio_nt,J$vio.nt[j],J$vio.zr[j],z) # nRR vio
 ); return(R) }
 
 rate.ptr_x = function(P,K,I,z){
   i1 = K[,1]
   i2 = K[,2]
-  R = ( # among all (ptrs)
+  R = aggr.rate( # among all (ptrs)
       0.5 * (I$ptr_x.Ri[i1] + I$ptr_x.Ri[i2]) # base rate
     # * (1 - 0.5 * (K[,3] == z)) # adjustment: 1/2 duration at risk - TODO
     # TODO: RR age
-    * (1 + P$RRu.ptr_x.dep_w * (I$dep.now[i1] + I$dep.now[i2])) # RR dep now
-    * (1 + P$RRu.ptr_x.haz_w * (I$haz.now[i1] + I$haz.now[i2])) # RR haz now
+    , (1 + P$RRu.ptr_x.dep_w * (I$dep.now[i1] + I$dep.now[i2])) # RR dep now
+    , (1 + P$RRu.ptr_x.haz_w * (I$haz.now[i1] + I$haz.now[i2])) # RR haz now
 ); return(R) }
 
 # =============================================================================
@@ -168,6 +176,7 @@ sim.run = function(P,sub='act'){
   I = init.inds(P) # individuals
   E = init.evts(P) # events
   K = NULL         # partnerships
+  aggr.rate <<- get(str('aggr.rate.',P$aggr.rate)) # mult vs add
   # event loop ----------------------------------------------------------------
   for (z in 1:P$zf){
     # if (z %% P$z1y == 0) { print(z/P$z1y) } # DEBUG
