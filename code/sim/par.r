@@ -16,24 +16,24 @@ add.pars.def = function(P=NULL){
   P$n.pop = 1000
   P$n.dur = 1+1
   # base rates (per year)
-  P$vio.Ri.my   = 1.00     # (mean) base rate: violence
-  P$dep_o.Ri.my =  .015    # (mean) base rate: depression begin
-  P$dep_x.Ri.my = 0.25     # (mean) base rate: depression end
-  P$haz_o.Ri.my =  .06     # (mean) base rate: hazdrink begin
-  P$haz_x.Ri.my = 0.25     # (mean) base rate: hazdrink end
+  P$vio.Ri.my   = 0.67     # (mean) base rate: violence
+  P$dep_o.Ri.my =  .02     # (mean) base rate: depression begin
+  P$dep_x.Ri.my =  .10     # (mean) base rate: depression end
+  P$haz_o.Ri.my =  .05     # (mean) base rate: hazdrink begin
+  P$haz_x.Ri.my =  .10     # (mean) base rate: hazdrink end
   P$ptr_o.Ri.my = 1.00     # (mean) base rate: partner begin
   P$ptr_x.Ri.my = 0.50     # (mean) base rate: partner end
   P$sex.Ri.95   = c(.1,.5) # (95% CI) base rate: sex within ptr
   P$cdm.Pi.95   = c(.2,.8) # (95% CI) prob: condom use
   # base rate covariance, CoV, etc.
-  P$ptr.max.m   = 2.00      # (mean) max num partners
-  P$dep.cov     = -.9       # approx covariance among dep_o,dep_x
-  P$haz.cov     = -.9       # approx covariance among haz_o,haz_x
-  P$ptr.cov     = +.9       # approx covariance among ptr_o,ptr_x,ptr.max
-  P$vio.Ri.cv   = 2        # (gamma CoV): vio
+  P$ptr.max.m   = 3.00     # (mean) max num partners
+  P$dep.cov     = -.9      # approx covariance among dep_o,dep_x
+  P$haz.cov     = -.9      # approx covariance among haz_o,haz_x
+  P$ptr.cov     = +.9      # approx covariance among ptr_o,ptr_x,ptr.max
+  P$vio.Ri.cv   = 0.5      # (gamma CoV): vio
   P$dep.Ri.cv   = 0.5      # (gamma CoV): dep_o,dep_x
   P$haz.Ri.cv   = 0.5      # (gamma CoV): haz_o,haz_x
-  P$ptr.Ri.cv   = 0.5      # (gamma CoV): ptr_o,ptr_x
+  P$ptr.Ri.cv   = 0.1      # (gamma CoV): ptr_o,ptr_x
   # *RR shapes & aggr
   P$aggr.rate = 'mult'
   P$aRR.shape = 'spline'
@@ -43,12 +43,12 @@ add.pars.def = function(P=NULL){
   # RR: age -> *
   P$aRR.vio.ages   = c(amin,amax) # (age points) RR: age -> vio
   P$aRR.vio.RRs    = c(1.00,1.00) # (RR  points) RR: age -> vio
-  P$aRR.dep_o.ages = c(amin,  30,amax) # (age points) RR: age -> dep begin
-  P$aRR.dep_o.RRs  = c(2.00,1.00,1.00) # (RR  points) RR: age -> dep begin
-  P$aRR.haz_o.ages = c(amin,  30,amax) # (age points) RR: age -> haz begin
-  P$aRR.haz_o.RRs  = c(2.00,1.00,1.00) # (RR  points) RR: age -> haz begin
-  P$aRR.ptr_o.ages = c(amin,  20,  25,amax) # (age points) RR: age -> ptr begin
-  P$aRR.ptr_o.RRs  = c(2.00,1.50,1.00,0.50) # (RR  points) RR: age -> ptr begin
+  P$aRR.dep_o.ages = c(amin,amax) # (age points) RR: age -> dep begin
+  P$aRR.dep_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> dep begin
+  P$aRR.haz_o.ages = c(amin,amax) # (age points) RR: age -> haz begin
+  P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz begin
+  P$aRR.ptr_o.ages = c(amin,  30,amax) # (age points) RR: age -> ptr begin
+  P$aRR.ptr_o.RRs  = c(3.00,1.00,0.10) # (RR  points) RR: age -> ptr begin
   # RR: * -> dep begin
   P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
   P$iRR.dep_o.vio_zr = 2     # (initial RR) transient RR: vio -> dep begin
