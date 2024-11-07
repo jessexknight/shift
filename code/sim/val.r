@@ -12,11 +12,13 @@ fig.dir = 'val'
 
 P0 = list(
   n.pop = n.pop,
-  vio.Ri.my   = .50,
-  dep_o.Ri.my = .10, dep_x.Ri.my = 1.0,
-  haz_o.Ri.my = .10, haz_x.Ri.my = 1.0,
-  ptr_o.Ri.my = 3.0, ptr_x.Ri.my = 3.0, ptr.max.m = 3,
-  all.Ri.cv   = .001,
+  vio.Ri.my   = 1.0,
+  dep_o.Ri.my = .10, dep_x.Ri.my = .50,
+  haz_o.Ri.my = .20, haz_x.Ri.my = .50,
+  ptr_o.Ri.my = 1.0, ptr_x.Ri.my = 1.0, ptr.max.m = 3,
+  vio.Ri.cv   = .001,
+  dep.Ri.cv   = .001,
+  haz.Ri.cv   = .001,
   ptr.Ri.cv   = .001,
   null = 'xRR')
 
