@@ -15,7 +15,7 @@ P0 = list(
   vio.Ri.my   = 1.0,
   dep_o.Ri.my = .10, dep_x.Ri.my = .50,
   haz_o.Ri.my = .20, haz_x.Ri.my = .50,
-  ptr_o.Ri.my = 1.0, ptr_x.Ri.my = 1.0, ptr.max.m = 3,
+  ptr_o.Ri.my = 2.0, ptr_x.Ri.my = 1.0, ptr.max.m = 3,
   vio.Ri.cv   = .001,
   dep.Ri.cv   = .001,
   haz.Ri.cv   = .001,
