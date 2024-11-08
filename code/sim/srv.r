@@ -84,9 +84,8 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
       act  = tia(i,Q$age.act[i]),        # - sexual activity
       tmax = rep(t,tia(i,amax) > t))     # - clip (end obs)
     for (e in names(e.dts)){             # - lagged events
-      for (dt in e.dts[[e]]){
-        Ei[[str(e,dt,'dt')]] = Ei[[e]]+dt }}
-    # TODO: add event order to sort to ensure correct PT attribution
+      Ei.dts = setNames(lapply(e.dts[[e]],`+`,Ei[[e]]),str(e,e.dts[[e]],'dt'))
+      Ei = append(Ei,Ei.dts,which(names(Ei)==e)) }
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
     ei = gsub('\\d*$','',names(ti))      # obs event names
     ein = ei[-len(ei)]   # for speed
@@ -94,6 +93,8 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
       to = ti[-len(ti)], # period start
       tx = ti[-1],       # period end
       e  = ei[-1],       # event at period end
+      age.1    = cumsum(ein=='age')+amin-1,
+      sex.act  = cummax(ein=='act'),
       vio.nt   = cumsum(ein=='vio'),
       dep.now  = cumsum(ein=='dep_o')-cumsum(ein=='dep_x'),
       dep.past = cummax(ein=='dep_o'),
@@ -101,8 +102,6 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
       haz.past = cummax(ein=='haz_o'),
       ptr.nw   = cumsum(ein=='ptr_o')-cumsum(ein=='ptr_x'),
       ptr.nt   = cumsum(ein=='ptr_o'),
-      age.1    = cumsum(ein=='age')+amin-1,
-      sex.act  = cummax(ein=='act'),
     row.names=NULL)
     for (e in names(e.dts)){
       for (dt in e.dts[[e]]){ # pmin because *RR do not stack
