@@ -62,6 +62,15 @@ srv.e.dts = function(P,Q,E,t,e.dts){
   return(Q)
 }
 
+srv.fit = function(P,Q,E,t){
+  E = clip.evts(E,t=t)
+  Q$vio.a6m = sapply(E$vio,any.dt,t=t,dt=P$t6m)
+  Q$vio.a1y = sapply(E$vio,any.dt,t=t,dt=P$t1y)
+  Q$ptr.n3m = sapply(E$ptr_o,len) - sapply(E$ptr_x,num.tot,t=t-P$t3m)
+  Q$ptr.n6m = sapply(E$ptr_o,len) - sapply(E$ptr_x,num.tot,t=t-P$t6m)
+  return(Q)
+}
+
 # =============================================================================
 # rate funs
 
@@ -155,6 +164,8 @@ rate.est = function(Y,e,strat='seed'){
 clip.evts = function(E,t){ E = lapply(E,lapply,clip.tes,t=t) }
 
 clip.tes = function(tes,t){ tes[tes <= t] }
+
+num.tot = function(tes,t){ n = sum(tes <= t) }
 
 num.dt = function(tes,t,dt){ n = sum(tes <= t & tes > t-dt) }
 
