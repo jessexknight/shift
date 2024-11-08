@@ -16,7 +16,6 @@ plot.size = function(g,w1=2,h1=2,wo=2.5,ho=1){
 
 plot.clean = function(g,...){
   g = g + theme_light() + theme(...,
-    legend.title=element_text(size=9),
     strip.background=element_rect(fill='gray85'),
     strip.text.x=element_text(color='black'),
     strip.text.y=element_text(color='black'))
@@ -75,10 +74,9 @@ add.label = function(g,X,label.fun,vs=NULL,...){
     position=pos,show.legend=FALSE)
 }
 
-add.info = function(g,x){
-  info = list.str(x,sig=3,rnd=9)
-  g = g + geom_point(aes(alpha=NA),x=0,y=0) +
-    scale_alpha_manual(name=info,na.value=0,labels='')
+add.info = function(g,info,size=8){
+  g = g + guides(custom=guide_custom(grid::textGrob(
+    label=info,gp=grid::gpar(fontsize=size,lineheight=1))))
 }
 
 facet.label = function(X){

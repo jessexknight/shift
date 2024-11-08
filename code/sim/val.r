@@ -98,13 +98,13 @@ val.par.split = function(par){
 val.plot.rate = function(name,R,pars,strat,evt){
   ref = pars$fix[[str(evt,'.Ri.my')]]/365
   g = plot.rate(R,evt=evt,strat=strat,facet=names(pars$var),ref=ref)
-  g = add.info(g,pars$fix)
+  g = add.info(g,list.str(pars$fix,sig=3,rnd=9))
   plot.save(g,fig.dir,uid,str(c(name,evt,'rate'),collapse='--'))
 }
 
 val.plot.prev = function(name,Q,pars,strat,evt){
   g = plot.mean(Q,evt=evt,strat=strat,facet=names(pars$var))
-  g = add.info(g,pars$fix)
+  g = add.info(g,list.str(pars$fix,sig=3,rnd=9))
   plot.save(g,fig.dir,uid,str(c(name,evt,'prev'),collapse='--'))
 }
 
