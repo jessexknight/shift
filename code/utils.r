@@ -159,6 +159,10 @@ def.args = function(f,...){
   f.pre = function(...){ do.call(f,c(args,list(...))) }
 }
 
+fast.split = function(...){
+  collapse::rsplit(...,flatten=TRUE)
+}
+
 # -----------------------------------------------------------------------------
 # stats
 
