@@ -113,6 +113,9 @@ list.str = function(x,def=' = ',join='\n',sig=Inf,rnd=Inf){
   paste(names(x),lapply(x,f),sep=def,collapse=join)
 }
 
+.isep = ' x '
+interac = function(...){ interaction(...,sep=.isep) }
+
 df.compare = function(x,y,v=NULL,cast=as.numeric){
   # check if x[v] == y[v] (for debug)
   if (is.null(v)){ v = intersect(names(x),names(y)) }

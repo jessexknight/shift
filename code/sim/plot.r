@@ -43,11 +43,11 @@ plot.common = function(X,...,geom='box'){
 plot.mean = function(Q,vars=NULL,evt=NULL,facet=NULL,strat='.',wts='.'){
   vars = c(vars,evt.vars(evt)) # select vars
   Q$facet = facet.label(Q[facet]) # clean-up facet label
-  Q$strat = do.call(interaction,Q[strat]) # strat
+  Q$strat = interac(Q[strat]) # strat
   Q = melt(Q,measure=vars,var='var') # wide -> long
   Q = aggr.mean(Q,g=c('seed','var','facet','strat'),w=wts) # agg
   g = plot.common(Q,y=value,x=strat,color=strat) +
-    labs(y='Value (population mean)',x=strat,color=strat)
+    labs(y='Value (population mean)',x=ilab(strat),color=ilab(strat))
   g = add.label(g,Q,vs='strat',value=0,
     function(Qi){ str(rmed(Qi$num),'\n',rmed(Qi$den),'\n') })
 }
@@ -55,10 +55,10 @@ plot.mean = function(Q,vars=NULL,evt=NULL,facet=NULL,strat='.',wts='.'){
 plot.rate = function(R,evt=NULL,facet=NULL,strat='.',ref=NA){
   R = subset(R,var==evt) # select evt
   R$facet = facet.label(R[facet]) # clean-up facet label
-  R$strat = as.factor(R[[strat]]) # strat
+  R$strat = interac(R[strat]) # strat
   R.ref = data.frame(value=ref,strat=len(levels(R$strat))/2+.5)
   g = plot.common(R,y=value*365,x=strat,color=strat) +
-    labs(y='Rate (per year)',x=strat,color=strat) +
+    labs(y='Rate (per year)',x=ilab(strat),color=ilab(strat)) +
     geom_point(data=R.ref,shape=9,color='red')
   g = add.label(g,R,vs='strat',value=0,
     function(Ri){ str(rmed(Ri$ne),'\n',rmed(Ri$dt/365),'\n') })
@@ -96,3 +96,4 @@ aggr.mean = function(X,y='value',g='.',w='.'){
 
 pos  = position_dodge(width=.75)
 rmed = function(x){ round(median(x)) }
+ilab = function(x){ str(x,collapse=.isep) }

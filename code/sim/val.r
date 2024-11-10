@@ -73,7 +73,10 @@ vals = list(
   # timestep stuff
   Ri.m.dtz     =list(pars=ulist(P0,dtz=dtz),evts=evts[1:7]),
   tRR.dep_o.dtz=list(pars=ulist(P0,dtz=dtz,iRR.dep_o.vio_zr=  RR1,tsc.dep_o.vio_zr=ts2,tRR.shape='step'),evts='dep_o',strat='vio.dt.c',e.dts=list(vio=ts2)),
-  tRR.dep_x.dtz=list(pars=ulist(P0,dtz=dtz,iRR.dep_x.vio_zr=1/RR1,tsc.dep_x.vio_zr=ts2,tRR.shape='step'),evts='dep_x',strat='vio.dt.c',e.dts=list(vio=ts2)))
+  tRR.dep_x.dtz=list(pars=ulist(P0,dtz=dtz,iRR.dep_x.vio_zr=1/RR1,tsc.dep_x.vio_zr=ts2,tRR.shape='step'),evts='dep_x',strat='vio.dt.c',e.dts=list(vio=ts2)),
+  # combo RR
+  RR2.haz_o=list(pars=ulist(P0,RR.haz_o.haz_p=  RR1,RR.haz_o.dep_w=RR1,aggr.rate=c('add','mult')),evts='haz_o',strat=c('haz.past','dep.now')),
+  RR2.ptr_o=list(pars=ulist(P0,RR.ptr_o.dep_w=1/RR1,RR.ptr_o.haz_w=RR1,aggr.rate=c('add','mult')),evts='ptr_o',strat=c('dep.now','haz.now')))
 
 # =============================================================================
 # run & plot
