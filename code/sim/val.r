@@ -25,7 +25,7 @@ P0 = list(
 # =============================================================================
 # scenarios
 
-dtz = c(1,2,5,10)
+dtz = c(1,3,10)
 RR1 = c(3)
 RR2 = c(1,3)
 RR3 = c(1,2,3)
@@ -41,7 +41,6 @@ vio.nt.c.fun = function(Q){ int.cut(Q$vio.nt,c(0,ns2)) }
 vals = list(
   # base rates
   Ri.m     =list(pars=ulist(P0),evts=evts[1:7]),
-  Ri.m.dtz =list(pars=ulist(P0,dtz=dtz),evts=evts[1:7]),
   ptr.n.pop=list(pars=ulist(P0,n.pop=c(100,300,900)),evts=c('ptr_o','ptr_x')),
   ptr.max  =list(pars=ulist(P0,ptr.max.m=c(1,3,30)), evts=c('ptr_o','ptr_x')),
   # age RR
@@ -70,7 +69,11 @@ vals = list(
   nRR.ptr_o.vio_nt=list(pars=ulist(P0,mRR.ptr_o.vio_nt=RR2,nsc.ptr_o.vio_nt=ns2,nRR.shape='step'),evts='ptr_o',strat='vio.nt.c',x.cols=list(vio.nt.c=vio.nt.c.fun)),
   # duration RR
   dRR.dep_x.dep_u=list(pars=ulist(P0,dsc.dep_x.dep_u=ds2,dRR.shape='step'),evts='dep_x',strat='dep_o.dt.c',e.dts=list(dep_o=ds2)),
-  dRR.haz_x.haz_u=list(pars=ulist(P0,dsc.haz_x.haz_u=ds2,dRR.shape='step'),evts='haz_x',strat='haz_o.dt.c',e.dts=list(haz_o=ds2)))
+  dRR.haz_x.haz_u=list(pars=ulist(P0,dsc.haz_x.haz_u=ds2,dRR.shape='step'),evts='haz_x',strat='haz_o.dt.c',e.dts=list(haz_o=ds2)),
+  # timestep stuff
+  Ri.m.dtz     =list(pars=ulist(P0,dtz=dtz),evts=evts[1:7]),
+  tRR.dep_o.dtz=list(pars=ulist(P0,dtz=dtz,iRR.dep_o.vio_zr=  RR1,tsc.dep_o.vio_zr=ts2,tRR.shape='step'),evts='dep_o',strat='vio.dt.c',e.dts=list(vio=ts2)),
+  tRR.dep_x.dtz=list(pars=ulist(P0,dtz=dtz,iRR.dep_x.vio_zr=1/RR1,tsc.dep_x.vio_zr=ts2,tRR.shape='step'),evts='dep_x',strat='vio.dt.c',e.dts=list(vio=ts2)))
 
 # =============================================================================
 # run & plot
