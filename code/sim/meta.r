@@ -1,12 +1,3 @@
-# source model code
-source('utils.r')
-source('sim/par.r')
-source('sim/sim.r')
-source('sim/srv.r')
-source('sim/plot.r')
-
-# unique ID
-uid = Sys.Date()
 
 # constants
 amin = 10 # age of cohort entry
@@ -22,3 +13,13 @@ evts = c(
   'ptr_o','ptr_x',
   'sex',  'cdm')
 names(evts) = evts
+
+# source model code
+source('utils.r')
+source('sim/par.r')
+source('sim/sim.r')
+source('sim/srv.r')
+source('sim/plot.r')
+
+# unique ID
+uid = Sys.Date()
