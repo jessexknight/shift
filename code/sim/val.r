@@ -82,35 +82,29 @@ vals = list(
 # run & plot
 
 val.run = function(name,pars,evts,strat='.',e.dts=NULL,x.cols=NULL){
-  pars = val.par.split(pars)
-  status(2,'val.run: ',name,' @ ',n.seed*pars$n.var)
-  Ps = grid.apply(ulist(pars$var,seed=1:n.seed),get.pars,pars$fix,.par=FALSE)
+  status(2,'val.run: ',name)
+  Ps = get.pars.grid(pars)
+  pa = attributes(Ps)
   Ms = sim.runs(Ps)
-  Y = rate.datas(Ms,p.vars=names(pars$var),e.dts=e.dts,x.cols=x.cols)
-  R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pars$var)))
-  Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pars$var),x.cols=x.cols)
+  Y = rate.datas(Ms,p.vars=names(pa$var),e.dts=e.dts,x.cols=x.cols)
+  R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pa$var)))
+  Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pa$var),x.cols=x.cols)
   for (evt in evts){
-    val.plot.rate(name,R,pars,strat,evt)
-    val.plot.prev(name,Q,pars,strat,evt)
+    val.plot.rate(name,R,pa,strat,evt)
+    val.plot.prev(name,Q,pa,strat,evt)
   }
 }
 
-val.par.split = function(par){
-  # split up variable vs fixed par, & count total var combo
-  b = lens(par) > 1 & !grepl(names(null.sets$aRR),names(par))
-  p = list(var=par[b],fix=par[!b],n.var=prod(lens(par[b])))
-}
-
-val.plot.rate = function(name,R,pars,strat,evt){
-  ref = pars$fix[[str(evt,'.Ri.my')]]/365
-  g = plot.rate(R,evt=evt,strat=strat,facet=names(pars$var),ref=ref)
-  g = add.info(g,list.str(pars$fix,sig=3,rnd=9))
+val.plot.rate = function(name,R,pa,strat,evt){
+  ref = pa$fix[[str(evt,'.Ri.my')]]/365
+  g = plot.rate(R,evt=evt,strat=strat,facet=names(pa$var),ref=ref)
+  g = add.info(g,list.str(pa$fix,sig=3,rnd=9))
   plot.save(g,fig.dir,uid,str(c(name,evt,'rate'),collapse='--'))
 }
 
-val.plot.prev = function(name,Q,pars,strat,evt){
-  g = plot.mean(Q,evt=evt,strat=strat,facet=names(pars$var))
-  g = add.info(g,list.str(pars$fix,sig=3,rnd=9))
+val.plot.prev = function(name,Q,pa,strat,evt){
+  g = plot.mean(Q,evt=evt,strat=strat,facet=names(pa$var))
+  g = add.info(g,list.str(pa$fix,sig=3,rnd=9))
   plot.save(g,fig.dir,uid,str(c(name,evt,'prev'),collapse='--'))
 }
 

@@ -1,6 +1,6 @@
 source('sim/meta.r')
 
-Ps = lapply(1:7,get.pars)
+Ps = get.pars.grid(seed=1:7)
 Ms = sim.runs(Ps)
 Q  = srv.apply(Ms)
 
