@@ -166,6 +166,17 @@ rate.ptr_x = function(P,K,I,z){
     , (1 + P$RRu.ptr_x.haz_w * (I$haz.now[i1] + I$haz.now[i2])) # RR haz now
 ); return(R) }
 
+num.ptr_o = function(R,dtz,ju){
+  nj = rate.to.num(R,dtz)
+  if (len(ju) && !is.na(ju)){ # if old unpaired
+    nj[ju] = nj[ju] + 1 }     # - add old unpaired
+  if (sum(nj) %% 2){          # odd:
+    ju = which.max(nj)        # - select new unpaired
+    nj[ju] = nj[ju] - 1 }     # - remove new unpaired
+  else { ju = NULL }          # even: no new unpaired
+  return(list(nj=nj,ju=ju))
+}
+
 # =============================================================================
 # run simulation
 
@@ -176,6 +187,7 @@ sim.run = function(P,sub='act'){
   I = init.inds(P) # individuals
   E = init.evts(P) # events
   K = NULL         # partnerships
+  iu = NULL        # unpaired individual
   aggr.rate <<- get(str('aggr.rate.',P$aggr.rate)) # mult vs add
   # event loop ----------------------------------------------------------------
   for (z in 1:P$zf){
@@ -216,7 +228,9 @@ sim.run = function(P,sub='act'){
     I$haz.now[i] = FALSE
     E$haz_x[z,i] = TRUE
     # begin ptrs --------------------------------------------------------------
-    nj = even.sum(rate.to.num(rate.ptr_o(P,J,R0,aj,z),P$dtz))
+    nju = num.ptr_o(rate.ptr_o(P,J,R0,aj,z),P$dtz,match(iu,J$i))
+    nj = nju$nj     # num ptr to begin
+    iu = ij[nju$ju] # 0 or 1 unpaired
     I$ptr.nw[J$i] = I$ptr.nw[J$i] + nj
     E$ptr_o[z,J$i] = nj
     K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
