@@ -3,7 +3,7 @@
 # pars
 
 get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
-  P = list(case=case,seed=seed,id=sprintf('%6d',seed)) # meta
+  P = list(case=case,seed=seed) # meta
   P = add.pars.def(P)         # default (upstream)
   P = add.pars.time(P,dtz)    # timestep-related
   P = null.pars(P,null,save)  # null some Ri,RR

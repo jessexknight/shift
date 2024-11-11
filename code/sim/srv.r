@@ -74,7 +74,7 @@ rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
   # TODO: think carefully about if/where dtz / 2 is needed
-  status(4,M$P$id)
+  status(4,id=M$P$seed)
   tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
   Y = rbind.lapply(1:nrow(Q),function(i){

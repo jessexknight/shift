@@ -16,6 +16,7 @@ options(
 
 len = length
 lens = lengths
+seqn = seq_len
 str = paste0
 
 # -----------------------------------------------------------------------------
@@ -34,11 +35,11 @@ root.path = function(...,create=FALSE){
 
 .verb = cli.arg('.verb',4)
 
-status = function(lvl,...){
+status = function(lvl,...,id=NULL){
   if (lvl > .verb){ return() }
   pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
   end = list('\n','\n','\n','')[[lvl]]
-  cat(pre,...,end,sep='')
+  cat(pre,...,sprintf('%6d',id),end,sep='')
 }
 
 # -----------------------------------------------------------------------------
@@ -153,7 +154,7 @@ grid.apply = function(x,fun,args=list(),...,.par=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   xg = expand.grid(x,stringsAsFactors=FALSE)
-  grid.args = lapply(1:nrow(xg),function(i){ ulist(as.list(xg[i,]),args,...) })
+  grid.args = lapply(seqn(nrow(xg)),function(i){ ulist(as.list(xg[i,]),args,...) })
   par.lapply(grid.args,do.call,what=fun,.par=.par)
 }
 

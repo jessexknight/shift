@@ -181,7 +181,7 @@ num.ptr_o = function(R,dtz,ju){
 # run simulation
 
 sim.run = function(P,sub='act'){
-  status(4,P$id)
+  status(4,id=P$seed)
   # initialization ------------------------------------------------------------
   set.seed(P$seed)
   I = init.inds(P) # individuals
