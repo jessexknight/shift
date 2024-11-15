@@ -202,47 +202,56 @@ sim.run = function(P,sub='act'){
     R0 = numeric(nrow(J)) # init rate = 0 for j
     # note: we only update J as needed for within-timestep effects
     #       we also ignore within-timestep dep & haz relapse
-    # vio events --------------------------------------------------------------
-    j = which(rate.to.bool(rate.vio(P,J,aj),P$dtz)); i = ij[j]
-    I$vio.zr[i] = z;               J$vio.zr[j] = z
-    I$vio.nt[i] = I$vio.nt[i] + 1; J$vio.nt[j] = J$vio.nt[j] + 1
-    E$vio[z,i]  = TRUE
-    # begin dep ---------------------------------------------------------------
-    j = which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
-    I$dep.past[i] = TRUE
-    I$dep.now[i] = TRUE;  J$dep.now[j] = TRUE
-    I$dep.zo[i] = z;      J$dep.zo[j] = z
-    E$dep_o[z,i] = TRUE
-    # end dep -----------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
-    I$dep.now[i] = FALSE
-    E$dep_x[z,i] = TRUE
-    # begin haz ---------------------------------------------------------------
-    j = which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
-    I$haz.past[i] = TRUE
-    I$haz.now[i] = TRUE;  J$haz.now[j] = TRUE
-    I$haz.zo[i] = z;      J$haz.zo[j] = z
-    E$haz_o[z,i] = TRUE
-    # end haz -----------------------------------------------------------------
-    i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
-    I$haz.now[i] = FALSE
-    E$haz_x[z,i] = TRUE
-    # begin ptrs --------------------------------------------------------------
-    nju = num.ptr_o(rate.ptr_o(P,J,R0,aj,z),P$dtz,match(iu,J$i))
-    nj = nju$nj     # num ptr to begin
-    iu = ij[nju$ju] # 0 or 1 unpaired
-    I$ptr.nw[J$i] = I$ptr.nw[J$i] + nj
-    E$ptr_o[z,J$i] = nj
-    K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
-    # sex in ptrs -------------------------------------------------------------
-    # TODO
-    # TODO: new partners must have sex during z
-    # end ptrs ----------------------------------------------------------------
-    b = rate.to.bool(rate.ptr_x(P,K,I,z),P$dtz)
-    ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
-    I$ptr.nw = I$ptr.nw - ni
-    E$ptr_x[z,] = ni
-    K = K[!b,]
+    if (P$run$vio){
+      # vio events ------------------------------------------------------------
+      j = which(rate.to.bool(rate.vio(P,J,aj),P$dtz)); i = ij[j]
+      I$vio.zr[i] = z;               J$vio.zr[j] = z
+      I$vio.nt[i] = I$vio.nt[i] + 1; J$vio.nt[j] = J$vio.nt[j] + 1
+      E$vio[z,i]  = TRUE
+    } # vio
+    if (P$run$dep){
+      # begin dep -------------------------------------------------------------
+      j = which(rate.to.bool(rate.dep_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
+      I$dep.past[i] = TRUE
+      I$dep.now[i] = TRUE;  J$dep.now[j] = TRUE
+      I$dep.zo[i] = z;      J$dep.zo[j] = z
+      E$dep_o[z,i] = TRUE
+      # end dep ---------------------------------------------------------------
+      i = ij[which(rate.to.bool(rate.dep_x(P,J,R0,aj,z),P$dtz))]
+      I$dep.now[i] = FALSE
+      E$dep_x[z,i] = TRUE
+    } # dep
+    if (P$run$haz){
+      # begin haz -------------------------------------------------------------
+      j = which(rate.to.bool(rate.haz_o(P,J,R0,aj,z),P$dtz)); i = ij[j]
+      I$haz.past[i] = TRUE
+      I$haz.now[i] = TRUE;  J$haz.now[j] = TRUE
+      I$haz.zo[i] = z;      J$haz.zo[j] = z
+      E$haz_o[z,i] = TRUE
+      # end haz ---------------------------------------------------------------
+      i = ij[which(rate.to.bool(rate.haz_x(P,J,R0,aj,z),P$dtz))]
+      I$haz.now[i] = FALSE
+      E$haz_x[z,i] = TRUE
+    } # haz
+    if (P$run$ptr){
+      # begin ptrs ------------------------------------------------------------
+      nju = num.ptr_o(rate.ptr_o(P,J,R0,aj,z),P$dtz,match(iu,J$i))
+      nj = nju$nj     # num ptr to begin
+      iu = ij[nju$ju] # 0 or 1 unpaired
+      I$ptr.nw[J$i] = I$ptr.nw[J$i] + nj
+      E$ptr_o[z,J$i] = nj
+      K = rbind(K,init.ptrs(P,I,rep(J$i,nj),z))
+      # sex in ptrs -----------------------------------------------------------
+      if (P$run$sex){
+        # TODO: new partners must have sex during z
+      }
+      # end ptrs --------------------------------------------------------------
+      b = rate.to.bool(rate.ptr_x(P,K,I,z),P$dtz)
+      ni = tabulate(as.numeric(K[b,1:2]),P$n.tot)
+      I$ptr.nw = I$ptr.nw - ni
+      E$ptr_x[z,] = ni
+      K = K[!b,]
+    } # ptr
   }
   # clean-up ------------------------------------------------------------------
   x = c('vio.zr','dep.zo','haz.zo')

@@ -12,6 +12,7 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL){
 }
 
 add.pars.def = function(P=NULL){
+  P$run = list(vio=TRUE,dep=TRUE,haz=TRUE,ptr=TRUE,sex=TRUE)
   # pop size & duration
   P$n.pop = 1000
   P$n.dur = 1+1
@@ -163,7 +164,7 @@ get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE){
   v  = lens(pars) > 1 & ! names(pars) %in% vec.pars # pars that vary in grid
   pa = list(seed=seed,var=pars[v],fix=pars[!v],n.var=prod(lens(pars[v])))
   status(3,'get.pars: ',pa$n.var,' x ',len(seed))
-  P0s = grid.apply(ulist(pars,seed=0),get.pars,.par=.par) # dummy seed = 0
+  P0s = grid.apply(ulist(pa$var,seed=0),get.pars,args=pa$fix,.par=.par) # dummy seed
   Ps  = flist(lapply(P0s,function(P0){ # replicate P0s for each seed (faster)
     lapply(seed,function(s){ P0$seed = s; return(P0) }) }))
   attributes(Ps) = pa
