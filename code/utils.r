@@ -18,6 +18,8 @@ len = length
 lens = lengths
 seqn = seq_len
 str = paste0
+set.names = setNames
+no.warn = suppressWarnings
 
 # -----------------------------------------------------------------------------
 # files + i/o
@@ -40,6 +42,34 @@ status = function(lvl,...,id=NULL){
   pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
   end = list('\n','\n','\n','')[[lvl]]
   cat(pre,...,sprintf('%6d',id),end,sep='')
+}
+
+# -----------------------------------------------------------------------------
+# plot tools
+
+# note: load ggplot2 elsewhere for speed
+
+plot.save = function(g,...,size=NULL,ext='.pdf'){
+  if (missing(size)){ size = plot.size(g) }
+  fname = str(root.path('out','fig',...,create=TRUE),ext)
+  status(3,'saving: ',fname)
+  ggsave(fname,w=size[1],h=size[2],device=cairo_pdf)
+}
+
+plot.1o = list(w1=2,h1=2,wo=1,ho=1) # width & height of each facet & offsets
+
+plot.size = function(g,...){
+  # define size from facet grid
+  s = ulist(plot.1o,...)
+  layout = ggplot_build(g)$layout$layout
+  size = c(w=s$wo+s$w1*max(layout$COL),h=s$ho+s$h1*max(layout$ROW))
+}
+
+plot.clean = function(g,...){
+  g = g + theme_light() + theme(...,
+    strip.background=element_rect(fill='gray85'),
+    strip.text.x=element_text(color='black'),
+    strip.text.y=element_text(color='black'))
 }
 
 # -----------------------------------------------------------------------------
