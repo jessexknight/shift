@@ -124,6 +124,10 @@ add.pars.cond = function(P){
   for (x in filter.names(P,'Ri\\.my$')){
     P[[gsub('my$','m',x)]] = P[[x]] / P$t1y
   }
+  # pre-compute & lower-bound Ri.cv^2
+  for (x in filter.names(P,'Ri\\.cv$')){
+    P[[gsub('cv$','cv2',x)]] = max(P[[x]]^2,1e-6)
+  }
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
     P[[gsub('RR','RRu',x)]] = P[[x]] - 1

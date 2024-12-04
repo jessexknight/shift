@@ -12,6 +12,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (t)
   status(3,'srv.apply: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
+  if (t <= 0){ t = Ms[[1]]$P$tf + t }
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')
   Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars); gc()
@@ -84,7 +85,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
       act  = tia(i,Q$age.act[i]),        # - sexual activity
       tmax = rep(t,tia(i,amax) > t))     # - clip (end obs)
     for (e in names(e.dts)){             # - lagged events
-      Ei.dts = setNames(lapply(e.dts[[e]],`+`,Ei[[e]]),str(e,e.dts[[e]],'dt'))
+      Ei.dts = set.names(lapply(e.dts[[e]],`+`,Ei[[e]]),str(e,e.dts[[e]],'dt'))
       Ei = append(Ei,Ei.dts,which(names(Ei)==e)) }
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
     ei = gsub('\\d*$','',names(ti))      # obs event names

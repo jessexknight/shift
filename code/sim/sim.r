@@ -5,7 +5,8 @@
 init.evts = function(P){
   # initialize event matrices for each event type & individual
   # TODO: could reduce mem req using ncol = adur*P$z1y < P$zf
-  E = lapply(evts,function(e){ matrix(FALSE,nrow=P$zf,ncol=P$n.tot) })
+  E = lapply(set.names(evts,evts),function(e){
+    matrix(FALSE,nrow=P$zf,ncol=P$n.tot) })
 }
 
 init.inds = function(P){
@@ -14,25 +15,25 @@ init.inds = function(P){
   dep = as.data.frame(copula(n,
     covs = P$dep.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=1/P$dep.Ri.cv^2,scale=P$dep_o.Ri.m*P$dep.Ri.cv^2),
-    x.Ri = list(shape=1/P$dep.Ri.cv^2,scale=P$dep_x.Ri.m*P$dep.Ri.cv^2)))
+    o.Ri = list(shape=1/P$dep.Ri.cv2,scale=P$dep_o.Ri.m*P$dep.Ri.cv2),
+    x.Ri = list(shape=1/P$dep.Ri.cv2,scale=P$dep_x.Ri.m*P$dep.Ri.cv2)))
   # plot(dep,col=rgb(0,0,0,.1)) # DEBUG
   haz = as.data.frame(copula(n,
     covs = P$haz.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=1/P$haz.Ri.cv^2,scale=P$haz_o.Ri.m*P$haz.Ri.cv^2),
-    x.Ri = list(shape=1/P$haz.Ri.cv^2,scale=P$haz_x.Ri.m*P$haz.Ri.cv^2)))
+    o.Ri = list(shape=1/P$haz.Ri.cv2,scale=P$haz_o.Ri.m*P$haz.Ri.cv2),
+    x.Ri = list(shape=1/P$haz.Ri.cv2,scale=P$haz_x.Ri.m*P$haz.Ri.cv2)))
   # plot(haz,col=rgb(0,0,0,.1)) # DEBUG
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
     qfuns = list(o.Ri=qgamma,x.Ri=qgamma,max=qgeom),
-    o.Ri = list(shape=1/P$ptr.Ri.cv^2,scale=P$ptr_o.Ri.m*P$ptr.Ri.cv^2),
-    x.Ri = list(shape=1/P$ptr.Ri.cv^2,scale=P$ptr_x.Ri.m*P$ptr.Ri.cv^2),
+    o.Ri = list(shape=1/P$ptr.Ri.cv2,scale=P$ptr_o.Ri.m*P$ptr.Ri.cv2),
+    x.Ri = list(shape=1/P$ptr.Ri.cv2,scale=P$ptr_x.Ri.m*P$ptr.Ri.cv2),
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   # create main df of individuals ---------------------------------------------
   age = runif(n,min=amin-P$n.dur*adur,max=amax)
-  vio.Ri = rgamma(n=n,shape=1/P$vio.Ri.cv^2,scale=P$vio.Ri.m*P$vio.Ri.cv^2)
+  vio.Ri = rgamma(n=n,shape=1/P$vio.Ri.cv2,scale=P$vio.Ri.m*P$vio.Ri.cv2)
   sex.Ri = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   I = data.frame(

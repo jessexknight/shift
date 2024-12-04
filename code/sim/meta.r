@@ -3,7 +3,6 @@
 amin = 10 # age of cohort entry
 amax = 60 # age of cohort exit
 adur = amax - amin # duration in cohort
-eps  = 1e-12 # a small number
 
 # event types
 evts = c(
@@ -12,7 +11,6 @@ evts = c(
   'haz_o','haz_x',
   'ptr_o','ptr_x',
   'sex',  'cdm')
-names(evts) = evts
 
 # source model code
 source('utils.r')
