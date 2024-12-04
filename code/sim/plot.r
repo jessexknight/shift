@@ -8,10 +8,13 @@ plot.save = function(g,...,size=NULL,ext='.pdf'){
   ggsave(fname,w=size[1],h=size[2],device=cairo_pdf)
 }
 
-plot.size = function(g,w1=2,h1=2,wo=2.5,ho=1){
+plot.1o = list(w1=2,h1=2,wo=1,ho=1) # width & height of each facet & offsets
+
+plot.size = function(g,...){
   # define size from facet grid
+  s = ulist(plot.1o,...)
   layout = ggplot_build(g)$layout$layout
-  size = c(w=wo+w1*max(layout$COL),h=ho+h1*max(layout$ROW))
+  size = c(w=s$wo+s$w1*max(layout$COL),h=s$ho+s$h1*max(layout$ROW))
 }
 
 plot.clean = function(g,...){
@@ -34,7 +37,7 @@ plot.common = function(X,...,geom='box'){
   g = ggplot(X,aes(...)) + switch(geom,
       box    = geom_boxplot(outlier.shape=1,outlier.alpha=1,alpha=0),
       violin = geom_violin(draw_quantiles=1:3/4,alpha=0)) +
-    facet_grid(var~facet,scales='free') +
+    facet_grid('var~facet',scales='free') +
     scale_color_viridis_d(guide='none') +
     ylim(c(0,NA))
   g = plot.clean(g)
@@ -97,3 +100,4 @@ aggr.mean = function(X,y='value',g='.',w='.'){
 pos  = position_dodge(width=.75)
 rmed = function(x){ round(median(x)) }
 ilab = function(x){ str(x,collapse=.isep) }
+aes.string = function(...){ suppressWarnings(aes_string(...)) }
