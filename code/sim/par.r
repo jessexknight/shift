@@ -160,6 +160,14 @@ null.sets$eRR = flist(null.sets[3:6]) # only Ri & aRR
 
 vec.pars = names(which(lens(add.pars.def()) > 1))
 
+get.run.par = function(v,u=FALSE){
+  # get run list for vars (v) + upstream
+  vars = c('vio','dep','haz','ptr','sex')
+  run = set.names(vars %in% v,vars)
+  if (u){ run[1:max(which(run))] = TRUE }
+  run = as.list(run)
+}
+
 # -----------------------------------------------------------------------------
 
 get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE){
