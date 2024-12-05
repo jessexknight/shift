@@ -190,7 +190,7 @@ def.RR.age = function(age,RR,shape='spline',eps=.001){
   n = len(RR)
   RR  = c(RR[1],RR,RR[n])
   age = c(age[1]-eps,age,age[n]+eps)
-  age.out = seq(amin,amax)
+  age.out = seq(1,amax)
   RR.age = switch(shape,
     spline = splinefun(age,RR,method='monoH.FC')(age.out),
     linear = approx(age,RR,age.out,method='liner',rule=2)$y,
