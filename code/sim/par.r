@@ -200,7 +200,7 @@ def.RR.age = function(age,RR,shape='spline',eps=.001){
 # -----------------------------------------------------------------------------
 
 def.nRR = function(shape,mRR,nsc,t1y){
-  # cumulative RR: chose shape function for count: no timestep issues
+  # cumulative RR: choose shape function for count: no timestep issues
   if (nsc==Inf){ return(rep(1,t1y*adur)) }
   n = 0:(t1y*adur) # nmax = all active timesteps
   nRR = 1 + (mRR-1) * switch(shape,
@@ -209,10 +209,8 @@ def.nRR = function(shape,mRR,nsc,t1y){
     step = n >= nsc)
 }
 
-# -----------------------------------------------------------------------------
-
 def.tRR = function(shape,iRR,tsc,dtz){
-  # transient RR: chose shape function & tmax, then integrate & adjust
+  # transient RR: choose shape function & tmax, then integrate & adjust
   tRR.t = switch(shape,
     exp  = function(t){ 1 + (t>=0)*(iRR-1) * exp(-t/tsc) },
     ramp = function(t){ 1 + (t>=0)*(iRR-1) * pmax(0,1-t/tsc) },
@@ -222,7 +220,7 @@ def.tRR = function(shape,iRR,tsc,dtz){
 }
 
 def.dRR = function(shape,dsc,dtz,t1y){
-  # duration RR: chose shape function & dmax, then integrate & adjust
+  # duration RR: choose shape function & dmax, then integrate & adjust
   dRR.d = switch(shape,
     exp  = function(d){ (d<0) + (d>=0) * exp(-d/dsc) },
     ramp = function(d){ (d<0) + (d>=0) * pmax(0,1-d/dsc) },
@@ -237,6 +235,8 @@ int.tRR = function(tRR.t,dtz,tmax){
   tz = seq(0,tmax,dtz) - dtz/2 # lower bounds
   tRR = sapply(tz,function(ti){ integrate(tRR.t,ti,ti+dtz)$value })
 }
+
+# -----------------------------------------------------------------------------
 
 map.nRR = function(nRR,n,ze,z){
   # lookup nRR kernel for the number (n) of exposures
