@@ -50,6 +50,11 @@ add.pars.def = function(P=NULL){
   P$aRR.haz_o.RRs  = c(1.00,1.00) # (RR  points) RR: age -> haz begin
   P$aRR.ptr_o.ages = c(amin,  30,amax) # (age points) RR: age -> ptr begin
   P$aRR.ptr_o.RRs  = c(3.00,1.00,0.10) # (RR  points) RR: age -> ptr begin
+  # RR: * -> vio
+  P$iRR.vio.vio_zr   = 1     # (initial RR) transient RR: vio -> vio
+  P$tsc.vio.vio_zr   = 90    # (time scale) transient RR: vio -> vio
+  P$mRR.vio.vio_nt   = 1     # (max RR)  cumulative RR: vio -> vio
+  P$nsc.vio.vio_nt   = 1     # (n scale) cumulative RR: vio -> vio
   # RR: * -> dep begin
   P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
   P$iRR.dep_o.vio_zr = 2     # (initial RR) transient RR: vio -> dep begin
@@ -108,12 +113,14 @@ add.pars.cond = function(P){
   P$aRR.haz_o = def.RR.age(P$aRR.haz_o.ages,P$aRR.haz_o.RRs,P$aRR.shape) # RR: age -> haz begin
   P$aRR.ptr_o = def.RR.age(P$aRR.ptr_o.ages,P$aRR.ptr_o.RRs,P$aRR.shape) # RR: age -> ptr begin
   # tRR: vio
+  P$tRRu.vio.vio_zr   = def.tRR(P$tRR.shape,P$iRR.vio.vio_zr,  P$tsc.vio.vio_zr,  P$dtz) - 1 # tRR-1: vio -> vio
   P$tRRu.dep_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.dep_o.vio_zr,P$tsc.dep_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep begin
   P$tRRu.dep_x.vio_zr = def.tRR(P$tRR.shape,P$iRR.dep_x.vio_zr,P$tsc.dep_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> dep end
   P$tRRu.haz_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.haz_o.vio_zr,P$tsc.haz_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz begin
   P$tRRu.haz_x.vio_zr = def.tRR(P$tRR.shape,P$iRR.haz_x.vio_zr,P$tsc.haz_x.vio_zr,P$dtz) - 1 # tRR-1: vio -> haz end
   P$tRRu.ptr_o.vio_zr = def.tRR(P$tRR.shape,P$iRR.ptr_o.vio_zr,P$tsc.ptr_o.vio_zr,P$dtz) - 1 # tRR-1: vio -> ptr begin
   # nRR: vio
+  P$nRR.vio.vio_nt   = def.nRR(P$nRR.shape,P$mRR.vio.vio_nt,  P$nsc.vio.vio_nt,  P$t1y) # nRR: vio -> vio
   P$nRR.dep_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.dep_o.vio_nt,P$nsc.dep_o.vio_nt,P$t1y) # nRR: vio -> dep begin
   P$nRR.haz_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.haz_o.vio_nt,P$nsc.haz_o.vio_nt,P$t1y) # nRR: vio -> haz begin
   P$nRR.ptr_o.vio_nt = def.nRR(P$nRR.shape,P$mRR.ptr_o.vio_nt,P$nsc.ptr_o.vio_nt,P$t1y) # nRR: vio -> ptr begin

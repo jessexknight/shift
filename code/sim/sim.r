@@ -102,10 +102,12 @@ aggr.rate.add = function(Ri,RR1=1,RR2=1,RR3=1,RR4=1,RR5=1){
 
 # -----------------------------------------------------------------------------
 
-rate.vio = function(P,J,aj){
+rate.vio = function(P,J,aj,z){
   R = aggr.rate( # among all
       J$vio.Ri # base rate
     , P$aRR.vio[aj] # RR age
+    , map.tRR(P$tRRu.vio.vio_zr,J$vio.zr,z) # tRR vio
+    , map.nRR(P$nRR.vio.vio_nt,J$vio.nt,J$vio.zr,z) # nRR vio
 ); return(R) }
 
 rate.dep_o = function(P,J,R,aj,z){
@@ -206,7 +208,7 @@ sim.run = function(P,sub='act'){
     #       we also ignore within-timestep dep & haz relapse
     if (P$run$vio){
       # vio events ------------------------------------------------------------
-      j = which(rate.to.bool(rate.vio(P,J,aj),P$dtz)); i = ij[j]
+      j = which(rate.to.bool(rate.vio(P,J,aj,z),P$dtz)); i = ij[j]
       I$vio.zr[i] = z;               J$vio.zr[j] = z
       I$vio.nt[i] = I$vio.nt[i] + 1; J$vio.nt[j] = J$vio.nt[j] + 1
       E$vio[z,i]  = TRUE
