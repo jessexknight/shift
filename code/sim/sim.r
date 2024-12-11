@@ -5,6 +5,7 @@
 init.evts = function(P){
   # initialize event matrices for each event type & individual
   # TODO: could reduce mem req using ncol = adur*P$z1y < P$zf
+  # TODO: could reduce mem req using P$run
   E = lapply(set.names(evts,evts),function(e){
     matrix(FALSE,nrow=P$zf,ncol=P$n.tot) })
 }

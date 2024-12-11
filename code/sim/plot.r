@@ -36,7 +36,7 @@ plot.rate = function(R,evt=NULL,facet=NULL,strat='.',ref=NA){
   R = subset(R,var==evt) # select evt
   R$facet = facet.label(R[facet]) # clean-up facet label
   R$strat = interac(R[strat]) # strat
-  R.ref = data.frame(value=ref,strat=len(levels(R$strat))/2+.5)
+  R.ref = data.frame(value=ref,strat=mean(as.numeric(R$strat)))
   g = plot.common(R,y=value*365,x=strat,color=strat) +
     labs(y='Rate (per year)',x=ilab(strat),color=ilab(strat)) +
     geom_point(data=R.ref,shape=9,color='red')

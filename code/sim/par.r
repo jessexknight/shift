@@ -31,10 +31,10 @@ add.pars.def = function(P=NULL){
   P$dep.cov     = -.9      # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9      # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9      # approx covariance among ptr_o,ptr_x,ptr.max
-  P$vio.Ri.cv   = 0.5      # (gamma CoV): vio
-  P$dep.Ri.cv   = 0.5      # (gamma CoV): dep_o,dep_x
-  P$haz.Ri.cv   = 0.5      # (gamma CoV): haz_o,haz_x
-  P$ptr.Ri.cv   = 0.1      # (gamma CoV): ptr_o,ptr_x
+  P$vio.Ri.cv   = 0.5      # (gamma CV): vio
+  P$dep.Ri.cv   = 0.5      # (gamma CV): dep_o,dep_x
+  P$haz.Ri.cv   = 0.5      # (gamma CV): haz_o,haz_x
+  P$ptr.Ri.cv   = 0.1      # (gamma CV): ptr_o,ptr_x
   # *RR shapes & aggr
   P$aggr.rate = 'mult'
   P$aRR.shape = 'spline'
