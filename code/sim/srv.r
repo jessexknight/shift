@@ -64,6 +64,40 @@ srv.e.dts = function(P,Q,E,t,e.dts){
 }
 
 # =============================================================================
+# time vector summary
+
+srv.vec = function(Ms){
+  # reconstruct selected attributes for all t = 1:P$tf
+  P = Ms[[1]]$P
+  # TODO: might have off-by-one error
+  V = rbind.lapply(Ms,function(M){
+    t0.i = pmax(   1,floor(M$I$t.born) + amin*P$t1y)
+    tf.i = pmin(P$tf,floor(M$I$t.born) + amax*P$t1y) + 1
+    M$E$null = lapply(1:nrow(M$I),function(i){ numeric() })
+    data.frame(seed=M$P$seed,
+      t = 1:P$tf,
+      n = tox.vec(t0.i,tf.i,P$tf),
+      vio.nt   = tox.vec.i(M$E$vio,  M$E$null, tf.i,P$tf),
+      dep.now  = tox.vec.i(M$E$dep_o,M$E$dep_x,tf.i,P$tf),
+      # dep.past = tox.vec.i(M$E$dep_o,M$E$null, tf.i,P$tf), # TODO: fails df.compare
+      haz.now  = tox.vec.i(M$E$haz_o,M$E$haz_x,tf.i,P$tf),
+      # haz.past = tox.vec.i(M$E$haz_o,M$E$null, tf.i,P$tf), # TODO: fails df.compare
+      ptr.nw   = tox.vec.i(M$E$ptr_o,M$E$ptr_x,tf.i,P$tf),
+      ptr.nt   = tox.vec.i(M$E$ptr_o,M$E$null, tf.i,P$tf))
+  })
+  # Q = srv.apply(lapply(Ms,sim.sub,sub='act')) # DEBUG
+  # df.compare(subset(V,t==P$tf),aggregate(.~seed,Q[names(V)[-(2:3)]],sum)) # DEBUG
+}
+
+tox.vec.i = function(to.i,tx.i,tf.i,tf){
+  # reconstruct attribute for all t = 1:tf from input event times
+  tx.clip = function(to,tx,tf){ pmin(tf,c(tx,rep(Inf,len(to)-len(tx)))) }
+  tox.vec(to=unlist(to.i),tx=unlist(wapply(tx.clip,to.i,tx.i,tf.i)),tf=tf)
+}
+
+tox.vec = function(to,tx,tf){ cumsum(tabulate(to,tf)-tabulate(tx,tf)) }
+
+# =============================================================================
 # rate funs
 
 rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
