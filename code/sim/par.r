@@ -52,47 +52,47 @@ add.pars.def = function(P=NULL){
   P$aRR.ptr_o.RRs  = c(3.00,1.00,0.10) # (RR  points) RR: age -> ptr begin
   # RR: * -> vio
   P$iRR.vio.vio_zr   = 1     # (initial RR) transient RR: vio -> vio
-  P$tsc.vio.vio_zr   = 90    # (time scale) transient RR: vio -> vio
+  P$tsc.vio.vio_zr   = 30    # (time scale) transient RR: vio -> vio
   P$mRR.vio.vio_nt   = 1     # (max RR)  cumulative RR: vio -> vio
-  P$nsc.vio.vio_nt   = 1     # (n scale) cumulative RR: vio -> vio
+  P$nsc.vio.vio_nt   = 10    # (n scale) cumulative RR: vio -> vio
   # RR: * -> dep begin
-  P$ RR.dep_o.dep_p  = 3     # RR: dep past -> dep begin
-  P$iRR.dep_o.vio_zr = 2     # (initial RR) transient RR: vio -> dep begin
+  P$ RR.dep_o.dep_p  = 1     # RR: dep past -> dep begin
+  P$iRR.dep_o.vio_zr = 1     # (initial RR) transient RR: vio -> dep begin
   P$tsc.dep_o.vio_zr = 30    # (time scale) transient RR: vio -> dep begin
-  P$mRR.dep_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> dep begin
+  P$mRR.dep_o.vio_nt = 1     # (max RR)    cumulative RR: vio -> dep begin
   P$nsc.dep_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> dep begin
   # RR: * -> dep end
-  P$dsc.dep_x.dep_u  = 365   # (dur scale)  duration RR: dep dur -> dep end
-  P$iRR.dep_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> dep end
+  P$dsc.dep_x.dep_u  = Inf   # (dur scale)  duration RR: dep dur -> dep end
+  P$iRR.dep_x.vio_zr = 1     # (initial RR) transient RR: vio -> dep end
   P$tsc.dep_x.vio_zr = 30    # (time scale) transient RR: vio -> dep end
   # RR: * -> haz begin
-  P$ RR.haz_o.haz_p  = 3     # RR: haz past -> haz begin
-  P$ RR.haz_o.dep_w  = 3     # RR: dep now -> haz begin
-  P$iRR.haz_o.vio_zr = 2     # (initial RR) transient RR: vio -> haz begin
+  P$ RR.haz_o.haz_p  = 1     # RR: haz past -> haz begin
+  P$ RR.haz_o.dep_w  = 1     # RR: dep now -> haz begin
+  P$iRR.haz_o.vio_zr = 1     # (initial RR) transient RR: vio -> haz begin
   P$tsc.haz_o.vio_zr = 30    # (time scale) transient RR: vio -> haz begin
-  P$mRR.haz_o.vio_nt = 2     # (max RR)    cumulative RR: vio -> haz begin
+  P$mRR.haz_o.vio_nt = 1     # (max RR)    cumulative RR: vio -> haz begin
   P$nsc.haz_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> haz begin
   # RR: * -> haz end
-  P$ RR.haz_x.dep_w  = 1/3   # RR: dep now -> haz end
-  P$dsc.haz_x.haz_u  = 365   # (dur scale)  duration RR: haz dur -> haz end
-  P$iRR.haz_x.vio_zr = 1/2   # (initial RR) transient RR: vio -> haz end
+  P$ RR.haz_x.dep_w  = 1     # RR: dep now -> haz end
+  P$dsc.haz_x.haz_u  = Inf   # (dur scale)  duration RR: haz dur -> haz end
+  P$iRR.haz_x.vio_zr = 1     # (initial RR) transient RR: vio -> haz end
   P$tsc.haz_x.vio_zr = 30    # (time scale) transient RR: vio -> haz end
   # RR: * -> ptr begin
-  P$ RR.ptr_o.dep_w  = 1/2   # RR: dep now -> ptr begin
-  P$ RR.ptr_o.haz_w  = 2     # RR: haz now -> ptr begin
-  P$iRR.ptr_o.vio_zr = 1/2   # (initial RR) transient RR: vio -> ptr begin
+  P$ RR.ptr_o.dep_w  = 1     # RR: dep now -> ptr begin
+  P$ RR.ptr_o.haz_w  = 1     # RR: haz now -> ptr begin
+  P$iRR.ptr_o.vio_zr = 1     # (initial RR) transient RR: vio -> ptr begin
   P$tsc.ptr_o.vio_zr = 30    # (time scale) transient RR: vio -> ptr begin
-  P$mRR.ptr_o.vio_nt = 1/2   # (max RR)    cumulative RR: vio -> ptr begin
+  P$mRR.ptr_o.vio_nt = 1     # (max RR)    cumulative RR: vio -> ptr begin
   P$nsc.ptr_o.vio_nt = 10    # (n scale)   cumulative RR: vio -> ptr begin
   # RR: * -> ptr end
-  P$ RR.ptr_x.dep_w  = 2     # RR: dep now -> ptr end
-  P$ RR.ptr_x.haz_w  = 2     # RR: haz now -> ptr end
+  P$ RR.ptr_x.dep_w  = 1     # RR: dep now -> ptr end
+  P$ RR.ptr_x.haz_w  = 1     # RR: haz now -> ptr end
   return(P)
 }
 
 add.pars.time = function(P,dtz){
   P$dtz  = dtz              # days in 1 timestep
-  P$z3m  = round(364/dtz/4) # timesteps in 3 months
+  P$z3m  = round(365/dtz/4) # timesteps in 3 months
   P$z6m  = 2 * P$z3m        # timesteps in 6 months
   P$z1y  = 4 * P$z3m        # timesteps in 1 year
   P$t1y  = dtz * P$z1y      # days in 1 year
