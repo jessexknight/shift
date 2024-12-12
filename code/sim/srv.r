@@ -66,27 +66,29 @@ srv.e.dts = function(P,Q,E,t,e.dts){
 # =============================================================================
 # time vector summary
 
-srv.vec = function(Ms){
-  # reconstruct selected attributes for all t = 1:P$tf
-  P = Ms[[1]]$P
+vec.datas = function(Ms,...){
+  status(3,'vec.datas: ',len(Ms))
+  V = rbind.lapply(Ms,vec.data,...)
+  # Q = srv.apply(lapply(Ms,sim.sub,sub='act'))[names(V)[-c(1,3,4)]] # DEBUG
+  # df.compare(V[V$t==max(V$t),],aggregate(.~seed,Q,sum)) # DEBUG
+}
+
+vec.data = function(M,p.vars=NULL){
   # TODO: might have off-by-one error
-  V = rbind.lapply(Ms,function(M){
-    t0.i = pmax(   1,floor(M$I$t.born) + amin*P$t1y)
-    tf.i = pmin(P$tf,floor(M$I$t.born) + amax*P$t1y) + 1
-    M$E$null = lapply(1:nrow(M$I),function(i){ numeric() })
-    data.frame(seed=M$P$seed,
-      t = 1:P$tf,
-      n = tox.vec(t0.i,tf.i,P$tf),
-      vio.nt   = tox.vec.i(M$E$vio,  M$E$null, tf.i,P$tf),
-      dep.now  = tox.vec.i(M$E$dep_o,M$E$dep_x,tf.i,P$tf),
-      # dep.past = tox.vec.i(M$E$dep_o,M$E$null, tf.i,P$tf), # TODO: fails df.compare
-      haz.now  = tox.vec.i(M$E$haz_o,M$E$haz_x,tf.i,P$tf),
-      # haz.past = tox.vec.i(M$E$haz_o,M$E$null, tf.i,P$tf), # TODO: fails df.compare
-      ptr.nw   = tox.vec.i(M$E$ptr_o,M$E$ptr_x,tf.i,P$tf),
-      ptr.nt   = tox.vec.i(M$E$ptr_o,M$E$null, tf.i,P$tf))
-  })
-  # Q = srv.apply(lapply(Ms,sim.sub,sub='act')) # DEBUG
-  # df.compare(subset(V,t==P$tf),aggregate(.~seed,Q[names(V)[-(2:3)]],sum)) # DEBUG
+  t0.i = pmax(     1,floor(M$I$t.born) + amin*M$P$t1y)
+  tf.i = pmin(M$P$tf,floor(M$I$t.born) + amax*M$P$t1y) + 1
+  M$E$null = lapply(1:nrow(M$I),function(i){ numeric() })
+  V = data.frame(
+    M$P[unique(c(.p.vars,p.vars))],
+    t = 1:M$P$tf,
+    n = tox.vec(t0.i,tf.i,M$P$tf),
+    vio.nt   = tox.vec.i(M$E$vio,  M$E$null, tf.i,M$P$tf),
+    dep.now  = tox.vec.i(M$E$dep_o,M$E$dep_x,tf.i,M$P$tf),
+    # dep.past = tox.vec.i(M$E$dep_o,M$E$null, tf.i,M$P$tf), # TODO: fails df.compare
+    haz.now  = tox.vec.i(M$E$haz_o,M$E$haz_x,tf.i,M$P$tf),
+    # haz.past = tox.vec.i(M$E$haz_o,M$E$null, tf.i,M$P$tf), # TODO: fails df.compare
+    ptr.nw   = tox.vec.i(M$E$ptr_o,M$E$ptr_x,tf.i,M$P$tf),
+    ptr.nt   = tox.vec.i(M$E$ptr_o,M$E$null, tf.i,M$P$tf))
 }
 
 tox.vec.i = function(to.i,tx.i,tf.i,tf){
