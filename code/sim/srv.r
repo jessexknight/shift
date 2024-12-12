@@ -69,26 +69,35 @@ srv.e.dts = function(P,Q,E,t,e.dts){
 vec.datas = function(Ms,...){
   status(3,'vec.datas: ',len(Ms))
   V = rbind.lapply(Ms,vec.data,...)
-  # Q = srv.apply(lapply(Ms,sim.sub,sub='act'))[names(V)[-c(1,3,4)]] # DEBUG
+  # Q = srv.apply(lapply(Ms,sim.sub,sub='act'))[c('seed',names(V)[ncol(V)-1:7+1])] # DEBUG
   # df.compare(V[V$t==max(V$t),],aggregate(.~seed,Q,sum)) # DEBUG
 }
 
-vec.data = function(M,p.vars=NULL){
+vec.data = function(M,strat='.',p.vars=NULL){
   # TODO: might have off-by-one error
-  t0.i = pmax(     1,floor(M$I$t.born) + amin*M$P$t1y)
-  tf.i = pmin(M$P$tf,floor(M$I$t.born) + amax*M$P$t1y) + 1
-  M$E$null = lapply(1:nrow(M$I),function(i){ numeric() })
-  V = data.frame(
-    M$P[unique(c(.p.vars,p.vars))],
-    t = 1:M$P$tf,
-    n = tox.vec(t0.i,tf.i,M$P$tf),
-    vio.nt   = tox.vec.i(M$E$vio,  M$E$null, tf.i,M$P$tf),
-    dep.now  = tox.vec.i(M$E$dep_o,M$E$dep_x,tf.i,M$P$tf),
-    # dep.past = tox.vec.i(M$E$dep_o,M$E$null, tf.i,M$P$tf), # TODO: fails df.compare
-    haz.now  = tox.vec.i(M$E$haz_o,M$E$haz_x,tf.i,M$P$tf),
-    # haz.past = tox.vec.i(M$E$haz_o,M$E$null, tf.i,M$P$tf), # TODO: fails df.compare
-    ptr.nw   = tox.vec.i(M$E$ptr_o,M$E$ptr_x,tf.i,M$P$tf),
-    ptr.nt   = tox.vec.i(M$E$ptr_o,M$E$null, tf.i,M$P$tf))
+  p.vars = unique(c(.p.vars,p.vars,intersect(strat,names(M$P))))
+  i.vars = intersect(strat,names(M$I))
+  Q  = cbind(M$P[p.vars],.=1,M$I[i.vars])
+  t0 = pmax(     1,floor(M$I$t.born) + amin*M$P$t1y)
+  tf = pmin(M$P$tf,floor(M$I$t.born) + amax*M$P$t1y) + 1
+  M$E$null = lapply(1:nrow(Q),function(i){ numeric() }) # dummy
+  i.split = fast.split(1:nrow(Q),Q[strat])
+  V = rbind.lapply(i.split,function(i){ # for each strat
+    t0.i = t0[i]
+    tf.i = tf[i]
+    E.i = lapply(M$E,`[`,i)
+    V.i = data.frame(Q[i[1],],
+      t = 1:M$P$tf,
+      n = tox.vec(t0.i,tf.i,M$P$tf),
+      vio.nt   = tox.vec.i(E.i$vio,  E.i$null, tf.i,M$P$tf),
+      dep.now  = tox.vec.i(E.i$dep_o,E.i$dep_x,tf.i,M$P$tf),
+      dep.past = tox.vec.i(E.i$dep_o,E.i$null, tf.i,M$P$tf), # TODO: fails df.compare
+      haz.now  = tox.vec.i(E.i$haz_o,E.i$haz_x,tf.i,M$P$tf),
+      haz.past = tox.vec.i(E.i$haz_o,E.i$null, tf.i,M$P$tf), # TODO: fails df.compare
+      ptr.nw   = tox.vec.i(E.i$ptr_o,E.i$ptr_x,tf.i,M$P$tf),
+      ptr.nt   = tox.vec.i(E.i$ptr_o,E.i$null, tf.i,M$P$tf),
+    row.names=NULL)
+  })
 }
 
 tox.vec.i = function(to.i,tx.i,tf.i,tf){
