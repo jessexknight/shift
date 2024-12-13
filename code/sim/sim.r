@@ -260,6 +260,8 @@ sim.run = function(P,sub='act'){
   # clean-up ------------------------------------------------------------------
   x = c('vio.zr','dep.zo','haz.zo')
   I[gsub('z','t',x)] = P$dtz * I[x]; I[x] = NULL # convert *.z -> *.t
+  g = (I$t.born/P$t1y+amin)/adur # generation for subset below
+  I$sub = factor((g > 0) + (g > P$n.dur-1),0:2,c('dum','obs','act')) # subset
   E = lapply(E,apply,2,rep.int,x=P$dtz*(1:P$zf)) # n mat -> t vecs
   for (e in evts[lens(E)==0]){ E[[e]] = lapply(rep(0,P$n.tot),integer) } # BUGFIX
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub) # collect
@@ -273,11 +275,8 @@ sim.runs = function(Ps,...,.par=TRUE){
 }
 
 sim.sub = function(M,sub){
-  # subset model output by age
-  i = switch(sub,
-    dum  = which(M$I$t.born < -amin*M$P$t1y),                  # dummy pop
-    full = which(M$I$t.born > -amin*M$P$t1y & M$I$age > amax), # fully obs
-    act  = which(M$I$age    > amin          & M$I$age < amax), # active now
-    all  = 1:nrow(M$I))                                        # no subset
+  # subset model individuals ~ {dummy, fully observed, active @ tf}
+  if (sub=='all'){ sub = levels(M$I$sub) }
+  i = which(M$I$sub %in% sub)
   M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
 }
