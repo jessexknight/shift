@@ -73,39 +73,46 @@ vec.datas = function(Ms,...){
   # df.compare(V[V$t==max(V$t),],aggregate(.~seed,Q,sum)) # DEBUG
 }
 
-vec.data = function(M,strat='.',p.vars=NULL){
+vec.data = function(M,strat='.',frame='g',p.vars=NULL){
   # TODO: might have off-by-one error
   p.vars = unique(c(.p.vars,p.vars,intersect(strat,names(M$P))))
   i.vars = intersect(strat,names(M$I))
-  Q  = cbind(M$P[p.vars],.=1,M$I[i.vars])
-  t0 = pmax(     1,floor(M$I$t.born) + amin*M$P$t1y)
-  tf = pmin(M$P$tf,floor(M$I$t.born) + amax*M$P$t1y) + 1
+  Q = cbind(M$P[p.vars],.=1,M$I[i.vars])
+  t.enter = floor(M$I$t.born) + amin * M$P$t1y # enter model
+  t.exit  = floor(M$I$t.born) + amax * M$P$t1y # exit model
+  M$E$t0  = pmax(     1,t.enter) # left-clip enter
+  M$E$tf  = pmin(M$P$tf,t.exit ) # right-clip exit
   M$E$null = lapply(1:nrow(Q),function(i){ numeric() }) # dummy
-  i.split = fast.split(1:nrow(Q),Q[strat])
-  V = rbind.lapply(i.split,function(i){ # for each strat
-    t0.i = t0[i]
-    tf.i = tf[i]
-    E.i = lapply(M$E,`[`,i)
-    V.i = data.frame(Q[i[1],],
-      t = 1:M$P$tf,
-      n = tox.vec(t0.i,tf.i,M$P$tf),
-      vio.nt   = tox.vec.i(E.i$vio,  E.i$null, tf.i,M$P$tf),
-      dep.now  = tox.vec.i(E.i$dep_o,E.i$dep_x,tf.i,M$P$tf),
-      dep.past = tox.vec.i(E.i$dep_o,E.i$null, tf.i,M$P$tf), # TODO: fails df.compare
-      haz.now  = tox.vec.i(E.i$haz_o,E.i$haz_x,tf.i,M$P$tf),
-      haz.past = tox.vec.i(E.i$haz_o,E.i$null, tf.i,M$P$tf), # TODO: fails df.compare
-      ptr.nw   = tox.vec.i(E.i$ptr_o,E.i$ptr_x,tf.i,M$P$tf),
-      ptr.nt   = tox.vec.i(E.i$ptr_o,E.i$null, tf.i,M$P$tf),
+  tff = switch(frame,g=M$P$tf,i=M$P$t1y*amin) # global vs ind time
+  if (frame=='i'){ M$E = lapply(M$E,function(es){ wapply(`-`,es,t.enter-1) }) }
+  # print(lapply(M$E[c('t0','tf')],function(e){ summary(unlist(e)) })) # DEBUG
+  i.strat = fast.split(1:nrow(Q),Q[strat])
+  V = rbind.lapply(i.strat,function(i){ # for each strat
+    Ei  = lapply(M$E,`[`,i) # select inds
+    tfi = unlist(Ei$tf) + 1
+    Vi  = data.frame(Q[i[1],],
+      t = 1:tff,
+      n        = tox.vec.i(Ei$t0,   tfi,     tfi,tff),
+      vio.nt   = tox.vec.i(Ei$vio,  Ei$null, tfi,tff),
+      dep.now  = tox.vec.i(Ei$dep_o,Ei$dep_x,tfi,tff),
+      dep.past = tox.vec.i(Ei$dep_o,Ei$null, tfi,tff,t1=TRUE),
+      haz.now  = tox.vec.i(Ei$haz_o,Ei$haz_x,tfi,tff),
+      haz.past = tox.vec.i(Ei$haz_o,Ei$null, tfi,tff,t1=TRUE),
+      ptr.nw   = tox.vec.i(Ei$ptr_o,Ei$ptr_x,tfi,tff),
+      ptr.nt   = tox.vec.i(Ei$ptr_o,Ei$null, tfi,tff),
     row.names=NULL)
   })
 }
 
-tox.vec.i = function(to.i,tx.i,tf.i,tf){
-  # reconstruct attribute for all t = 1:tf from input event times
-  tx.clip = function(to,tx,tf){ pmin(tf,c(tx,rep(Inf,len(to)-len(tx)))) }
-  tox.vec(to=unlist(to.i),tx=unlist(wapply(tx.clip,to.i,tx.i,tf.i)),tf=tf)
+tox.vec.i = function(toi,txi,tfi,tff,t1=FALSE){
+  # cumsum Vi(t) = oi(t)-xi(t) on [1,tff] ensuring Vi(tfi) = 0
+  # i.e. each individual's Vi(t) returns to zero upon model exit
+  if (t1){ toi = ti.1(toi); txi = ti.1(txi) } # only oi[1],xi[1]
+  tox.vec(to=unlist(toi),tx=unlist(wapply(tx.pad,toi,txi,tfi)),tf=tff)
 }
 
+ti.1 = function(ti){ ifelse(lens(ti),lapply(ti,`[`,1),ti) }
+tx.pad = function(to,tx,tf){ c(tx,rep(tf,len(to)-len(tx))) }
 tox.vec = function(to,tx,tf){ cumsum(tabulate(to,tf)-tabulate(tx,tf)) }
 
 # =============================================================================
