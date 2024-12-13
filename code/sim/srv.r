@@ -183,8 +183,8 @@ rate.est = function(Y,e,strat='seed'){
     haz_x = Y$haz.now==1,
     ptr_o = Y$sex.act & Y$ptr.nw < Y$ptr.max,
     ptr_x = Y$ptr.nw)
-  y.split = fast.split(1:nrow(Y),Y[strat])
-  R = rbind.lapply(y.split,function(y){
+  y.strat = fast.split(1:nrow(Y),Y[strat])
+  R = rbind.lapply(y.strat,function(y){
     ne = sum(Y$e[y]==e)
     dt = sum((Y$tx[y] - Y$to[y]) * Y$w[y])
     cbind(Y[y[1],strat,drop=FALSE],
