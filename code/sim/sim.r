@@ -275,8 +275,9 @@ sim.runs = function(Ps,...,.par=TRUE){
 sim.sub = function(M,sub){
   # subset model output by age
   i = switch(sub,
-    act = which(M$I$age > amin & M$I$age <= amax),
-    dum = which(M$I$t.born >= -amin*M$P$t1y),
-    all = 1:nrow(M$I))
+    dum  = which(M$I$t.born < -amin*M$P$t1y),                  # dummy pop
+    full = which(M$I$t.born > -amin*M$P$t1y & M$I$age > amax), # fully obs
+    act  = which(M$I$age    > amin          & M$I$age < amax), # active now
+    all  = 1:nrow(M$I))                                        # no subset
   M = list(P=M$P,I=M$I[i,],E=lapply(M$E,`[`,i))
 }
