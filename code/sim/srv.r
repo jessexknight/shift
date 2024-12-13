@@ -83,7 +83,7 @@ vec.data = function(M,strat='.',frame='g',p.vars=NULL){
   M$E$t0  = pmax(     1,t.enter) # left-clip enter
   M$E$tf  = pmin(M$P$tf,t.exit ) # right-clip exit
   M$E$null = lapply(1:nrow(Q),function(i){ numeric() }) # dummy
-  tff = switch(frame,g=M$P$tf,i=M$P$t1y*amin) # global vs ind time
+  tff = switch(frame,g=M$P$tf,i=M$P$t1y*adur) # global vs ind time
   if (frame=='i'){ M$E = lapply(M$E,function(es){ wapply(`-`,es,t.enter-1) }) }
   # print(lapply(M$E[c('t0','tf')],function(e){ summary(unlist(e)) })) # DEBUG
   i.strat = fast.split(1:nrow(Q),Q[strat])
