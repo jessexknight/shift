@@ -38,6 +38,7 @@ srv.base = function(P,Q,E,t){
   Q$age.10   = int.cut(Q$age,seq(10,50,10))
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
+  Q$vio.past = Q$vio.nt > 0
   Q$vio.tr   = sapply(E$vio,last)
   Q$vio.dt   = t - Q$vio.tr
   Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
@@ -94,6 +95,7 @@ vec.data = function(M,strat='.',frame='g',p.vars=NULL){
       t = 1:tff,
       n        = tox.vec.i(Ei$t0,   tfi,     tfi,tff),
       vio.nt   = tox.vec.i(Ei$vio,  Ei$null, tfi,tff),
+      vio.past = tox.vec.i(Ei$vio,  Ei$null, tfi,tff,t1=TRUE),
       dep.now  = tox.vec.i(Ei$dep_o,Ei$dep_x,tfi,tff),
       dep.past = tox.vec.i(Ei$dep_o,Ei$null, tfi,tff,t1=TRUE),
       haz.now  = tox.vec.i(Ei$haz_o,Ei$haz_x,tfi,tff),
@@ -149,6 +151,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
       age.1    = cumsum(ein=='age')+amin-1,
       sex.act  = cummax(ein=='act'),
       vio.nt   = cumsum(ein=='vio'),
+      vio.past = cummax(ein=='vio'),
       dep.now  = cumsum(ein=='dep_o')-cumsum(ein=='dep_x'),
       dep.past = cummax(ein=='dep_o'),
       haz.now  = cumsum(ein=='haz_o')-cumsum(ein=='haz_x'),
