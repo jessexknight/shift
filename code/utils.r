@@ -102,14 +102,6 @@ ulen = function(x){
   len(unique(x))
 }
 
-even.sum = function(x){
-  if (sum(x) %% 2){
-    i = which.max(x)
-    x[i] = x[i] - 1
-  }
-  return(x)
-}
-
 reppend = function(x,xa,n){
   append(x,rep.int(xa,n))
 }
