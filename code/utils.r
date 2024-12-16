@@ -199,6 +199,10 @@ fit.beta = function(qs,ps=c(.025,.975)){
   optim(c(1,1),efun,method='L-BFGS-B',lower=0)$par
 }
 
+# R2 = dummy 2-group distr with { p0: x0, 1-p0: x0*xR }
+qR2 = function(p,x0,xR,p0=.5){ x = x0 * (1 + (xR-1) * (p > p0)) }
+rR2 = function(n,x0,xR,p0=.5){ x = qR2(runif(n),x0,xR,p0) }
+
 copula = function(n,covs,qfuns,...){
   # joint sample from qfuns (args in ...) with correlation (covs)
   # e.g. copula(100,0.5,list(a=qexp,b=qunif),a=list(rate=1),b=list(min=0,max=1))

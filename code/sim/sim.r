@@ -12,31 +12,31 @@ init.evts = function(P){
 
 init.inds = function(P){
   n = P$n.tot
-  # sample correlated parameters ----------------------------------------------
+  # heterog parameters --------------------------------------------------------
+  vio.Ri = P$het$r(n=n,m=P$vio.Ri.m,het=P$vio.Ri.het)
   dep = as.data.frame(copula(n,
     covs = P$dep.cov,
-    qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=1/P$dep.Ri.cv2,scale=P$dep_o.Ri.m*P$dep.Ri.cv2),
-    x.Ri = list(shape=1/P$dep.Ri.cv2,scale=P$dep_x.Ri.m*P$dep.Ri.cv2)))
+    qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q),
+    o.Ri = list(m=P$dep_o.Ri.m,het=P$dep.Ri.het),
+    x.Ri = list(m=P$dep_x.Ri.m,het=P$dep.Ri.het)))
   # plot(dep,col=rgb(0,0,0,.1)) # DEBUG
   haz = as.data.frame(copula(n,
     covs = P$haz.cov,
-    qfuns = list(o.Ri=qgamma,x.Ri=qgamma),
-    o.Ri = list(shape=1/P$haz.Ri.cv2,scale=P$haz_o.Ri.m*P$haz.Ri.cv2),
-    x.Ri = list(shape=1/P$haz.Ri.cv2,scale=P$haz_x.Ri.m*P$haz.Ri.cv2)))
+    qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q),
+    o.Ri = list(m=P$haz_o.Ri.m,het=P$haz.Ri.het),
+    x.Ri = list(m=P$haz_x.Ri.m,het=P$haz.Ri.het)))
   # plot(haz,col=rgb(0,0,0,.1)) # DEBUG
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
-    qfuns = list(o.Ri=qgamma,x.Ri=qgamma,max=qgeom),
-    o.Ri = list(shape=1/P$ptr.Ri.cv2,scale=P$ptr_o.Ri.m*P$ptr.Ri.cv2),
-    x.Ri = list(shape=1/P$ptr.Ri.cv2,scale=P$ptr_x.Ri.m*P$ptr.Ri.cv2),
+    qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q,max=qgeom),
+    o.Ri = list(m=P$ptr_o.Ri.m,het=P$ptr.Ri.het),
+    x.Ri = list(m=P$ptr_x.Ri.m,het=P$ptr.Ri.het),
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
-  # create main df of individuals ---------------------------------------------
-  age = runif(n,min=amin-P$n.dur*adur,max=amax)
-  vio.Ri = rgamma(n=n,shape=1/P$vio.Ri.cv2,scale=P$vio.Ri.m*P$vio.Ri.cv2)
   sex.Ri = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
+  # create main df of individuals ---------------------------------------------
+  age = runif(n,min=amin-P$n.dur*adur,max=amax)
   I = data.frame(
     i = seq(n),
     t.born  = -age*P$t1y,

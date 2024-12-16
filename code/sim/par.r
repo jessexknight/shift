@@ -31,10 +31,11 @@ add.pars.def = function(P=NULL){
   P$dep.cov     = -.9      # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9      # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9      # approx covariance among ptr_o,ptr_x,ptr.max
-  P$vio.Ri.cv   = 0.5      # (gamma CV): vio
-  P$dep.Ri.cv   = 0.5      # (gamma CV): dep_o,dep_x
-  P$haz.Ri.cv   = 0.5      # (gamma CV): haz_o,haz_x
-  P$ptr.Ri.cv   = 0.1      # (gamma CV): ptr_o,ptr_x
+  P$vio.Ri.het  = 0.5      # heterog (gamma CV): vio
+  P$dep.Ri.het  = 0.5      # heterog (gamma CV): dep_o,dep_x
+  P$haz.Ri.het  = 0.5      # heterog (gamma CV): haz_o,haz_x
+  P$ptr.Ri.het  = 0.1      # heterog (gamma CV): ptr_o,ptr_x
+  P$het.distr   = 'gamma'  # heterog distr type
   # *RR shapes & aggr
   P$aggr.rate = 'mult'
   P$aRR.shape = 'spline'
@@ -105,6 +106,7 @@ add.pars.cond = function(P){
   P$zf    = P$n.dur*adur*P$z1y # final timestep
   P$tf    = P$zf * P$dtz       # final time (days)
   P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
+  P$het   = het.funs[[P$het.distr]] # funs for sampling ind rates
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
   # RR: age
@@ -130,10 +132,6 @@ add.pars.cond = function(P){
   # pre-compute Ri.m (per day) from Ri.my (per year)
   for (x in filter.names(P,'Ri\\.my$')){
     P[[gsub('my$','m',x)]] = P[[x]] / P$t1y
-  }
-  # pre-compute & lower-bound Ri.cv^2
-  for (x in filter.names(P,'Ri\\.cv$')){
-    P[[gsub('cv$','cv2',x)]] = max(P[[x]]^2,1e-6)
   }
   # pre-compute RR-1 for all RR.*
   for (x in filter.names(P,'^RR')){
@@ -189,6 +187,17 @@ get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE){
   attributes(Ps) = pa
   return(Ps)
 }
+
+# =============================================================================
+# heterogeneity funs
+
+het.funs = list(
+  gamma = list( # m = mean; het = CoV (sd / mean)
+    r = function(n,m,het){ cv2 = max(het^2,1e-6); x = rgamma(n,shape=1/cv2,scale=m*cv2) },
+    q = function(p,m,het){ cv2 = max(het^2,1e-6); x = qgamma(p,shape=1/cv2,scale=m*cv2) }),
+  R2 = list( # m = mean; het = xR; p0 = 0.5 (fixed)
+    r = function(n,m,het){ x0 = 2*m/(1+het); x = rR2(n,x0=x0,xR=het,p0=.5) },
+    q = function(p,m,het){ x0 = 2*m/(1+het); x = qR2(p,x0=x0,xR=het,p0=.5) }))
 
 # =============================================================================
 # effect funs
