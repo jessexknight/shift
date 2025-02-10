@@ -5,7 +5,7 @@ Ms = sim.runs(Ps)
 Q  = srv.apply(Ms)
 
 print(summary(Q[,c(
-  'vio.nt',
+  'vio.nt','vio.past',
   'dep.now','dep.past',
   'haz.now','haz.past',
   'ptr.nw','ptr.nt',
