@@ -2,9 +2,20 @@ source('sim/meta.r')
 
 # mass = measures of association
 
+# -----------------------------------------------------------------------------
+# config
+
 elu.names = c('estim','lower','upper')
+ce.names = c('coef','std.err')
 tt = c('.te','.to') # suffix for vars measured at time of exposure or outcome
-eps = 1e-6 # for clipping small & large mass
+
+mass.funs.elu = list(
+  OR = def.args(glm.elu,family=binomial,ctx=exp),
+  PR = def.args(glm.elu,family=poisson, ctx=exp))
+
+mass.funs.ce = list(
+  OR = def.args(glm.ce,family=binomial),
+  PR = def.args(glm.ce,family=poisson))
 
 # -----------------------------------------------------------------------------
 # prep survey data & calculate mass
@@ -33,11 +44,9 @@ mass.calc = function(mfuns,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRU
         as.list(elu)) # estim, lower, upper
     })
   })
-  A = mass.clean(A)
 }
 
-mass.clean = function(A){
-  # clip elu - TODO: is this needed?
+mass.clean = function(A,eps=1e-6){
   A$estim = pmax(eps,pmin(1/eps,A$estim))
   A$lower = pmax(eps,pmin(1/eps,A$lower))
   A$upper = pmax(eps,pmin(1/eps,A$upper))
@@ -47,14 +56,11 @@ mass.clean = function(A){
 # -----------------------------------------------------------------------------
 # glm (general linear model) = default mfun (function to compute mass)
 
-glm.elu = function(Q,ve,vo,va,family,ctx,among=quote(TRUE),...){
+glm.run = function(Q,ve,vo,va,family,among=quote(TRUE),...){
   # run glm for: otx(vo) ~ etx(ve) + va
-  # return (estim, lower, upper) = ctx(coef(ve)) with 95% CI
   Q = subset(Q,eval(parse(text=among)))
   f = glm.formula(ve,vo,va,...)
   m = no.warn(glm(f,family,Q))
-  elu.coef = c(coef(m)[2],confint.default(m,2))
-  elu = set.names(ctx(elu.coef),elu.names)
 }
 
 glm.formula = function(ve,vo,va,otx='',etx=''){
@@ -63,6 +69,19 @@ glm.formula = function(ve,vo,va,otx='',etx=''){
     otx,'(',vo,tt[2],') ~ ',
     etx,'(',ve,tt[1],') + ',
     str(c(1,va),collapse=' + ')))
+}
+
+glm.elu = function(...,ctx=identity){
+  # run glm & extract (estim, lower, upper) = ctx(coef(ve)) with 95% CI
+  m = glm.run(...)
+  elu.coef = c(coef(m)[2],confint.default(m,2))
+  elu = set.names(ctx(elu.coef),elu.names)
+}
+
+glm.ce = function(...){
+  # run glm & extract (coef, std.err)
+  m = glm.run(...)
+  ce = set.names(summary(m)$coef[2,1:2],ce.names)
 }
 
 # -----------------------------------------------------------------------------
