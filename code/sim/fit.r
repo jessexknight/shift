@@ -5,17 +5,18 @@
 tx.sample = function(F,S0,dir='tx'){
   # forward (tx) or reverse (itx) transform S0 <-> S
   # where S0 ~ [0,1] are quantiles of S ~ tx(unif[lo,up])
-  S = as.data.frame(lapply(seqa(F),function(i){
+  S = lapply(seqa(F),function(i){
     Fi  = F[[i]]
     fun = if.null(Fi[[dir]],identity)
     Si  = switch(dir,
-      tx  = fun(qunif(S0[,i],Fi$lo,Fi$up)),
-      itx = punif(fun(S0[,i]),Fi$lo,Fi$up))
-  }),col.names=names(F))
+      tx  = fun(qunif(S0[,i+1],Fi$lo,Fi$up)),
+      itx = punif(fun(S0[,i+1]),Fi$lo,Fi$up))
+  })
+  S = cbind(id=S0[,1],as.data.frame(S,col.names=names(F)))
 }
 
 lhs.sample = function(F,n){
-  S = tx.sample(F,lhs::randomLHS(n,len(F)))
+  S = tx.sample(F,cbind(id=1:n,lhs::randomLHS(n,len(F))))
 }
 
 plot.sample = function(S,color=''){
