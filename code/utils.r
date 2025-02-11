@@ -29,9 +29,9 @@ stfu = suppressPackageStartupMessages
 # proj.root: full path to parent of /code.r/fio.r
 proj.root = strsplit(file.path(getwd(),''),file.path('','code',''))[[1]][1]
 
-root.path = function(...,create=FALSE){
-  # e.g. root.path('abc','123') returns proj.root/abc/123
-  path = file.path(proj.root,...)
+root.path = function(...,ext='',create=FALSE){
+  # e.g. root.path('abc','123',ext='.csv') returns proj.root/abc/123.csv
+  path = str(file.path(proj.root,...),ext)
   if (create & !dir.exists(dirname(path))){
     dir.create(dirname(path),recursive=TRUE) }
   return(path)
@@ -46,14 +46,14 @@ status = function(lvl,...,id=NULL){
   cat(pre,...,sprintf('%6d',id),end,sep='')
 }
 
-load.csv = function(...){
-  fname = root.path(...)
+load.csv = function(...,ext='.csv'){
+  fname = root.path(...,ext=ext)
   status(3,'loading: ',fname)
   read.csv(file=fname,fileEncoding='Latin1')
 }
 
-save.csv = function(X,...){
-  fname = root.path(...,create=TRUE)
+save.csv = function(X,...,ext='.csv'){
+  fname = root.path(...,ext=ext,create=TRUE)
   status(3,'saving: ',fname)
   write.csv(X,file=fname,row.names=FALSE)
 }
@@ -65,7 +65,7 @@ save.csv = function(X,...){
 
 plot.save = function(g,...,size=NULL,ext='.pdf'){
   if (missing(size)){ size = plot.size(g) }
-  fname = str(root.path('out','fig',...,create=TRUE),ext)
+  fname = root.path('out','fig',...,ext=ext,create=TRUE)
   status(3,'saving: ',fname)
   ggsave(plot=g,file=fname,w=size[1],h=size[2],device=cairo_pdf)
 }
