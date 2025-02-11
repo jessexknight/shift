@@ -79,7 +79,8 @@ fit.run = function(Si,T,P0=NULL,...,aggr=TRUE,.par=FALSE){
   if (aggr){ return(Ls[1]) } else { return(Ls) }
 }
 
-fit.runs = function(S,T,...){ .verb <<- 2 # HACK
+fit.runs = function(S,T,...){ .v = .verb; .verb <<- 2 # HACK
   # fit.run in parallel for each sample (row) in data.frame S
   L = rbind.lapply(apply(S,1,as.list),fit.run,T=T,...)
+  .verb <<- .v; return(L) # HACK
 }
