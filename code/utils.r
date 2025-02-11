@@ -17,9 +17,11 @@ options(
 len = length
 lens = lengths
 seqn = seq_len
+seqa = seq_along
 str = paste0
 set.names = setNames
 no.warn = suppressWarnings
+stfu = suppressPackageStartupMessages
 
 # -----------------------------------------------------------------------------
 # files + i/o
@@ -44,6 +46,18 @@ status = function(lvl,...,id=NULL){
   cat(pre,...,sprintf('%6d',id),end,sep='')
 }
 
+load.csv = function(...){
+  fname = root.path(...)
+  status(3,'loading: ',fname)
+  read.csv(file=fname,fileEncoding='Latin1')
+}
+
+save.csv = function(X,...){
+  fname = root.path(...,create=TRUE)
+  status(3,'saving: ',fname)
+  write.csv(X,file=fname,row.names=FALSE)
+}
+
 # -----------------------------------------------------------------------------
 # plot tools
 
@@ -53,7 +67,7 @@ plot.save = function(g,...,size=NULL,ext='.pdf'){
   if (missing(size)){ size = plot.size(g) }
   fname = str(root.path('out','fig',...,create=TRUE),ext)
   status(3,'saving: ',fname)
-  ggsave(fname,w=size[1],h=size[2],device=cairo_pdf)
+  ggsave(plot=g,file=fname,w=size[1],h=size[2],device=cairo_pdf)
 }
 
 plot.1o = list(w1=2,h1=2,wo=1,ho=1) # width & height of each facet & offsets
@@ -64,6 +78,10 @@ plot.size = function(g,...){
   layout = ggplot_build(g)$layout$layout
   size = c(w=s$wo+s$w1*max(layout$COL),h=s$ho+s$h1*max(layout$ROW))
 }
+
+clr.map.c = ggplot2::scale_color_viridis_c(option='inferno',aes=c('color','fill'))
+clr.map.d = ggplot2::scale_color_viridis_d(option='inferno',aes=c('color','fill'),
+  begin=.1,end=.9)
 
 plot.clean = function(g,...){
   g = g + theme_light() + theme(...,
@@ -85,12 +103,21 @@ na.to.num = function(x,num=0){
   return(x)
 }
 
+if.null = function(x,default){
+  if (is.null(x)){ return(default) } else { return(x) }
+}
+
 int.cut = function(x,low){
   # cut with simplified labels (assume integers)
   # e.g. int.cut(1:6,c(1,2,3,5)) -> c('1','2','3-4','3-4','5+','5+')
   high = c(low[2:len(low)]-1,Inf)
   labels = gsub('-Inf','+',ifelse(low==high,low,str(low,'-',high)))
   x.cut = cut(x,breaks=c(low,Inf),labels=labels,right=FALSE)
+}
+
+rank.cut = function(x,q){
+  x.rank = (rank(x)-1)/(len(x)-1)
+  x.cut = cut(x.rank,breaks=c(0,q,1),right=FALSE,incl=TRUE)
 }
 
 breaks = function(x,n=30){
@@ -141,7 +168,7 @@ interac = function(...){ interaction(...,sep=.isep) }
 
 df.compare = function(x,y,v=NULL,cast=as.numeric){
   # check if x[v] == y[v] (for debug)
-  if (is.null(v)){ v = intersect(names(x),names(y)) }
+  v = if.null(v,intersect(names(x),names(y)))
   eq = all.equal(lapply(x[v],cast),lapply(y[v],cast))
   status(3,'df.compare @ ',paste(v,collapse=','),': ',
     ifelse(eq==TRUE,'OK',paste('\n',eq)))
@@ -198,6 +225,8 @@ fit.beta = function(qs,ps=c(.025,.975)){
   efun = function(par){ e = sum(abs(ps-pbeta(qs,par[1],par[2]))) }
   optim(c(1,1),efun,method='L-BFGS-B',lower=0)$par
 }
+
+e10 = function(x){ 10^x } # log10 inverse
 
 # R2 = dummy 2-group distr with { p0: x0, 1-p0: x0*xR }
 qR2 = function(p,x0,xR,p0=.5){ x = x0 * (1 + (xR-1) * (p > p0)) }
