@@ -87,8 +87,8 @@ val.run = function(name,pars,evts,strat='.',e.dts=NULL,x.cols=NULL){
   Ps = get.pars.grid(pars)
   pa = attributes(Ps)
   Ms = sim.runs(Ps)
-  Y = rate.datas(Ms,p.vars=names(pa$var),e.dts=e.dts,x.cols=x.cols)
-  R = rbind.lapply(evts,rate.est,Y=Y,strat=c('seed',strat,names(pa$var)))
+  K = rate.datas(Ms,p.vars=names(pa$var),e.dts=e.dts,x.cols=x.cols)
+  R = rbind.lapply(evts,rate.est,K=K,strat=c('seed',strat,names(pa$var)))
   Q = srv.apply(Ms,srvs=c(srv.base,def.args(srv.e.dts,e.dts=e.dts)),p.vars=names(pa$var),x.cols=x.cols)
   for (evt in evts){
     val.plot.rate(name,R,pa,strat,evt)

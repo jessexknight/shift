@@ -123,8 +123,8 @@ tox.vec = function(to,tx,tf){ cumsum(tabulate(to,tf)-tabulate(tx,tf)) }
 rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
   status(3,'rate.datas: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
-  Y = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
-  Y = rate.data.sub(Y,t,dt,among=among)
+  K = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
+  K = rate.data.sub(K,t,dt,among=among)
 }
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
@@ -132,7 +132,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
   status(4,id=M$P$seed)
   tia = function(i,a){ Q$t.born[i] + M$P$t1y * a } # i age -> time
   Q = srv.init(M,t,p.vars,i.vars)
-  Y = rbind.lapply(1:nrow(Q),function(i){
+  K = rbind.lapply(1:nrow(Q),function(i){
     if (tia(i,amin) > t){ return(NULL) } # (unobserved)
     Ei = ulist(lapply(M$E,`[[`,i),       # add events:
       age  = tia(i,seq(amin,amax)),      # - birthdays
@@ -144,7 +144,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
     ti = clip.tes(sort(do.call(c,Ei)),t) # obs event times
     ei = gsub('\\d*$','',names(ti))      # obs event names
     ein = ei[-len(ei)]   # for speed
-    Yi = cbind(Q[i,],
+    Ki = cbind(Q[i,],
       to = ti[-len(ti)], # period start
       tx = ti[-1],       # period end
       e  = ei[-1],       # event at period end
@@ -161,43 +161,43 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
     row.names=NULL)
     for (e in names(e.dts)){
       for (dt in e.dts[[e]]){ # pmin because *RR do not stack
-        Yi[str(e,dt,'dt')] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,dt,'dt'))) }}
-    return(Yi)
+        Ki[str(e,dt,'dt')] = pmin(1,cumsum(ein==e)-cumsum(ein==str(e,dt,'dt'))) }}
+    return(Ki)
   },.par=FALSE)
   for (e in names(e.dts)){ # e.g. vio.dt: periods with vio in past (30,90,...) days
     cols = str(e,e.dts[[e]],'dt')
-    Y[str(e,'.dt.c')] = factor(rowSums(Y[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
-    Y[cols] = NULL }
+    K[str(e,'.dt.c')] = factor(rowSums(K[cols]),len(cols):0,c(sort(e.dts[[e]]),'NR'))
+    K[cols] = NULL }
   for (x in names(x.cols)){
-    Y[[x]] = x.cols[[x]](Y) }
-  # df.compare(subset(Y,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
-  return(Y)
+    K[[x]] = x.cols[[x]](K) }
+  # df.compare(subset(K,e=='tmax'),srv.base(M$P,Q,M$E,t=t)) # DEBUG
+  return(K)
 }
 
-rate.data.sub = function(Y,t,dt=t,among=quote(TRUE)){
+rate.data.sub = function(K,t,dt=t,among=quote(TRUE)){
   tx.w = t    # obs end
   to.w = t-dt # obs start
-  Y = subset(Y, to <= tx.w & tx >= to.w) # observed
-  Y$e [Y$tx > tx.w] = 'tmax' # clip event
-  Y$tx[Y$tx > tx.w] = tx.w   # clip end
-  Y$to[Y$to < to.w] = to.w   # clip start
-  Y = subset(Y,among) # any other subset
+  K = subset(K, to <= tx.w & tx >= to.w) # observed
+  K$e [K$tx > tx.w] = 'tmax' # clip event
+  K$tx[K$tx > tx.w] = tx.w   # clip end
+  K$to[K$to < to.w] = to.w   # clip start
+  K = subset(K,among) # any other subset
 }
 
-rate.est = function(Y,e,strat='seed'){
-  Y$w = switch(e, # person-time weight
+rate.est = function(K,e,strat='seed'){
+  K$w = switch(e, # person-time weight
     vio   = 1,
-    dep_o = Y$dep.now==0,
-    dep_x = Y$dep.now==1,
-    haz_o = Y$haz.now==0,
-    haz_x = Y$haz.now==1,
-    ptr_o = Y$sex.act & Y$ptr.nw < Y$ptr.max,
-    ptr_x = Y$ptr.nw)
-  y.strat = fast.split(1:nrow(Y),Y[strat])
-  R = rbind.lapply(y.strat,function(y){
-    ne = sum(Y$e[y]==e)
-    dt = sum((Y$tx[y] - Y$to[y]) * Y$w[y])
-    cbind(Y[y[1],strat,drop=FALSE],
+    dep_o = K$dep.now==0,
+    dep_x = K$dep.now==1,
+    haz_o = K$haz.now==0,
+    haz_x = K$haz.now==1,
+    ptr_o = K$sex.act & K$ptr.nw < K$ptr.max,
+    ptr_x = K$ptr.nw)
+  k.strat = fast.split(1:nrow(K),K[strat])
+  R = rbind.lapply(k.strat,function(k){
+    ne = sum(K$e[k]==e)
+    dt = sum((K$tx[k] - K$to[k]) * K$w[k])
+    cbind(K[k[1],strat,drop=FALSE],
       var=e,ne=ne,dt=dt,value=ne/dt,
       # poisson 95% CI
       value.lo=qchisq(.025,2*ne  )/dt/2,
