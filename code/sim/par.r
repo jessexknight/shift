@@ -175,13 +175,13 @@ get.run.par = function(v,u=FALSE){
 
 # -----------------------------------------------------------------------------
 
-get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE){
+get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE,.grid=TRUE){
   # get Ps (list of P) for all combos of pars & ... & seed
   pars = ulist(pars,...) # merge / overwrite
-  v  = lens(pars) > 1 & ! names(pars) %in% vec.pars # pars that vary in grid
-  pa = list(seed=seed,var=pars[v],fix=pars[!v],n.var=prod(lens(pars[v])))
+  v  = lens(pars) > 1 & ! names(pars) %in% vec.pars # pars that vary
+  pa = list(seed=seed,var=pars[v],fix=pars[!v],n.var=ifelse(.grid,prod,max)(lens(pars[v])))
   status(3,'get.pars: ',pa$n.var,' x ',len(seed))
-  P0s = grid.apply(ulist(pa$var,seed=0),get.pars,args=pa$fix,.par=.par) # dummy seed
+  P0s = grid.apply(ulist(pa$var,seed=0),get.pars,args=pa$fix,.par=.par,.grid=.grid) # dummy seed
   Ps  = flist(lapply(P0s,function(P0){ # replicate P0s for each seed (faster)
     lapply(seed,function(s){ P0$seed = s; return(P0) }) }))
   attributes(Ps) = pa

@@ -199,10 +199,11 @@ wapply = function(...){
   mapply(...,SIMPLIFY=FALSE)
 }
 
-grid.apply = function(x,fun,args=list(),...,.par=TRUE,.rbind=FALSE,.cbind=FALSE){
+grid.apply = function(x,fun,args=list(),...,
+  .par=TRUE,.rbind=FALSE,.cbind=FALSE,.grid=TRUE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
-  xg = expand.grid(x,stringsAsFactors=FALSE)
+  xg          = ifelse(.grid,expand.grid,as.data.frame)(x,stringsAsFactors=FALSE)
   grid.args   = lapply(seqn(nrow(xg)),function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
   grid.fun    = ifelse(.cbind,function(...){ cbind(fun(...),...) },fun)
   grid.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
