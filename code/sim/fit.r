@@ -1,10 +1,19 @@
 
 # -----------------------------------------------------------------------------
-# param sampling
+# params
 
-tx.sample = function(F,S0,dir='tx'){
+fit.par = function(name,min,max,tx=NULL,itx=NULL){
+  Fi = list(
+    name = name,
+    min  = min,
+    max  = max,
+    tx   = if.null(tx,identity),
+    itx  = if.null(itx,identity))
+}
+
+fit.par.tx = function(F,S0,dir='tx'){
   # forward (tx) or reverse (itx) transform S0 <-> S
-  # where S0 ~ [0,1] are quantiles of S ~ tx(unif[lo,up])
+  # where S0 ~ unif[0,1] are quantiles of S ~ tx(unif[lo,up])
   S = lapply(seqa(F),function(i){
     Fi  = F[[i]]
     fun = if.null(Fi[[dir]],identity)
@@ -15,55 +24,81 @@ tx.sample = function(F,S0,dir='tx'){
   S = cbind(id=S0[,1],as.data.frame(S,col.names=names(F)))
 }
 
-lhs.sample = function(F,n){
-  S = tx.sample(F,cbind(id=1:n,lhs::randomLHS(n,len(F))))
+fit.par.lhs = function(F,n){
+  S = fit.par.tx(F,cbind(id=1:n,lhs::randomLHS(n,len(F))))
 }
 
-plot.sample = function(S,color=''){
-  # ggpairs plot & option to color by a factor var e.g. rank.cut(L$total)
-  stfu(library('GGally',quietly=TRUE))
-  grid.draw.ggmatrix <<- print
-  g = ggpairs(cbind(S,color=color),map=aes(color=color,alpha=0))
-  for (i in 1:g$nrow){ for (j in 1:g$ncol){ g[i,j] = g[i,j] + clr.map.d }}
-  g = plot.clean(g)
+# -----------------------------------------------------------------------------
+# targets
+
+fit.targ = function(name,type,mu,se,...,w=1){
+  Ti = list(
+    name = name,
+    type = type,
+    mu = mu, # estimate
+    se = se, # std err
+    w = w, # weight
+    fun = def.args(targ.funs[[type]],...))
 }
+
+targ.calc = function(Q,ofun,...,vs=NULL){
+  # compute outputs from Q for simple targets
+  vs = c(vs,'t','seed')
+  Y = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
+    out = ofun(Qi,...) # calculate estimate
+    Yi = cbind(Qi[1,vs,drop=FALSE],as.list(out))
+  },.par=FALSE)
+}
+
+prop.out = function(Q,vo){
+  x = Q[[vo]]; k = sum(x); n = len(x); p = k/n
+  out = list(
+    est.mu = p,
+    est.se = p*(1-p)/n,
+    value = p,
+    lower = qbeta(.025,k+.5,n-k+.5),
+    upper = qbeta(.975,k+.5,n-k+.5))
+}
+
+pois.out = function(Q,vo,vt){
+  k = sum(Q[[vo]]); t = sum(Q[[vt]]); p = k/t
+  u = log(p); use = 1/sqrt(t*p)
+  out = list(
+    est.mu = u,
+    est.st = use,
+    value = p,
+    lower = exp(u+qnorm(.025)*use),
+    upper = exp(u+qnorm(.975)*use))
+}
+
+targ.funs = list(
+  prop = def.args(targ.calc,ofun=prop.out),
+  pois = def.args(targ.calc,ofun=pois.out),
+  OR   = def.args(mass.calc,ofun=def.args(glm.out,family=binomial,ctx=exp)),
+  PR   = def.args(mass.calc,ofun=def.args(glm.out,family=poisson, ctx=exp)))
 
 # -----------------------------------------------------------------------------
 # log-likelihoods
 
-ll.srv = function(Q,T){
+srv.targs = function(Q,T){
   # weighted log-likelihoods for each target T given survey Q
-  # e.g. Ti$type = 'prop' uses ll.prop(Ti$t.arg,Q=Q,...)
-  Ls = unlist(lapply(T,function(Ti){
-    fun  = get(str('ll.',Ti$type))
-    args = ulist(within(Ti,rm(type,w)),Q=Q)
-    Li   = do.call(fun,args) * Ti$w
-  }))
+  Ys = lapply(T,function(Ti){
+    Yi = Ti$fun(Q)      # estimate
+    ll = targ.ll(Ti,Yi) # likelihood
+    Yi = cbind(name=Ti$name,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
+  })
+  Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)))
 }
 
-ll.prop = function(t.arg,Q,v){
-  x = Q[[v]] # extract data (survey responses)
-  p.x = mean(x); n.x = len(x);  k.x = sum(x)  # data
-  p.t = t.arg$p; n.t = t.arg$n; k.t = p.t*n.t # target
-  p = (k.t+k.x) / (n.t+n.x)
-  z = (p.t-p.x) / sqrt(p*(1-p)*(1/n.t+1/n.x))
-  ll = dnorm(z,log=TRUE)
-}
-
-# ll.pois = function(t.arg,Q,v){} # TODO
-
-ll.OR = function(t.arg,Q,...){
-  A = mass.calc(mfuns=mass.funs.ce['OR'],Q1=Q,...)
-  or.x = mean(A$coef)
-  se.x = mean(A$std.err)
-  or.t = t.arg$OR; s = sqrt(sqrt(or.t))
-  se.t = (s+1/s)*2 / sqrt(t.arg$n) # HACK
-  z  = (or.t-or.x) / sqrt(se.t^2+se.x^2)
+targ.ll = function(Ti,Yi){
+  z = (Ti$mu - Yi$est.mu) / sqrt(Ti$se^2 + Yi$est.se^2)
   ll = dnorm(z,log=TRUE)
 }
 
 # -----------------------------------------------------------------------------
 # fitting
+
+# TODO: finish update
 
 fit.run = function(Si,T,P0=NULL,...,aggr=TRUE,.par=FALSE){
   # get log-likelihood given sample Si, targets T, base params P0
