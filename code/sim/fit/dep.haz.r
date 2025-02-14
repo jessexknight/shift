@@ -21,28 +21,30 @@ P0 = list(
   run = get.run.par(c('dep','haz'),u=FALSE))
 
 # params to fit
-F = list(
-  'dep_o.Ri.my'    = list(m= -1.5, lo= -3, up=  0, tx=e10, itx=log10),
-  'haz_o.Ri.my'    = list(m= -1.5, lo= -3, up=  0, tx=e10, itx=log10),
-  'dep_x.Ri.my'    = list(m= -1.5, lo= -3, up=  0, tx=e10, itx=log10),
-  'haz_x.Ri.my'    = list(m= -1.5, lo= -3, up=  0, tx=e10, itx=log10),
-  'dep.Ri.cv'      = list(m= 0,    lo=  0, up=  9),
-  'haz.Ri.cv'      = list(m= 0,    lo=  0, up=  9),
-  'dep.cov'        = list(m= 0,    lo= -1, up= +1),
-  'haz.cov'        = list(m= 0,    lo= -1, up= +1),
-  'RR.haz_o.dep_w' = list(m= 0,    lo= -1, up= +1, tx=e10, itx=log10),
-  'RR.haz_x.dep_w' = list(m= 0,    lo= -1, up= +1, tx=e10, itx=log10))
+F = name.list(
+  fit.par('dep_o.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
+  fit.par('haz_o.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
+  fit.par('dep_x.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
+  fit.par('haz_x.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
+  fit.par('dep.Ri.cv',     min= 0,max= 9),
+  fit.par('haz.Ri.cv',     min= 0,max= 9),
+  fit.par('dep.cov',       min=-1,max=+1),
+  fit.par('haz.cov',       min=-1,max=+1),
+  fit.par('RR.haz_o.dep_w',min=-1,max=+1,tx=e10,itx=log10),
+  fit.par('RR.haz_x.dep_w',min=-1,max=+1,tx=e10,itx=log10))
 
 # targets
-T = list(
-  'dep.now'    = list(type='prop',t.arg=list(p = .15,n=100),w=1,v='dep.now'),
-  'dep.past'   = list(type='prop',t.arg=list(p = .45,n=100),w=1,v='dep.past'),
-  'haz.now'    = list(type='prop',t.arg=list(p = .25,n=100),w=1,v='haz.now'),
-  'haz.past'   = list(type='prop',t.arg=list(p = .60,n=100),w=1,v='haz.past'),
-  'dep.haz.or' = list(type='OR',  t.arg=list(OR=3.00,n=100),w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE))
+T = name.list(
+  fit.targ('dep.now',   type='prop',mu= .15,se=.05,w=1,vo='dep.now'),
+  fit.targ('dep.past',  type='prop',mu= .45,se=.05,w=1,vo='dep.past'),
+  fit.targ('haz.now',   type='prop',mu= .25,se=.05,w=1,vo='haz.now'),
+  fit.targ('haz.past',  type='prop',mu= .60,se=.05,w=1,vo='haz.past'),
+  fit.targ('dep.haz.or',type='OR',  mu=3.00,se=100,w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE))
 
 # -----------------------------------------------------------------------------
 # main
+
+# TODO: update for new sim/fit.r
 
 fid = list.str(list(F=len(F),T=len(T),H=n.sam,n=n.pop,s=n.seed),def='',join='.')
 status(1,'fit: dep.haz @ ',fid)
