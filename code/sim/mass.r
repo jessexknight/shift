@@ -1,60 +1,35 @@
 source('sim/meta.r')
 
-# mass = measures of association
-
 # -----------------------------------------------------------------------------
-# config
+# prep survey data & calculate mass = measures of association
 
-elu.names = c('estim','lower','upper')
-ce.names = c('coef','std.err')
-tt = c('.te','.to') # suffix for vars measured at time of exposure or outcome
-
-mass.funs.elu = list(
-  OR = def.args(glm.elu,family=binomial,ctx=exp),
-  PR = def.args(glm.elu,family=poisson, ctx=exp))
-
-mass.funs.ce = list(
-  OR = def.args(glm.ce,family=binomial),
-  PR = def.args(glm.ce,family=poisson))
-
-# -----------------------------------------------------------------------------
-# prep survey data & calculate mass
-
-mass.calc = function(mfuns,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE){
-  # compute 1+ measures of assoc for vo ~ ve + va1 + va2,
+mass.calc = function(ofun,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE){
+  # compute a measure of assoc for vo ~ ve + va1 + va2,
   # stratified by vs, from Q1 & Q2 (2 timepoints)
   if (missing(Q1)){ Q1 = Q2[Q2$t==min(Q2$t),] }
   if (missing(Q2)){ Q2 = Q1[Q1$t==max(Q1$t),] }
   va = c(va1,va2)       # adjust vars
   vs = c(vs,'seed')     # strat vars
   by = c(by,'i','seed') # index vars for merging
-  Q = merge(by=by,suffix=tt,
+  Q = merge(by=by,suffix=c('.te','.to'),
     Q1[c(by,'t',ve,vo,va1)],
     Q2[c(by,'t',ve,vo,va2)])
-  if (ao1){ va = c(va,str(vo,tt[1])) }
+  if (ao1){ va = c(va,str(vo,'.te')) }
   A = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
-    Ai = rbind.lapply(names(mfuns),function(mass){ # for each mass
-      elu = mfuns[[mass]](Qi,ve,vo,va) # calculate the elu
-      Aim = cbind(Qi[1,vs,drop=FALSE], # strat vars
-        te = Qi$t.te[1], # t1 (exposure)
-        to = Qi$t.to[1], # t2 (outcome)
-        dt = Qi$t.to[1] - Qi$t.te[1], # t2 - t1
-        mass = mass, # mass name
-        adj = str(va,collapse=', '), # adjust vars
-        as.list(elu)) # estim, lower, upper
-    })
-  })
-}
-
-mass.clean = function(A,eps=1e-6){
-  A$estim = pmax(eps,pmin(1/eps,A$estim))
-  A$lower = pmax(eps,pmin(1/eps,A$lower))
-  A$upper = pmax(eps,pmin(1/eps,A$upper))
-  return(A)
+    out = ofun(Qi,ve,vo,va) # calculate mass
+    Ai = cbind(Qi[1,vs,drop=FALSE], # strat vars
+      ve = ve,
+      vo = vo,
+      te = Qi$t.te[1], # t1 (exposure)
+      to = Qi$t.to[1], # t2 (outcome)
+      dt = Qi$t.to[1] - Qi$t.te[1], # t2 - t1
+      adj = str(va,collapse=', '), # adjust vars
+      as.list(out)) # est.mu, est.se, value, lower, upper
+  },.par=FALSE)
 }
 
 # -----------------------------------------------------------------------------
-# glm (general linear model) = default mfun (function to compute mass)
+# glm (general linear model) = default ofun (function to compute mass)
 
 glm.run = function(Q,ve,vo,va,family,among=quote(TRUE),...){
   # run glm for: otx(vo) ~ etx(ve) + va
@@ -66,22 +41,23 @@ glm.run = function(Q,ve,vo,va,family,among=quote(TRUE),...){
 glm.formula = function(ve,vo,va,otx='',etx=''){
   # helper to generate formula; otx & etx = transforms as strings
   f = formula(str(
-    otx,'(',vo,tt[2],') ~ ',
-    etx,'(',ve,tt[1],') + ',
+    otx,'(',vo,'.to) ~ ',
+    etx,'(',ve,'.te) + ',
     str(c(1,va),collapse=' + ')))
 }
 
-glm.elu = function(...,ctx=identity){
-  # run glm & extract (estim, lower, upper) = ctx(coef(ve)) with 95% CI
+glm.out = function(...,ctx=identity){
+  # run glm & extract outputs = (est.mu, est.se, estim, lower, upper)
+  # for first non-intercept coef
   m = glm.run(...)
-  elu.coef = c(coef(m)[2],confint.default(m,2))
-  elu = set.names(ctx(elu.coef),elu.names)
-}
-
-glm.ce = function(...){
-  # run glm & extract (coef, std.err)
-  m = glm.run(...)
-  ce = set.names(summary(m)$coef[2,1:2],ce.names)
+  est = summary(m)$coef[2,1:2] # raw coef & std err
+  eci = confint.default(m,2) # transformed coef & 95% CI
+  out = list(
+    est.mu = est[1],
+    est.se = est[2],
+    value = ctx(est[1]),
+    lower = ctx(eci[1]),
+    lower = ctx(eci[2]))
 }
 
 # -----------------------------------------------------------------------------
