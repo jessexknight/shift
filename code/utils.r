@@ -39,6 +39,15 @@ root.path = function(...,ext='',create=FALSE){
 
 .verb = cli.arg('.verb',4)
 
+verb.wrap = function(code,.verb.tmp){
+  # temporarily override .verb
+  .verb.mem = .verb
+  .verb <<- .verb.tmp
+  out = force(code)
+  .verb <<- .verb.mem
+  return (out)
+}
+
 status = function(lvl,...,id=NULL){
   if (lvl > .verb){ return() }
   pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
@@ -150,6 +159,12 @@ ulist = function(x=list(),xu=list(),...){
 flist = function(x){
   # flatten list(list(a=1),list(b=2)) -> list(a=1,b=2)
   do.call(c,unname(x))
+}
+
+name.list = function(...,key='name'){
+  # e.g. name.list(list(name='a',v=1),...) -> list(a=list(name='a',v=1),...)
+  x = list(...)
+  x = set.names(x,lapply(x,`[[`,key))
 }
 
 filter.names = function(x,re,b=TRUE){
