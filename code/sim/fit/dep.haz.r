@@ -44,10 +44,8 @@ T = name.list(
 # -----------------------------------------------------------------------------
 # main
 
-# TODO: update for new sim/fit.r
-
 fid = list.str(list(F=len(F),T=len(T),H=n.sam,n=n.pop,s=n.seed),def='',join='.')
 status(1,'fit: dep.haz @ ',fid)
-S = lhs.sample(F,n.sam)
-L = fit.runs(S,T,P0=P0,seed=1:n.seed,aggr=FALSE)
-save.csv(cbind(S,L),'data','sim','fit','dep.haz',uid,fid)
+S = fit.par.lhs(F,n.sam)
+Y = fit.runs(S,T,P0=P0,seed=1:n.seed)
+save.csv(Y,'data','sim','fit','dep.haz',uid,fid)

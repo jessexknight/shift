@@ -99,24 +99,20 @@ targ.ll = function(Ti,Yi){
 # -----------------------------------------------------------------------------
 # fitting
 
-# TODO: finish update
-
-fit.run = function(Si,T,P0=NULL,...,aggr=TRUE,.par=FALSE){
+fit.run = function(Si,T,P0=NULL,...,.par=FALSE){
   # get log-likelihood given sample Si, targets T, base params P0
   # i.e. get params, run model, run survey, get log-likelihoods
   Ps = get.pars.grid(ulist(P0,Si),...)
   Ms = sim.runs(Ps,sub='act',.par=.par)
   Q  = srv.apply(Ms)
-  Ls = ll.srv(Q,T)
-  Ls = c(total=sum(Ls),Ls)
+  Y  = srv.targs(Q,T)
   status(2,'fit.run:',
-    '\n > L: ',list.str(Ls,join=', ',sig=3),
-    '\n > S: ',list.str(Si,join=', ',sig=3))
-  if (aggr){ return(Ls[1]) } else { return(Ls) }
+    ' [L] : ',sum(aggregate(ll~name,Y,mean)$ll),
+    ' [S] : ',list.str(Si,join=', ',sig=3))
+  Y = cbind(Si,Y)
 }
 
-fit.runs = function(S,T,...){ .v = .verb; .verb <<- 2 # HACK
+fit.runs = function(S,T,...){
   # fit.run in parallel for each sample (row) in data.frame S
-  L = rbind.lapply(apply(S,1,as.list),fit.run,T=T,...)
-  .verb <<- .v; return(L) # HACK
+  Y = verb.wrap(rbind.lapply(apply(S,1,as.list),fit.run,T=T,...),2)
 }
