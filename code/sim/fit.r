@@ -18,13 +18,14 @@ fit.par.tx = function(F,S0,dir='tx'){
     Fi  = F[[i]]
     fun = if.null(Fi[[dir]],identity)
     Si  = switch(dir,
-      tx  = fun(qunif(S0[,i+1],Fi$lo,Fi$up)),
-      itx = punif(fun(S0[,i+1]),Fi$lo,Fi$up))
+      tx  = fun(qunif(S0[,i+1],Fi$min,Fi$max)),
+      itx = punif(fun(S0[,i+1]),Fi$min,Fi$max))
   })
   S = cbind(id=S0[,1],as.data.frame(S,col.names=names(F)))
 }
 
-fit.par.lhs = function(F,n){
+fit.par.lhs = function(F,n,seed=666){
+  set.seed(seed)
   S = fit.par.tx(F,cbind(id=1:n,lhs::randomLHS(n,len(F))))
 }
 
