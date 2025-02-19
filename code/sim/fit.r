@@ -11,22 +11,22 @@ fit.par = function(name,min,max,tx=NULL,itx=NULL){
     itx  = if.null(itx,identity))
 }
 
-fit.par.tx = function(F,S0,dir='tx'){
+fit.sam.tx = function(F,S0,dir='tx'){
   # forward (tx) or reverse (itx) transform S0 <-> S
   # where S0 ~ unif[0,1] are quantiles of S ~ tx(unif[lo,up])
-  S = lapply(seqa(F),function(i){
-    Fi  = F[[i]]
+  S = lapply(F,function(Fi){
     fun = if.null(Fi[[dir]],identity)
     Si  = switch(dir,
-      tx  = fun(qunif(S0[,i+1],Fi$min,Fi$max)),
-      itx = punif(fun(S0[,i+1]),Fi$min,Fi$max))
+      tx  = fun(qunif(S0[[Fi$name]], Fi$min,Fi$max)),
+      itx = punif(fun(S0[[Fi$name]]),Fi$min,Fi$max))
   })
-  S = cbind(id=S0[,1],as.data.frame(S,col.names=names(F)))
+  S = cbind(id=S0$id,as.data.frame(S))
 }
 
-fit.par.lhs = function(F,n,seed=666){
+fit.sam.lhs = function(F,n,seed=666){
   set.seed(seed)
-  S = fit.par.tx(F,cbind(id=1:n,lhs::randomLHS(n,len(F))))
+  S0 = lhs::randomLHS(n,len(F)); colnames(S0) = names(F)
+  S  = fit.sam.tx(F,cbind(id=1:n,as.data.frame(S0)))
 }
 
 # -----------------------------------------------------------------------------
