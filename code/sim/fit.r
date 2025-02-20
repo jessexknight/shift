@@ -11,16 +11,16 @@ fit.par = function(name,min,max,tx=NULL,itx=NULL){
     itx  = if.null(itx,identity))
 }
 
-fit.sam.tx = function(F,S0,dir='tx'){
+fit.sam.tx = function(F,S,d='tx'){
   # forward (tx) or reverse (itx) transform S0 <-> S
   # where S0 ~ unif[0,1] are quantiles of S ~ tx(unif[lo,up])
-  S = lapply(F,function(Fi){
-    fun = if.null(Fi[[dir]],identity)
-    Si  = switch(dir,
-      tx  = fun(qunif(S0[[Fi$name]], Fi$min,Fi$max)),
-      itx = punif(fun(S0[[Fi$name]]),Fi$min,Fi$max))
-  })
-  S = cbind(id=S0$id,as.data.frame(S))
+  for (Fi in F){
+    fun = if.null(Fi[[d]],identity)
+    S[[Fi$name]] = switch(d,
+      tx  = fun(qunif(S[[Fi$name]], Fi$min,Fi$max)),
+      itx = punif(fun(S[[Fi$name]]),Fi$min,Fi$max))
+  }
+  return(S)
 }
 
 fit.sam.lhs = function(F,n,seed=666){
