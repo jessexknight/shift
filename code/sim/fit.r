@@ -92,7 +92,7 @@ srv.targs = function(Q,T){
 }
 
 targ.ll = function(Ti,Yi){
-  z = (Ti$mu - Yi$est.mu) / sqrt(Ti$se^2 + Yi$est.se^2)
+  z = (Ti$mu - Yi$est.mu) / sqrt(Ti$se^2 + pmin(Yi$est.se,Ti$se)^2)
   ll = dnorm(z,log=TRUE)
 }
 
