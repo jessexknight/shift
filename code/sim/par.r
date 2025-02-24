@@ -195,6 +195,12 @@ het.funs = list(
   gamma = list( # m = mean; het = CoV (sd / mean)
     r = function(n,m,het){ cv2 = max(het^2,1e-6); x = rgamma(n,shape=1/cv2,scale=m*cv2) },
     q = function(p,m,het){ cv2 = max(het^2,1e-6); x = qgamma(p,shape=1/cv2,scale=m*cv2) }),
+  weibull = list(
+    r = function(n,m,het){ f = fit.weibull(m,het^2); x = rweibull(n,shape=f$shape,scale=f$scale) },
+    q = function(p,m,het){ f = fit.weibull(m,het^2); x = qweibull(p,shape=f$shape,scale=f$scale) }),
+  lnorm = list(
+    r = function(n,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); x = rlnorm(n,meanlog=u,sdlog=s) },
+    q = function(p,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); x = qlnorm(p,meanlog=u,sdlog=s) }),
   R2 = list( # m = mean; het = xR; p0 = 0.5 (fixed)
     r = function(n,m,het){ x0 = 2*m/(1+het); x = rR2(n,x0=x0,xR=het,p0=.5) },
     q = function(p,m,het){ x0 = 2*m/(1+het); x = qR2(p,x0=x0,xR=het,p0=.5) }))

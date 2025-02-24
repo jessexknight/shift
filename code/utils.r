@@ -244,6 +244,12 @@ fit.beta = function(qs,ps=c(.025,.975)){
 
 e10 = function(x){ 10^x } # log10 inverse
 
+fit.weibull = function(m,cv2,...){
+  err = function(k){ s = gamma(1+1/k)^2; e = ((gamma(1+2/k)-s)/s-cv2)^2 }
+  shape = optimize(err,c(1e-6,1e+6))$minimum
+  par = list(shape=shape,scale=m/gamma(1+1/shape),...)
+}
+
 # R2 = dummy 2-group distr with { p0: x0, 1-p0: x0*xR }
 qR2 = function(p,x0,xR,p0=.5){ x = x0 * (1 + (xR-1) * (p > p0)) }
 rR2 = function(n,x0,xR,p0=.5){ x = qR2(runif(n),x0,xR,p0) }
