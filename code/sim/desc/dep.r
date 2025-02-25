@@ -47,4 +47,4 @@ grid = list(
   dep.cov     = c(-.9,  0,+.9))
 Ps = get.pars.grid(ulist(P0,grid),seed=1:n.seed)
 Ms = sim.runs(Ps)
-save(Ms,file='Ms.o7.x7.h5.c3.rda')
+save(Ms,file='Ms.o5.x5.h5.c3.s21.n1000.rda')
