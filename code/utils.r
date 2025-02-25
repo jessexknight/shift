@@ -67,6 +67,25 @@ save.csv = function(X,...,ext='.csv'){
   write.csv(X,file=fname,row.names=FALSE)
 }
 
+load.rda = function(...,ext='.rda'){
+  fname = root.path(...,ext=ext)
+  status(3,'loading: ',fname)
+  load(fname)
+  return(X)
+}
+
+save.rda = function(X,...,ext='.rda'){
+  fname = root.path(...,ext=ext,create=TRUE)
+  status(3,'saving: ',fname)
+  save(X,file=fname)
+}
+
+gen.fid = function(...){
+  # e.g. gen.fid(list(a=1:3,b=1:5),n=1000) -> a3.b5.n1000
+  args = ulist(...)
+  list.str(ifelse(lens(args)>1,lens(args),args),def='',join='.')
+}
+
 # -----------------------------------------------------------------------------
 # plot tools
 
