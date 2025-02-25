@@ -3,8 +3,8 @@ source('sim/meta.r')
 # -----------------------------------------------------------------------------
 # config
 
-n.pop  = cli.arg('n.pop', 400)
-n.seed = cli.arg('n.seed',  7)
+n.pop  = cli.arg('n.pop', 1000)
+n.seed = cli.arg('n.seed',  21)
 
 # base params
 P0 = list(
@@ -22,6 +22,15 @@ P0 = list(
   run = get.run.par('dep',u=FALSE))
 
 # -----------------------------------------------------------------------------
+# aggr
+
+srv.aggr = function(Ms,grid,out='dep.now',fun=mean,age.10=FALSE){
+  Q = srv.apply(Ms,p.vars=names(grid))
+  f = formula(str(out,'~',str(names(grid),collapse='+'),ifelse(age.10,'+age.10','')))
+  Qa = aggregate(f,Q,fun)
+}
+
+# -----------------------------------------------------------------------------
 # plot
 
 # TODO
@@ -30,8 +39,10 @@ P0 = list(
 # main
 
 grid = list(
-  dep_o.Ri.my = c(.001,.002,.005,.01,.02,.05,.1),
-  dep_x.Ri.my = c(.01 ,.02 ,.05 ,.1 ,.2 ,.5 ,1 ),
+  # dep_o.Ri.my = c(.001,.002,.005,.01,.02,.05,.1),
+  # dep_x.Ri.my = c(.01 ,.02 ,.05 ,.1 ,.2 ,.5 ,1 ),
+  dep_o.Ri.my = c(.001,.003,.01,.03,.1),
+  dep_x.Ri.my = c(.01 ,.03 ,.1 ,.3 ,1 ),
   dep.Ri.het  = c( 0,.1,.3,1 ,3 ),
   dep.cov     = c(-.9,  0,+.9))
 Ps = get.pars.grid(ulist(P0,grid),seed=1:n.seed)
