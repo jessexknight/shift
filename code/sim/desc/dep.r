@@ -24,9 +24,8 @@ P0 = list(
 # -----------------------------------------------------------------------------
 # aggr
 
-srv.aggr = function(Ms,grid,out='dep.now',fun=mean,age.10=FALSE){
-  Q = srv.apply(Ms,p.vars=names(grid))
-  f = formula(str(out,'~',str(names(grid),collapse='+'),ifelse(age.10,'+age.10','')))
+srv.aggr = function(Q,vars,out='dep.now',fun=mean){
+  f = formula(str(out,' ~ ',str(vars,collapse=' + ')))
   Qa = aggregate(f,Q,fun)
 }
 
@@ -45,6 +44,9 @@ grid = list(
   dep_x.Ri.my = c(.01 ,.03 ,.1 ,.3 ,1 ),
   dep.Ri.het  = c( 0,.1,.3,1 ,3 ),
   dep.cov     = c(-.9,  0,+.9))
+fid = list.str(c(lens(set.names(grid,c('o','x','h','c'))),n=n.pop,s=n.seed),def='',join='.')
 Ps = get.pars.grid(ulist(P0,grid),seed=1:n.seed)
 Ms = sim.runs(Ps)
-save(Ms,file='Ms.o5.x5.h5.c3.s21.n1000.rda')
+save(Ms,file=str('Ms.',fid,'.rda'))
+Q = srv.apply(Ms,p.vars=names(grid))
+save(Q,file=str('Q.',fid,'.rda'))
