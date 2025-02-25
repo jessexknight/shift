@@ -44,9 +44,9 @@ grid = list(
   dep_x.Ri.my = c(.01 ,.03 ,.1 ,.3 ,1 ),
   dep.Ri.het  = c( 0,.1,.3,1 ,3 ),
   dep.cov     = c(-.9,  0,+.9))
-fid = list.str(c(lens(set.names(grid,c('o','x','h','c'))),n=n.pop,s=n.seed),def='',join='.')
+fid = gen.fid(set.names(grid,c('o','x','h','c')),n=n.pop,s=n.seed)
 Ps = get.pars.grid(ulist(P0,grid),seed=1:n.seed)
 Ms = sim.runs(Ps)
-save(Ms,file=str('Ms.',fid,'.rda'))
+save.rda(Ms,'data','sim','desc',uid,str('Ms.',fid))
 Q = srv.apply(Ms,p.vars=names(grid))
-save(Q,file=str('Q.',fid,'.rda'))
+save.rda(Q,'data','sim','desc',uid,str('Q.',fid))
