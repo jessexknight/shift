@@ -4,7 +4,7 @@ library('reshape2')
 evt.vars = function(evt){
   if (is.null(evt)){ return(NULL) }
   vars = switch(substr(evt,1,3),
-    vio = c('vio.nt'),
+    vio = c('vio.nt','vio.past'),
     dep = c('dep.now','dep.past'),
     haz = c('haz.now','haz.past'),
     ptr = c('ptr.nt', 'ptr.nw'))
