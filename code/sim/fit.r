@@ -1,8 +1,8 @@
 
 # -----------------------------------------------------------------------------
-# params
+# fitted params
 
-fit.par = function(name,min,max,tx=NULL,itx=NULL){
+gen.fpar = function(name,min,max,tx=NULL,itx=NULL){
   Fi = list(
     name = name,
     min  = min,
@@ -11,7 +11,7 @@ fit.par = function(name,min,max,tx=NULL,itx=NULL){
     itx  = if.null(itx,identity))
 }
 
-fit.sam.tx = function(F,S,d='tx'){
+fpar.tx = function(S,F,d='tx'){
   # forward (tx) or reverse (itx) transform S0 <-> S
   # where S0 ~ unif[0,1] are quantiles of S ~ tx(unif[lo,up])
   for (Fi in F){
@@ -23,23 +23,24 @@ fit.sam.tx = function(F,S,d='tx'){
   return(S)
 }
 
-fit.sam.lhs = function(F,n,seed=666){
+fpar.lhs = function(F,n,seed=666){
   set.seed(seed)
   S0 = lhs::randomLHS(n,len(F)); colnames(S0) = names(F)
-  S  = fit.sam.tx(F,cbind(id=1:n,as.data.frame(S0)))
+  S  = fpar.tx(cbind(id=1:n,as.data.frame(S0)),F)
 }
 
 # -----------------------------------------------------------------------------
 # targets
 
-fit.targ = function(name,type,mu,se,...,w=1){
+gen.targ = function(name,type,mu,se,...,among=NULL,w=1){
   Ti = list(
-    name = name,
-    type = type,
-    mu = mu, # estimate
-    se = se, # std err
-    w = w, # weight
-    fun = def.args(targ.funs[[type]],...))
+    name  = name,
+    type  = type,
+    mu    = mu, # estimate
+    se    = se, # std err
+    among = among, # subset
+    w     = w, # weight
+    fun   = def.args(targ.funs[[type]],among=among,...))
 }
 
 targ.calc = function(Q,ofun,...,vs=NULL){
@@ -51,7 +52,8 @@ targ.calc = function(Q,ofun,...,vs=NULL){
   },.par=FALSE)
 }
 
-prop.out = function(Q,vo){
+prop.out = function(Q,vo,among=NULL){
+  Q = srv.sub(Q,among)
   x = Q[[vo]]; k = sum(x); n = len(x); p = k/n
   out = list(
     est.mu = p,
@@ -61,7 +63,8 @@ prop.out = function(Q,vo){
     upper = qbeta(.975,k+.5,n-k+.5))
 }
 
-pois.out = function(Q,vo,vt){
+pois.out = function(Q,vo,vt,among=NULL){
+  Q = srv.sub(Q,among)
   k = sum(Q[[vo]]); t = sum(Q[[vt]]); p = k/t
   u = log(p); use = 1/sqrt(t*p)
   out = list(
@@ -109,7 +112,7 @@ fit.run = function(Si,T,P0=NULL,...,.par=FALSE){
   status(2,'fit.run:',
     ' [L] : ',sum(aggregate(ll~name,Y,mean)$ll),
     ' [S] : ',list.str(Si,join=', ',sig=3))
-  Y = cbind(Si,Y)
+  Y = cbind(as.list(Si),Y,row.names=NULL)
 }
 
 fit.runs = function(S,T,...){
