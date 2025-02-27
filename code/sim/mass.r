@@ -31,9 +31,9 @@ mass.calc = function(ofun,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE
 # -----------------------------------------------------------------------------
 # glm (general linear model) = default ofun (function to compute mass)
 
-glm.run = function(Q,ve,vo,va,family,among=quote(TRUE),...){
+glm.run = function(Q,ve,vo,va,family,among=NULL,...){
   # run glm for: otx(vo) ~ etx(ve) + va
-  Q = subset(Q,eval(parse(text=among)))
+  Q = srv.sub(Q,among)
   f = glm.formula(ve,vo,va,...)
   m = no.warn(glm(f,family,Q))
 }

@@ -43,12 +43,14 @@ srv.base = function(P,Q,E,t){
   Q$vio.dt   = t - Q$vio.tr
   Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
   Q$dep.past = sapply(E$dep_o,len) > 0
-  Q$dep.to   = sapply(E$dep_o,last)
-  Q$dep.dur  = ifelse(Q$dep.now,t-Q$dep.to,NA)
+  Q$dep.toi  = sapply(E$dep_o,first)
+  Q$dep.tor  = sapply(E$dep_o,last)
+  Q$dep.dur  = ifelse(Q$dep.now,t-Q$dep.tor,NA)
   Q$haz.now  = sapply(E$haz_o,len) > sapply(E$haz_x,len)
   Q$haz.past = sapply(E$haz_o,len) > 0
-  Q$haz.zo   = sapply(E$haz_o,last)
-  Q$haz.dur  = ifelse(Q$haz.now,t-Q$haz.to,NA)
+  Q$haz.toi  = sapply(E$haz_o,first)
+  Q$haz.tor  = sapply(E$haz_o,last)
+  Q$haz.dur  = ifelse(Q$haz.now,t-Q$haz.tor,NA)
   Q$ptr.nt   = sapply(E$ptr_o,len)
   Q$ptr.nw   = Q$ptr.nt - sapply(E$ptr_x,len)
   return(Q)
@@ -62,6 +64,12 @@ srv.e.dts = function(P,Q,E,t,e.dts){
   } # TODO: ^ make common fun w/ rate.data?
   # TODO: verify w/ df.compare
   return(Q)
+}
+
+srv.sub = function(Q,among=NULL){
+  # among should be quoted
+  if (is.null(among)){ return(Q) }
+  else { return(subset(Q,eval(parse(text=among)))) }
 }
 
 # =============================================================================
@@ -211,6 +219,8 @@ rate.est = function(K,e,strat='seed'){
 clip.evts = function(E,t){ E = lapply(E,lapply,clip.tes,t=t) }
 
 clip.tes = function(tes,t){ tes[tes <= t] }
+
+num.tot = function(tes,t){ n = sum(tes <= t) }
 
 num.dt = function(tes,t,dt){ n = sum(tes <= t & tes > t-dt) }
 
