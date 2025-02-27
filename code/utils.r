@@ -23,6 +23,15 @@ set.names = setNames
 no.warn = suppressWarnings
 stfu = suppressPackageStartupMessages
 
+def.args = function(f,...){
+  # pre-specify some args, but allow later override of named args
+  args.pre = list(...)
+  f.pre = function(...){
+    args = c(args.pre,list(...))
+    u = names(args)==''
+    do.call(f,c(args[u],ulist(args[!u]))) }
+}
+
 # -----------------------------------------------------------------------------
 # files + i/o
 
@@ -107,9 +116,8 @@ plot.size = function(g,...){
   size = c(w=s$wo+s$w1*max(layout$COL),h=s$ho+s$h1*max(layout$ROW))
 }
 
-clr.map.c = ggplot2::scale_color_viridis_c(option='inferno',aes=c('color','fill'))
-clr.map.d = ggplot2::scale_color_viridis_d(option='inferno',aes=c('color','fill'),
-  begin=.1,end=.9)
+clr.map.c = def.args(ggplot2::scale_color_viridis_c,aes=c('color','fill'))
+clr.map.d = def.args(ggplot2::scale_color_viridis_d,aes=c('color','fill'),begin=.1,end=.9)
 
 plot.clean = function(g,...){
   g = g + theme_light() + theme(...,
@@ -159,6 +167,11 @@ ulen = function(x){
 
 reppend = function(x,xa,n){
   append(x,rep.int(xa,n))
+}
+
+first = function(x){
+  # return the first element in x or NA if len(x) == 0
+  if (len(x)){ x[1] } else { NA } # redundant
 }
 
 last = function(x){
@@ -242,11 +255,6 @@ grid.apply = function(x,fun,args=list(),...,
   grid.fun    = ifelse(.cbind,function(...){ cbind(fun(...),...) },fun)
   grid.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
   grid.lapply(grid.args,do.call,what=grid.fun,.par=.par)
-}
-
-def.args = function(f,...){
-  args = list(...)
-  f.pre = function(...){ do.call(f,c(args,list(...))) }
 }
 
 fast.split = function(...){
