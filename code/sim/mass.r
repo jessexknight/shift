@@ -3,7 +3,8 @@ source('sim/meta.r')
 # -----------------------------------------------------------------------------
 # prep survey data & calculate mass = measures of association
 
-mass.calc = function(ofun,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE){
+mass.calc = function(ofun,ve,vo,Q1,Q2,
+    va1=NULL,va2=NULL,vs=NULL,by=NULL,among=NULL,ao1=TRUE){
   # compute a measure of assoc for vo ~ ve + va1 + va2,
   # stratified by vs, from Q1 & Q2 (2 timepoints)
   if (missing(Q1)){ Q1 = Q2[Q2$t==min(Q2$t),] }
@@ -15,6 +16,7 @@ mass.calc = function(ofun,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE
     Q1[c(by,'t',ve,vo,va1)],
     Q2[c(by,'t',ve,vo,va2)])
   if (ao1){ va = c(va,str(vo,'.te')) }
+  Q = srv.sub(Q,among)
   A = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
     out = ofun(Qi,ve,vo,va) # calculate mass
     Ai = cbind(Qi[1,vs,drop=FALSE], # strat vars
@@ -31,9 +33,8 @@ mass.calc = function(ofun,ve,vo,Q1,Q2,va1=NULL,va2=NULL,vs=NULL,by=NULL,ao1=TRUE
 # -----------------------------------------------------------------------------
 # glm (general linear model) = default ofun (function to compute mass)
 
-glm.run = function(Q,ve,vo,va,family,among=NULL,...){
+glm.run = function(Q,ve,vo,va,family,...){
   # run glm for: otx(vo) ~ etx(ve) + va
-  Q = srv.sub(Q,among)
   f = glm.formula(ve,vo,va,...)
   m = no.warn(glm(f,family,Q))
 }
