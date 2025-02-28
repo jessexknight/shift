@@ -1,46 +1,19 @@
+stfu(library(mlrMBO))
 
 # -----------------------------------------------------------------------------
 # fitted params
 
-gen.fpar = function(name,min,max,tx=NULL,itx=NULL){
-  Fi = list(
-    name = name,
-    min  = min,
-    max  = max,
-    tx   = if.null(tx,identity),
-    itx  = if.null(itx,identity))
-}
-
-fpar.tx = function(S,F,d='tx'){
-  # forward (tx) or reverse (itx) transform S0 <-> S
-  # where S0 ~ unif[0,1] are quantiles of S ~ tx(unif[lo,up])
-  for (Fi in F){
-    fun = if.null(Fi[[d]],identity)
-    S[[Fi$name]] = switch(d,
-      tx  = fun(qunif(S[[Fi$name]], Fi$min,Fi$max)),
-      itx = punif(fun(S[[Fi$name]]),Fi$min,Fi$max))
-  }
-  return(S)
-}
-
-fpar.lhs = function(F,n,seed=666){
-  set.seed(seed)
-  S0 = lhs::randomLHS(n,len(F)); colnames(S0) = names(F)
-  S  = fpar.tx(cbind(id=1:n,as.data.frame(S0)),F)
-}
+gen.fpar = makeNumericParam
+fpar.set = makeParamSet
+length.ParamSet = function(F){ length(F$pars) }
+fpar.sam = function(...,seed=666){ set.seed(seed); generateDesign(...) }
 
 # -----------------------------------------------------------------------------
 # targets
 
-gen.targ = function(name,type,mu,se,...,among=NULL,w=1){
-  Ti = list(
-    name  = name,
-    type  = type,
-    mu    = mu, # estimate
-    se    = se, # std err
-    among = among, # subset
-    w     = w, # weight
-    fun   = def.args(targ.funs[[type]],among=among,...))
+gen.targ = function(id,type,mu,se,...,among=NULL,w=1){
+  Ti = list(id=id,type=type,mu=mu,se=se,among=among,w=w,
+    fun=def.args(targ.funs[[type]],among=among,...))
 }
 
 targ.calc = function(Q,ofun,...,vs=NULL){
@@ -84,12 +57,13 @@ targ.funs = list(
 # -----------------------------------------------------------------------------
 # log-likelihoods
 
-srv.targs = function(Q,T){
-  # weighted log-likelihoods for each target T given survey Q
+srv.targs = function(Q,T,vs=NULL,aggr.seed=TRUE){
+  # log-likelihoods for each target T given survey Q
+  if (aggr.seed){ Q$seed = 0 }
   Ys = lapply(T,function(Ti){
-    Yi = Ti$fun(Q)      # estimate
-    ll = targ.ll(Ti,Yi) # likelihood
-    Yi = cbind(name=Ti$name,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
+    Yi = Ti$fun(Q,vs=vs) # estimate
+    ll = targ.ll(Ti,Yi)  # likelihood
+    Yi = cbind(id=Ti$id,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
   })
   Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)))
 }
@@ -102,20 +76,23 @@ targ.ll = function(Ti,Yi){
 # -----------------------------------------------------------------------------
 # fitting
 
-fit.run = function(Si,T,P0=NULL,...,.par=FALSE){
+fit.run = function(Si,T,P0=NULL,...,.par=TRUE,aggr.seed=TRUE){
   # get log-likelihood given sample Si, targets T, base params P0
   # i.e. get params, run model, run survey, get log-likelihoods
+  # TODO: allow matrix Si input?
   Ps = get.pars.grid(ulist(P0,Si),...)
   Ms = sim.runs(Ps,sub='act',.par=.par)
   Q  = srv.apply(Ms)
-  Y  = srv.targs(Q,T)
-  status(2,'fit.run:',
-    ' [L] : ',sum(aggregate(ll~name,Y,mean)$ll),
-    ' [S] : ',list.str(Si,join=', ',sig=3))
-  Y = cbind(as.list(Si),Y,row.names=NULL)
+  Y  = srv.targs(Q,T,aggr.seed=aggr.seed)
+  Y  = cbind(as.list(Si),Y,row.names=NULL)
 }
 
-fit.runs = function(S,T,...){
-  # fit.run in parallel for each sample (row) in data.frame S
-  Y = verb.wrap(rbind.lapply(apply(S,1,as.list),fit.run,T=T,...),2)
+opt.run = function(F,T,P0=NULL,...,n.seed=7,h.init=4,n.iter=100){
+  fun = function(Si){ Y = verb.wrap(fit.run(Si,T=T,P0=P0,...,seed=1:n.seed),0); -Y$ll }
+  J  = makeMultiObjectiveFunction(fn=fun,par=F,n.obj=len(T))
+  C  = stfu(makeMBOControl(n.obj=len(T),y.name=names(T)))
+  C  = setMBOControlInfill(C,makeMBOInfillCritDIB())
+  C  = setMBOControlTermination(C,iters=n.iter)
+  S0 = fpar.sam(n=h.init*len(F$pars)+1,F)
+  O  = mbo(J,control=C,design=S0,show.info=TRUE)
 }

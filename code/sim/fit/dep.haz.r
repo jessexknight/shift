@@ -5,9 +5,10 @@ source('sim/mass.r')
 # -----------------------------------------------------------------------------
 # config
 
-n.sam  = cli.arg('n.sam', 10000)
-n.pop  = cli.arg('n.pop',   400)
-n.seed = cli.arg('n.seed',    3)
+h.init = cli.arg('h.init',   10)
+n.iter = cli.arg('n.iter',  100)
+n.pop  = cli.arg('n.pop',  1000)
+n.seed = cli.arg('n.seed',    7)
 
 # base params
 P0 = list(
@@ -21,32 +22,32 @@ P0 = list(
   run = get.run.par(c('dep','haz'),u=FALSE))
 
 # params to fit
-F = name.list(
-  gen.fpar('dep_o.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
-  gen.fpar('haz_o.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
-  gen.fpar('dep_x.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
-  gen.fpar('haz_x.Ri.my',   min=-3,max= 0,tx=e10,itx=log10),
-  gen.fpar('dep.Ri.cv',     min= 0,max= 9),
-  gen.fpar('haz.Ri.cv',     min= 0,max= 9),
-  gen.fpar('dep.cov',       min=-1,max=+1),
-  gen.fpar('haz.cov',       min=-1,max=+1),
-  gen.fpar('RR.haz_o.dep_w',min=-1,max=+1,tx=e10,itx=log10),
-  gen.fpar('RR.haz_x.dep_w',min=-1,max=+1,tx=e10,itx=log10))
+F = fpar.set(
+  gen.fpar(id='dep_o.Ri.my',   lo=-3,up= 0,tr=e10),
+  gen.fpar(id='haz_o.Ri.my',   lo=-3,up= 0,tr=e10),
+  gen.fpar(id='dep_x.Ri.my',   lo=-3,up= 0,tr=e10),
+  gen.fpar(id='haz_x.Ri.my',   lo=-3,up= 0,tr=e10),
+  gen.fpar(id='dep.Ri.cv',     lo= 0,up= 9),
+  gen.fpar(id='haz.Ri.cv',     lo= 0,up= 9),
+  gen.fpar(id='dep.cov',       lo=-1,up=+1),
+  gen.fpar(id='haz.cov',       lo=-1,up=+1),
+  gen.fpar(id='RR.haz_o.dep_w',lo=-1,up=+1,tr=e10),
+  gen.fpar(id='RR.haz_x.dep_w',lo=-1,up=+1,tr=e10))
 
 # targets
-T = name.list(
-  gen.targ('dep.now',   type='prop',mu= .15,se=.05,w=1,vo='dep.now'),
-  gen.targ('dep.past',  type='prop',mu= .45,se=.05,w=1,vo='dep.past'),
-  gen.targ('haz.now',   type='prop',mu= .25,se=.05,w=1,vo='haz.now'),
-  gen.targ('haz.past',  type='prop',mu= .60,se=.05,w=1,vo='haz.past'),
-  gen.targ('dep.haz.or',type='OR',mu=log(3),se=.50,w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE))
-
+T = name.list(key='id',
+  gen.targ(id='dep.now',   type='prop',mu= .15,se=.05,w=1,vo='dep.now'),
+  gen.targ(id='dep.past',  type='prop',mu= .45,se=.05,w=1,vo='dep.past'),
+  gen.targ(id='haz.now',   type='prop',mu= .25,se=.05,w=1,vo='haz.now'),
+  gen.targ(id='haz.past',  type='prop',mu= .60,se=.05,w=1,vo='haz.past'),
+  gen.targ(id='dep.haz.or',type='OR',mu=log(3),se=.50,w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE))
 
 # -----------------------------------------------------------------------------
 # main
 
-fid = list.str(list(F=len(F),T=len(T),H=n.sam,n=n.pop,s=n.seed),def='',join='.')
+# Y = fit.run(fpar.sam(n=1,F,tr=TRUE),T,P0,seed=1:n.seed); print(Y) # DEBUG
+fid = list.str(list(F=len(F),T=len(T),n=n.pop,s=n.seed,h=h.init,i=n.iter),def='',join='.')
 status(1,'fit: dep.haz @ ',fid)
-S = fpar.lhs(F,n.sam)
-Y = fit.runs(S,T,P0=P0,seed=1:n.seed)
-save.csv(Y,'data','sim','fit','dep.haz',uid,fid)
+O = opt.run(F,T=T,P0=P0,n.seed=n.seed,h.init=h.init,n.iter=n.iter)
+save.rda(O,'data','sim','fit','dep.haz',uid,str('opt.',fid))
+print(O)
