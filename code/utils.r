@@ -204,7 +204,7 @@ filter.names = function(x,re,b=TRUE){
   names(x)[grepl(re,names(x),perl=TRUE)==b]
 }
 
-list.str = function(x,def=' = ',join='\n',sig=Inf,rnd=Inf){
+list.str = function(x,def=' = ',join=', ',sig=Inf,rnd=Inf){
   # e.g. list.str(list(a=1,b=2)) -> 'a = 1\nb = 2'
   f = function(x){ ifelse(is.numeric(x),signif(round(x,rnd),sig),x) }
   paste(names(x),lapply(x,f),sep=def,collapse=join)

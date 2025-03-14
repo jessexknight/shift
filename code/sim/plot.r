@@ -60,7 +60,7 @@ add.info = function(g,info,size=8){
 }
 
 facet.label = function(X){
-  f = apply(X,1,list.str,sig=3,rnd=9)
+  f = apply(X,1,list.str,sig=3,rnd=9,join='\n')
   f = factor(f,unique(f))
 }
 

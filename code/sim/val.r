@@ -99,13 +99,13 @@ val.run = function(name,pars,evts,strat='.',e.dts=NULL,x.cols=NULL){
 val.plot.rate = function(name,R,pa,strat,evt){
   ref = pa$fix[[str(evt,'.Ri.my')]]/365
   g = plot.rate(R,evt=evt,strat=strat,facet=names(pa$var),ref=ref)
-  g = add.info(g,list.str(pa$fix,sig=3,rnd=9))
+  g = add.info(g,list.str(pa$fix,sig=3,rnd=9,join='\n'))
   plot.save(g,fig.dir,uid,str(c(name,evt,'rate'),collapse='--'))
 }
 
 val.plot.prev = function(name,Q,pa,strat,evt){
   g = plot.mean(Q,evt=evt,strat=strat,facet=names(pa$var))
-  g = add.info(g,list.str(pa$fix,sig=3,rnd=9))
+  g = add.info(g,list.str(pa$fix,sig=3,rnd=9,join='\n'))
   plot.save(g,fig.dir,uid,str(c(name,evt,'prev'),collapse='--'))
 }
 
