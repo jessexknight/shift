@@ -58,7 +58,7 @@ glm.out = function(...,ctx=identity){
     est.se = est[2],
     value = ctx(est[1]),
     lower = ctx(eci[1]),
-    lower = ctx(eci[2]))
+    upper = ctx(eci[2]))
 }
 
 # -----------------------------------------------------------------------------
