@@ -58,7 +58,7 @@ verb.wrap = function(code,.verb.tmp){
 }
 
 status = function(lvl,...,id=NULL){
-  if (lvl > .verb){ return() }
+  if (lvl > .verb | lvl <= 0){ return() }
   pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
   end = list('\n','\n','\n','')[[lvl]]
   cat(pre,...,sprintf('%6d',id),end,sep='')
@@ -102,9 +102,10 @@ gen.fid = function(...){
 
 plot.save = function(g,...,size=NULL,ext='.pdf'){
   if (missing(size)){ size = plot.size(g) }
+  if (ext=='.pdf'){ dev = cairo_pdf } else { dev = NULL }
   fname = root.path('out','fig',...,ext=ext,create=TRUE)
   status(3,'saving: ',fname)
-  ggsave(plot=g,file=fname,w=size[1],h=size[2],device=cairo_pdf)
+  ggsave(plot=g,file=fname,w=size[1],h=size[2],device=dev)
 }
 
 plot.1o = list(w1=2,h1=2,wo=1,ho=1) # width & height of each facet & offsets
@@ -264,7 +265,12 @@ fast.split = function(...){
 # -----------------------------------------------------------------------------
 # stats
 
-fit.beta = function(qs,ps=c(.025,.975)){
+p2 = c(lo=.025,hi=.975)
+p3 = c(lo=.025,md=.5,hi=.975)
+p5 = c(.025,.25,.5,.75,.975)
+q2 = qnorm(p2)
+
+fit.beta = function(qs,ps=p2){
   efun = function(par){ e = sum(abs(ps-pbeta(qs,par[1],par[2]))) }
   optim(c(1,1),efun,method='L-BFGS-B',lower=0)$par
 }
