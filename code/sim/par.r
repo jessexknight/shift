@@ -194,8 +194,8 @@ get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE,.grid=TRUE){
 
 het.funs = list(
   gamma = list( # m = mean; het = CoV (sd / mean)
-    r = function(n,m,het){ cv2 = max(het^2,1e-6); x = rgamma(n,shape=1/cv2,scale=m*cv2) },
-    q = function(p,m,het){ cv2 = max(het^2,1e-6); x = qgamma(p,shape=1/cv2,scale=m*cv2) }),
+    r = function(n,m,het){ cv2 = max(het^2,1e-9); x = rgamma(n,shape=1/cv2,scale=m*cv2) },
+    q = function(p,m,het){ cv2 = max(het^2,1e-9); x = qgamma(p,shape=1/cv2,scale=m*cv2) }),
   weibull = list(
     r = function(n,m,het){ f = fit.weibull(m,het^2); x = rweibull(n,shape=f$shape,scale=f$scale) },
     q = function(p,m,het){ f = fit.weibull(m,het^2); x = qweibull(p,shape=f$shape,scale=f$scale) }),
