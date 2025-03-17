@@ -66,33 +66,46 @@ status = function(lvl,...,id=NULL){
 
 load.csv = function(...,ext='.csv'){
   fname = root.path(...,ext=ext)
-  status(3,'loading: ',fname)
+  status(3,'load: ',fname)
   read.csv(file=fname,fileEncoding='Latin1')
 }
 
 save.csv = function(X,...,ext='.csv'){
   fname = root.path(...,ext=ext,create=TRUE)
-  status(3,'saving: ',fname)
+  status(3,'save: ',fname)
   write.csv(X,file=fname,row.names=FALSE)
 }
 
 load.rda = function(...,ext='.rda'){
   fname = root.path(...,ext=ext)
-  status(3,'loading: ',fname)
+  status(3,'load: ',fname)
   load(fname)
   return(X)
 }
 
 save.rda = function(X,...,ext='.rda'){
   fname = root.path(...,ext=ext,create=TRUE)
-  status(3,'saving: ',fname)
+  status(3,'save: ',fname)
   save(X,file=fname)
 }
 
-gen.fid = function(...){
-  # e.g. gen.fid(list(a=1:3,b=1:5),n=1000) -> a3.b5.n1000
-  args = ulist(...)
-  list.str(ifelse(lens(args)>1,lens(args),args),def='',join='.')
+load.json = function(...,ext='.json'){
+  fname = root.path(...,ext=ext)
+  status(3,'load: ',fname)
+  rjson::fromJSON(file=fname)
+}
+
+save.json = function(X,...,ext='.json',indent=2){
+  fname = root.path(...,ext=ext,create=TRUE)
+  status(3,'save: ',fname)
+  write(rjson::toJSON(X,indent=indent),file=fname)
+}
+
+hash.path = function(info,...,.len=11){
+  hash = substr(digest::sha1(info),1,.len)
+  info = ulist(info,time=str(Sys.time()))
+  save.json(info,...,hash,'info')
+  return(file.path(...,hash))
 }
 
 # -----------------------------------------------------------------------------
@@ -104,7 +117,7 @@ plot.save = function(g,...,size=NULL,ext='.pdf'){
   if (missing(size)){ size = plot.size(g) }
   if (ext=='.pdf'){ dev = cairo_pdf } else { dev = NULL }
   fname = root.path('out','fig',...,ext=ext,create=TRUE)
-  status(3,'saving: ',fname)
+  status(3,'save: ',fname)
   ggsave(plot=g,file=fname,w=size[1],h=size[2],device=dev)
 }
 
@@ -301,4 +314,11 @@ copula = function(n,covs,qfuns,...){
   xs = mapply(function(qfun,p,args){ # for each qfun, p vector, args
     do.call(qfun,ulist(args,p=p)) # target distr quantile transform
   },qfuns,ps,list(...))
+}
+
+aggr.form = function(y,x,ny=NULL,.log=3){
+  ny = if.null(ny,if.null(names(y),y))
+  f = str('cbind( ',paste(ny,y,sep=' = ',collapse=' , '),' ) ~ ',str(x,collapse=' + '))
+  status(.log,'aggr: ',f)
+  return(f)
 }
