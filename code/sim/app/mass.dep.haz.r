@@ -1,59 +1,65 @@
-source('sim/mass/core.r')
+source('sim/meta.r')
+source('sim/mass.r')
+source('sim/fit.r')
 
 # -----------------------------------------------------------------------------
 # config
 
-Ro      = cli.arg('Ro',.03)
-Rx      = cli.arg('Rx',.03)
-RR.step = cli.arg('RR.step',1)
-n.seed  = cli.arg('n.seed',7)
-n.pop   = cli.arg('n.pop',400)
-
 P0 = list(
-  n.pop = n.pop,
-  n.dur = 1+1,
-  null = 'xRR',
-  dep_o.Ri.my =  Ro, haz_o.Ri.my =  Ro,
-  dep_x.Ri.my =  Rx, haz_x.Ri.my =  Rx,
+  dtz   =   cli.arg('dtz',     60),
+  n.pop =   cli.arg('n.pop',  400),
+  seed  = 1:cli.arg('n.seed', 100),
+  n.dur = 1,
+  null  = 'xRR',
+  dep_o.Ri.my = .02, haz_o.Ri.my = .02,
+  dep_x.Ri.my = .20, haz_x.Ri.my = .20,
   dep.Ri.cv   =   0, haz.Ri.cv   =   0,
   dep.cov     =   0, haz.cov     =   0,
   run = get.run.par(c('dep','haz'),u=FALSE))
 
-grid = list(
-  RR.haz_o.dep_w=signif(2^seq( 0,+3,RR.step),3),
-  RR.haz_x.dep_w=signif(2^seq(-3, 0,RR.step),3))
-pv = names(grid)
+T = name.list(key='id',
+  gen.targ(id='dep.now',   type='prop',mu=NA,se=NA,w=1,vo='dep.now'),
+  gen.targ(id='dep.past',  type='prop',mu=NA,se=NA,w=1,vo='dep.past'),
+  gen.targ(id='haz.now',   type='prop',mu=NA,se=NA,w=1,vo='haz.now'),
+  gen.targ(id='haz.past',  type='prop',mu=NA,se=NA,w=1,vo='haz.past'),
+  gen.targ(id='dep.haz.or',type='OR',  mu=NA,se=NA,w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE),
+  gen.targ(id='dep.haz.pr',type='PR',  mu=NA,se=NA,w=1,ve='dep.now',vo='haz.now',va1='age',ao1=FALSE))
 
-mfuns = list(OR=def.args(glm.elu,family=binomial(link='logit'),ctx=exp))
+PG = list(
+  RR.haz_o.dep_w=signif(2^seq( 0,+3,.1),3),
+  RR.haz_x.dep_w=signif(2^seq(-3, 0,.1),3))
 
-fid = root.path(create=TRUE,'data','sim','mass','dep.haz',uid,
-  sprintf('s%d.g%d.Ro%d.Rx%d',n.seed,prod(lens(grid)),Ro*100,Rx*100))
-
-# -----------------------------------------------------------------------------
-# run sim & save outputs
-
-status(3,'running: ',fid)
-
-Ms = sim.runs(get.pars.grid(ulist(P0,grid),seed=1:n.seed))
-save(Ms,file=str(fid,'.Ms.rda'))
-
-Qs = par.lapply(-365*0:6,srv.apply,Ms=Ms,p.vars=pv)
-A = rbind.lapply(Qs,mass.calc,mfuns=mfuns,
-  ve='dep.now',vo='haz.now',va1='age',by=pv,vs=pv,ao1=FALSE)
-save(A,file=str(fid,'.A.rda'))
+path = hash.path(ulist(P0,PG),'data','sim','mass','dep.haz',uid)
 
 # -----------------------------------------------------------------------------
 # plotting
 
-A$RRo = as.factor(A$RR.haz_o.dep_w)
-A$RRx = as.factor(A$RR.haz_x.dep_w)
-A$I3  = A$lower < 3 & A$upper > 3
-b = seq(0,100,10)
-g = ggplot(aggregate(I3~RRo+RRx,A,mean),aes(x=RRo,y=RRx,fill=100*I3)) +
-  geom_tile(color=NA) + coord_fixed() +
-  labs(x    = 'Base Rates of Onset (per year)',
-       y    = 'Base Rates of Recovery (per year)',
-       fill = 'Proportion\nof 95% CI\ncontaining\nOR = 3 (%)\n') +
-  scale_fill_viridis_b(option='inferno',
-    limits=range(b),breaks=b,labels=ifelse(b%%20,'',b))
-ggsave(str(fid,'.tile.pdf'),w=5,h=4)
+add.interval = function(Y,v=3,ci=.95){
+  Y$int = exp(Y$est.mu+qnorm(.5-ci/2)*Y$est.se) < v &
+          exp(Y$est.mu+qnorm(.5+ci/2)*Y$est.se) > v
+  return(Y)
+}
+
+plot.tile = function(Y,id,...,out='value',aggr=mean){
+  Y = Y[Y$id==id,]
+  Y$RRo = as.factor(Y$RR.haz_o.dep_w)
+  Y$RRx = as.factor(Y$RR.haz_x.dep_w)
+  f = formula(aggr.form(out,c('RRo','RRx',...)))
+  g = ggplot(aggregate(f,Y,aggr),aes(x=RRo,y=RRx)) +
+    geom_tile(aes.string(fill=out),color=NA) + coord_fixed() +
+    labs(x='\nRR of Drinking Onset while Depressed',
+         y='\nRR of Drinking Recovery while Depressed')
+  g = plot.clean(g,
+    axis.text.x=element_text(angle=90,vjust=0.5,hjust=1),
+    legend.key.height=unit(1,'null'))
+}
+
+# -----------------------------------------------------------------------------
+# main
+
+Y = fit.run.grid(PG,T,P0); save.rda(Y,path,'Y')
+Y = add.interval(load.rda(path,'Y'),v=3)
+
+g = plot.tile(Y,'haz.now')              + clr.map.c(option='viridis',limits=c(0,.2)); print(g)
+g = plot.tile(Y,'dep.haz.or')           + clr.map.c(option='plasma', limits=c(1,9));  print(g)
+g = plot.tile(Y,'dep.haz.or',out='int') + clr.map.c(option='inferno',limits=c(0,1));  print(g)
