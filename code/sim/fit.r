@@ -65,7 +65,7 @@ srv.targs = function(Q,T,vs=NULL,aggr.seed=FALSE){
     ll = targ.ll(Ti,Yi)  # likelihood
     Yi = cbind(id=Ti$id,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
   })
-  Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)))
+  Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)),.par=FALSE)
 }
 
 targ.ll = function(Ti,Yi){
@@ -79,9 +79,9 @@ targ.ll = function(Ti,Yi){
 fit.run = function(Si,T,P0=NULL,...,.par=TRUE,aggr=FALSE){
   # get log-likelihoods given sample Si, targets T, base params P0
   # i.e. get params, run model, run survey, get log-likelihoods
-  Ps = get.pars.grid(ulist(P0,Si),...)
+  Ps = get.pars.grid(ulist(P0,Si),...,.par=.par)
   Ms = sim.runs(Ps,sub='act',.par=.par)
-  Q  = srv.apply(Ms)
+  Q  = srv.apply(Ms,.par=.par)
   Y  = srv.targs(Q,T,aggr=aggr)
   Y  = cbind(as.list(Si),Y,row.names=NULL)
 }

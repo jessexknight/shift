@@ -8,7 +8,7 @@
 # =============================================================================
 # survey funs
 
-srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
+srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL,.par=TRUE){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (t)
   status(3,'srv.apply: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
@@ -17,7 +17,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL){
   Es = lapply(Ms,`[[`,'E')
   Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars); gc()
   for (srv in srvs){
-    Qs = par.mapply(srv,Ps,Qs,Es,t) }; gc()
+    Qs = par.mapply(srv,Ps,Qs,Es,t,.par=.par) }; gc()
   Q = do.call(rbind,Qs); gc()
   for (x in names(x.cols)){
     Q[[x]] = x.cols[[x]](Q) }

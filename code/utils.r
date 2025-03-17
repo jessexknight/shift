@@ -242,14 +242,18 @@ df.compare = function(x,y,v=NULL,cast=as.numeric){
 
 par.lapply = function(...,.par=TRUE){
   if (.par && len(list(...)[[1]]) > 1){
-    parallel::mclapply(...,mc.cores=.cores) }
-  else {
+    parallel::mclapply(...,mc.cores=.cores)
+  } else {
     lapply(...)
   }
 }
 
-par.mapply = function(...){
-  parallel::mcmapply(...,mc.cores=.cores,SIMPLIFY=FALSE)
+par.mapply = function(...,.par=TRUE){
+  if (.par){
+    parallel::mcmapply(...,mc.cores=.cores,SIMPLIFY=FALSE)
+  } else {
+    mapply(...,SIMPLIFY=FALSE)
+  }
 }
 
 rbind.lapply = function(...){
