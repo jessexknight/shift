@@ -176,9 +176,10 @@ get.run.par = function(v,u=FALSE){
 
 # -----------------------------------------------------------------------------
 
-get.pars.grid = function(pars=list(),...,seed=1:7,.par=TRUE,.grid=TRUE){
+get.pars.grid = function(pars=list(),...,.par=TRUE,.grid=TRUE){
   # get Ps (list of P) for all combos of pars & ... & seed
   pars = ulist(pars,...) # merge / overwrite
+  seed = if.null(pars$seed,1:7); pars$seed = NULL # get seeds
   v  = lens(pars) > 1 & ! names(pars) %in% vec.pars # pars that vary
   pa = list(seed=seed,var=pars[v],fix=pars[!v],n.var=ifelse(.grid,prod,max)(lens(pars[v])))
   status(3,'get.pars: ',pa$n.var,' x ',len(seed))
