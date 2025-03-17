@@ -1,4 +1,3 @@
-source('sim/meta.r')
 
 # -----------------------------------------------------------------------------
 # prep survey data & calculate mass = measures of association
