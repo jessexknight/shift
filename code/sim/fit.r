@@ -57,7 +57,7 @@ targ.funs = list(
 # -----------------------------------------------------------------------------
 # log-likelihoods
 
-srv.targs = function(Q,T,vs=NULL,aggr.seed=TRUE){
+srv.targs = function(Q,T,vs=NULL,aggr.seed=FALSE){
   # log-likelihoods for each target T given survey Q
   if (aggr.seed){ Q$seed = 0 }
   Ys = lapply(T,function(Ti){
@@ -76,19 +76,29 @@ targ.ll = function(Ti,Yi){
 # -----------------------------------------------------------------------------
 # fitting
 
-fit.run = function(Si,T,P0=NULL,...,.par=TRUE,aggr.seed=TRUE){
-  # get log-likelihood given sample Si, targets T, base params P0
+fit.run = function(Si,T,P0=NULL,...,.par=TRUE,aggr=FALSE){
+  # get log-likelihoods given sample Si, targets T, base params P0
   # i.e. get params, run model, run survey, get log-likelihoods
-  # TODO: allow matrix Si input?
   Ps = get.pars.grid(ulist(P0,Si),...)
   Ms = sim.runs(Ps,sub='act',.par=.par)
   Q  = srv.apply(Ms)
-  Y  = srv.targs(Q,T,aggr.seed=aggr.seed)
+  Y  = srv.targs(Q,T,aggr=aggr)
   Y  = cbind(as.list(Si),Y,row.names=NULL)
 }
 
+fit.run.grid = function(PG,T,P0=NULL,.par=TRUE,aggr=FALSE){
+  # fit.run over the grid of params PG & rbind the results
+  Y = grid.apply(PG,function(...){
+    status(3,list.str(list(...)))
+    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,.par=FALSE,aggr=aggr),0)
+  },.rbind=TRUE,.par=.par)
+}
+
 opt.run = function(F,T,P0=NULL,...,n.seed=7,h.init=4,n.iter=100){
-  fun = function(Si){ Y = verb.wrap(fit.run(Si,T=T,P0=P0,...,seed=1:n.seed),0); -Y$ll }
+  # multi-objective optimize fitted params F given targets T using mlrMBO
+  fun = function(Si){
+    Y = verb.wrap(fit.run(Si,T=T,P0=P0,...,seed=1:n.seed,aggr=TRUE),0)
+    obj = -Y$ll }
   J  = makeMultiObjectiveFunction(fn=fun,par=F,n.obj=len(T))
   C  = stfu(makeMBOControl(n.obj=len(T),y.name=names(T)))
   C  = setMBOControlInfill(C,makeMBOInfillCritDIB())
