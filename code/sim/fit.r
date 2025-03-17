@@ -94,10 +94,10 @@ fit.run.grid = function(PG,T,P0=NULL,.par=TRUE,aggr=FALSE){
   },.rbind=TRUE,.par=.par)
 }
 
-opt.run = function(F,T,P0=NULL,...,n.seed=7,h.init=4,n.iter=100){
+opt.run = function(F,T,P0=NULL,...,h.init=4,n.iter=100){
   # multi-objective optimize fitted params F given targets T using mlrMBO
   fun = function(Si){
-    Y = verb.wrap(fit.run(Si,T=T,P0=P0,...,seed=1:n.seed,aggr=TRUE),0)
+    Y = verb.wrap(fit.run(Si,T=T,P0=P0,...,aggr=TRUE),0)
     obj = -Y$ll }
   J  = makeMultiObjectiveFunction(fn=fun,par=F,n.obj=len(T))
   C  = stfu(makeMBOControl(n.obj=len(T),y.name=names(T)))
