@@ -22,7 +22,7 @@ for (v in names(T)){
 P0 = list(
   dtz    = cli.arg('dtz',     45),
   n.pop  = cli.arg('n.pop', 1000),
-  n.seed = cli.arg('n.seed',   7),
+  n.seed = cli.arg('n.seed', 100),
   n.dur  = 1,
   het.distr = 'lnorm',
   dRR.shape = 'exp',
@@ -39,7 +39,7 @@ P0 = list(
 
 PG = list(
   dep_o.Ri.my     = c(.001,.002,.005,.01,.02,.05,.10),
-  dep_x.Ri.my     = c(.020,.040,.100,.20,.40, 1 , 2 ),
+  dep_x.Ri.my     = c(.100,.200,.500, 1 , 2 , 5 ,10 ),
   dep.Ri.het      = c(0,.1,.3,1,3),
   dep.cov         = c(-.5, 0,+.5),
   RR.dep_o.dep_p  = 1 + c(0,.1,.3,1,3),
@@ -57,12 +57,13 @@ run.grid = function(p=NULL){
 
 load.grid = function(p=NULL,f=NULL){
   Y = load.rda(grid.path(p),'Y')
+  Y$value = Y$value * 100
   Y$Ro  = Y$dep_o.Ri.my * 100
   Y$Rx  = Y$dep_x.Ri.my * 100
   Y$het = Y$dep.Ri.het
   Y$cor = Y$dep.cov
   Y$RRp = Y$RR.dep_o.dep_p
-  Y$RRu = Y$dsc.dep_x.dep_u * log(2) / 360
+  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf) * log(2) / 360
   Y[f] = lapply(Y[f],as.factor)
   return(Y)
 }
