@@ -43,7 +43,7 @@ PG = list(
   dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,5),
   dep.cov         = c(-.9,-.6,-.3, 0,+.3,+.6,+.9),
   RR.dep_o.dep_p  = 1 + c(0,.1,.2,.3,.5,1,2,3,5),
-  dsc.dep_x.dep_u = c(Inf,50,30,20,10,5,3,2,1)*360/log(2),
+  dsc.dep_x.dep_u = c(Inf,50,30,20,10,5,3,2,1)*360/log(2)
 )
 
 grid.path = function(p){
