@@ -21,7 +21,7 @@ for (v in names(T)){
 
 P0 = list(
   dtz    = cli.arg('dtz',     45),
-  n.pop  = cli.arg('n.pop', 1000),
+  n.pop  = cli.arg('n.pop',10000),
   n.seed = cli.arg('n.seed', 100),
   n.dur  = 1,
   het.distr = 'lnorm',
@@ -38,12 +38,12 @@ P0 = list(
 # param grid & run sims
 
 PG = list(
-  dep_o.Ri.my     = c(.001,.002,.005,.01,.02,.05,.10),
-  dep_x.Ri.my     = c(.100,.200,.500, 1 , 2 , 5 ,10 ),
-  dep.Ri.het      = c(0,.1,.3,1,3),
-  dep.cov         = c(-.5, 0,+.5),
-  RR.dep_o.dep_p  = 1 + c(0,.1,.3,1,3),
-  dsc.dep_x.dep_u = c(Inf,30,10,3,1)*360/log(2)
+  dep_o.Ri.my     = c(.001,.002,.003,.005,.01,.02,.03,.05,.10),
+  dep_x.Ri.my     = c(.100,.200,.300,.500, 1 , 2 , 3 , 5 ,10 ),
+  dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,5),
+  dep.cov         = c(-.9,-.6,-.3, 0,+.3,+.6,+.9),
+  RR.dep_o.dep_p  = 1 + c(0,.1,.2,.3,.5,1,2,3,5),
+  dsc.dep_x.dep_u = c(Inf,50,30,20,10,5,3,2,1)*360/log(2),
 )
 
 grid.path = function(p){
@@ -57,7 +57,7 @@ run.grid = function(p=NULL){
 
 load.grid = function(p=NULL,f=NULL){
   Y = load.rda(grid.path(p),'Y')
-  Y$value = Y$value * 100
+  Y$value = pmax(Y$value * 100, .1)
   Y$Ro  = Y$dep_o.Ri.my * 100
   Y$Rx  = Y$dep_x.Ri.my * 100
   Y$het = Y$dep.Ri.het
