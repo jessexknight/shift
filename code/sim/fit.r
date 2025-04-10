@@ -42,7 +42,7 @@ pois.out = function(Q,vo,vt,among=NULL){
   u = log(p); use = 1/sqrt(t*p)
   out = list(
     est.mu = u,
-    est.st = use,
+    est.se = use,
     value = p,
     lower = exp(u+qnorm(.025)*use),
     upper = exp(u+qnorm(.975)*use))
