@@ -66,12 +66,6 @@ srv.e.dts = function(P,Q,E,t,e.dts){
   return(Q)
 }
 
-srv.sub = function(Q,among=NULL){
-  # among should be quoted
-  if (is.null(among)){ return(Q) }
-  else { return(subset(Q,eval(parse(text=among)))) }
-}
-
 # =============================================================================
 # time vector summary
 
@@ -128,11 +122,11 @@ tox.vec = function(to,tx,tf){ cumsum(tabulate(to,tf)-tabulate(tx,tf)) }
 # =============================================================================
 # rate funs
 
-rate.datas = function(Ms,t,dt=t,...,among=quote(TRUE)){
+rate.datas = function(Ms,t,dt=t,...,sub=NULL){
   status(3,'rate.datas: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
   K = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
-  K = rate.data.sub(K,t,dt,among=among)
+  K = rate.data.sub(K,t,dt,sub=sub)
 }
 
 rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
@@ -182,14 +176,14 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
   return(K)
 }
 
-rate.data.sub = function(K,t,dt=t,among=quote(TRUE)){
+rate.data.sub = function(K,t,dt=t,sub=NULL){
   tx.w = t    # obs end
   to.w = t-dt # obs start
   K = subset(K, to <= tx.w & tx >= to.w) # observed
   K$e [K$tx > tx.w] = 'tmax' # clip event
   K$tx[K$tx > tx.w] = tx.w   # clip end
   K$to[K$to < to.w] = to.w   # clip start
-  K = subset(K,among) # any other subset
+  K = df.sub(K,sub) # any other subset
 }
 
 rate.est = function(K,e,strat='seed'){

@@ -227,6 +227,15 @@ list.str = function(x,def=' = ',join=', ',sig=Inf,rnd=Inf){
 .isep = ' x '
 interac = function(...){ interaction(...,sep=.isep) }
 
+# -----------------------------------------------------------------------------
+# data.frame tools
+
+df.sub = function(X,sub=NULL){
+  # sub should be a character vector
+  if (is.null(sub)){ return(X) }
+  subset(X,eval(parse(text=sub)))
+}
+
 df.compare = function(x,y,v=NULL,cast=as.numeric){
   # check if x[v] == y[v] (for debug)
   v = if.null(v,intersect(names(x),names(y)))

@@ -11,9 +11,9 @@ fpar.sam = function(...,seed=666){ set.seed(seed); generateDesign(...) }
 # -----------------------------------------------------------------------------
 # targets
 
-gen.targ = function(id,type,mu,se,...,among=NULL,w=1){
-  Ti = list(id=id,type=type,mu=mu,se=se,among=among,w=w,
-    fun=def.args(targ.funs[[type]],among=among,...))
+gen.targ = function(id,type,mu,se,...,sub=NULL,w=1){
+  Ti = list(id=id,type=type,mu=mu,se=se,sub=sub,w=w,
+    fun=def.args(targ.funs[[type]],sub=sub,...))
 }
 
 targ.calc = function(Q,ofun,...,vs=NULL){
@@ -25,9 +25,10 @@ targ.calc = function(Q,ofun,...,vs=NULL){
   },.par=FALSE)
 }
 
-prop.out = function(Q,vo,among=NULL){
-  Q = srv.sub(Q,among)
-  x = Q[[vo]]; k = sum(x); n = len(x); p = k/n
+prop.out = function(Q,vo,sub=NULL,vsub=FALSE){
+  Q = df.sub(Q,sub)
+  x = if (vsub){ df.sub(Q,vo)$. } else { Q[[vo]] }
+  k = sum(x); n = nrow(Q); p = k/n
   out = list(
     est.mu = p,
     est.se = p*(1-p)/n,
@@ -36,8 +37,8 @@ prop.out = function(Q,vo,among=NULL){
     upper = qbeta(.975,k+.5,n-k+.5))
 }
 
-pois.out = function(Q,vo,vt,among=NULL){
-  Q = srv.sub(Q,among)
+pois.out = function(Q,vo,vt,sub=NULL){
+  Q = df.sub(Q,sub)
   k = sum(Q[[vo]]); t = sum(Q[[vt]]); p = k/t
   u = log(p); use = 1/sqrt(t*p)
   out = list(
