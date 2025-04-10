@@ -8,7 +8,7 @@
 # =============================================================================
 # survey funs
 
-srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL,.par=TRUE){
+srv.apply = function(Ms,t,srvs=NULL,p.vars=NULL,i.vars=NULL,x.cols=NULL,.par=TRUE){
   # apply 1+ surveys (srvs) to sim outputs (Ms) at time (t)
   status(3,'srv.apply: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
@@ -16,7 +16,7 @@ srv.apply = function(Ms,t,srvs=c(srv.base),p.vars=NULL,i.vars=NULL,x.cols=NULL,.
   Ps = lapply(Ms,`[[`,'P')
   Es = lapply(Ms,`[[`,'E')
   Qs = lapply(Ms,srv.init,t=t,p.vars=p.vars,i.vars=i.vars); gc()
-  for (srv in srvs){
+  for (srv in c(srv.base,srvs)){
     Qs = par.mapply(srv,Ps,Qs,Es,t,.par=.par) }; gc()
   Q = do.call(rbind,Qs); gc()
   for (x in names(x.cols)){
@@ -34,25 +34,38 @@ srv.init = function(M,t,p.vars=NULL,i.vars=NULL){
 srv.base = function(P,Q,E,t){
   E = clip.evts(E,t=t)
   Q$age      = (t - Q$t.born)/P$t1y
-  Q$age.1    = floor(Q$age)
-  Q$age.10   = int.cut(Q$age,seq(10,50,10))
   Q$sex.act  = Q$age > Q$age.act
   Q$vio.nt   = sapply(E$vio,len)
   Q$vio.past = Q$vio.nt > 0
-  Q$vio.tr   = sapply(E$vio,last)
-  Q$vio.dt   = t - Q$vio.tr
   Q$dep.now  = sapply(E$dep_o,len) > sapply(E$dep_x,len)
   Q$dep.past = sapply(E$dep_o,len) > 0
-  Q$dep.toi  = sapply(E$dep_o,first)
-  Q$dep.tor  = sapply(E$dep_o,last)
-  Q$dep.dur  = ifelse(Q$dep.now,t-Q$dep.tor,NA)
   Q$haz.now  = sapply(E$haz_o,len) > sapply(E$haz_x,len)
   Q$haz.past = sapply(E$haz_o,len) > 0
-  Q$haz.toi  = sapply(E$haz_o,first)
-  Q$haz.tor  = sapply(E$haz_o,last)
-  Q$haz.dur  = ifelse(Q$haz.now,t-Q$haz.tor,NA)
   Q$ptr.nt   = sapply(E$ptr_o,len)
   Q$ptr.nw   = Q$ptr.nt - sapply(E$ptr_x,len)
+  return(Q)
+}
+
+srv.extra = function(P,Q,E,t){
+  E = clip.evts(E,t=t)
+  Q$age.1    = floor(Q$age)
+  Q$age.10   = int.cut(Q$age,seq(10,50,10))
+  Q$act.ut   = (Q$age-amin)*P$t1y
+  Q$vio.ti   = sapply(E$vio,first)
+  Q$vio.tr   = sapply(E$vio,last)
+  Q$vio.dt   = t - Q$vio.tr
+  Q$dep.toi  = sapply(E$dep_o,first)
+  Q$dep.tor  = sapply(E$dep_o,last)
+  Q$dep.ur   = ifelse(Q$dep.now,t-Q$dep.tor,NA)
+  Q$dep.ut   = sapply(E$dep_x,sum) - sapply(E$dep_o,sum) + t*Q$dep.now
+  Q$dep.pt   = Q$dep.ut / Q$act.ut
+  Q$dep.ne   = sapply(E$dep_o,len)
+  Q$haz.toi  = sapply(E$haz_o,first)
+  Q$haz.tor  = sapply(E$haz_o,last)
+  Q$haz.ur   = ifelse(Q$haz.now,t-Q$haz.tor,NA)
+  Q$haz.ut   = sapply(E$haz_x,sum) - sapply(E$haz_o,sum) + t*Q$haz.now
+  Q$haz.pt   = Q$haz.ut / Q$act.ut
+  Q$haz.ne   = sapply(E$haz_o,len)
   return(Q)
 }
 
