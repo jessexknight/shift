@@ -143,9 +143,9 @@ plot.clean = function(g,...){
 # -----------------------------------------------------------------------------
 # vector tools
 
-sum1 = function(x){
-  x/sum(x)
-}
+e10 = function(x){ 10^x } # log10 inverse
+
+sum1 = function(x){ x/sum(x) }
 
 na.to.num = function(x,num=0){
   # replace NA in x with num
@@ -153,8 +153,12 @@ na.to.num = function(x,num=0){
   return(x)
 }
 
-if.null = function(x,default){
-  if (is.null(x)){ return(default) } else { return(x) }
+if.na = function(x,alt){
+  ifelse(is.na(x),alt,x)
+}
+
+if.null = function(x,alt){
+  if (is.null(x)){ return(alt) } else { return(x) }
 }
 
 int.cut = function(x,low){
@@ -301,17 +305,36 @@ fit.beta = function(qs,ps=p2){
   optim(c(1,1),efun,method='L-BFGS-B',lower=0)$par
 }
 
-e10 = function(x){ 10^x } # log10 inverse
-
 fit.weibull = function(m,cv2,...){
-  err = function(k){ s = gamma(1+1/k)^2; e = ((gamma(1+2/k)-s)/s-cv2)^2 }
-  shape = optimize(err,c(1e-6,1e+6))$minimum
-  par = list(shape=shape,scale=m/gamma(1+1/shape),...)
+  efun = function(k){ s = gamma(1+1/k)^2; e = ((gamma(1+2/k)-s)/s-cv2)^2 }
+  shape = optimize(efun,c(1e-6,1e+6))$minimum
+  par = list(shape=k,scale=m/gamma(1+1/k),...)
 }
 
 # R2 = dummy 2-group distr with { p0: x0, 1-p0: x0*xR }
 qR2 = function(p,x0,xR,p0=.5){ x = x0 * (1 + (xR-1) * (p > p0)) }
 rR2 = function(n,x0,xR,p0=.5){ x = qR2(runif(n),x0,xR,p0) }
+
+het.funs = list(
+  # m = mean; het = CV (sd / mean)
+  gamma = list(
+    r = function(n,m,het){ cv2 = max(het^2,1e-9); rgamma(n,shape=1/cv2,scale=m*cv2) },
+    d = function(x,m,het){ cv2 = max(het^2,1e-9); dgamma(x,shape=1/cv2,scale=m*cv2) },
+    p = function(q,m,het){ cv2 = max(het^2,1e-9); pgamma(q,shape=1/cv2,scale=m*cv2) },
+    q = function(p,m,het){ cv2 = max(het^2,1e-9); qgamma(p,shape=1/cv2,scale=m*cv2) }),
+  weibull = list(
+    r = function(n,m,het){ f = fit.weibull(m,het^2); rweibull(n,shape=f$shape,scale=f$scale) },
+    d = function(x,m,het){ f = fit.weibull(m,het^2); dweibull(x,shape=f$shape,scale=f$scale) },
+    p = function(q,m,het){ f = fit.weibull(m,het^2); pweibull(q,shape=f$shape,scale=f$scale) },
+    q = function(p,m,het){ f = fit.weibull(m,het^2); qweibull(p,shape=f$shape,scale=f$scale) }),
+  lnorm = list(
+    r = function(n,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); rlnorm(n,meanlog=u,sdlog=s) },
+    d = function(x,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); dlnorm(x,meanlog=u,sdlog=s) },
+    p = function(q,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); plnorm(q,meanlog=u,sdlog=s) },
+    q = function(p,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); qlnorm(p,meanlog=u,sdlog=s) }),
+  R2 = list( # m = mean; het = xR; p0 = 0.5 (fixed)
+    r = function(n,m,het){ x0 = 2*m/(1+het); x = rR2(n,x0=x0,xR=het,p0=.5) },
+    q = function(p,m,het){ x0 = 2*m/(1+het); x = qR2(p,x0=x0,xR=het,p0=.5) }))
 
 copula = function(n,covs,qfuns,...){
   # joint sample from qfuns (args in ...) with correlation (covs)
