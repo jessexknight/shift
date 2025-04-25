@@ -1,20 +1,31 @@
 source('sim/meta.r')
 source('sim/fit.r')
-uid = '2025-04-04'
+uid = '2025-04-25'
 
 # -----------------------------------------------------------------------------
 # targets / outcomes
 
-T = name.list(key='id',
-  gen.targ(id='dep.now', type='prop',mu=NA,se=NA,w=1,vo='dep.now'),
-  gen.targ(id='dep.past',type='prop',mu=NA,se=NA,w=1,vo='dep.past'))
-ags = 5
-for (v in names(T)){
+T0 = list(
+  list(id='dep.now',  type='prop',mu=NA,se=NA,w=1,vo='dep.now'),
+  list(id='dep.past', type='prop',mu=NA,se=NA,w=1,vo='dep.past'),
+  list(id='dep.pt.30',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.30',vsub=TRUE),
+  list(id='dep.pt.10',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.10',vsub=TRUE),
+  list(id='dep.pt.03',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.03',vsub=TRUE),
+  list(id='dep.pt.01',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.01',vsub=TRUE),
+  list(id='dep.ne.0', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==0',vsub=TRUE),
+  list(id='dep.ne.1', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==1',vsub=TRUE),
+  list(id='dep.ne.2+',type='prop',mu=NA,se=NA,w=1,vo='dep.ne>1', vsub=TRUE),
+  list(id='dep.Ro',   type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
+T = list()
+ags = 10
+for (Ti in T0){ id = Ti$id
+  T[[Ti$id]] = do.call(gen.targ,Ti)
   for (a in seq(amin,amax-ags,ags)){
-    id = str(v,':',a)
-    T[[id]] = gen.targ(id=id,type='prop',mu=NA,se=NA,w=1,vo=v,
-      among=str('age >= ',a,' & age < ',a+ags))
-}}
+    Ti$id  = str(id,':',a)
+    Ti$sub = str('age >= ',a,' & age < ',a+ags)
+    T[[Ti$id]] = do.call(gen.targ,Ti)
+  }
+}
 
 # -----------------------------------------------------------------------------
 # default params
@@ -51,7 +62,7 @@ grid.path = function(p){
 }
 
 run.grid = function(p=NULL){
-  Y = fit.run.grid(PG[p],T,P0)
+  Y = fit.run.grid(PG[p],T,P0,srvs=srv.extra)
   save.rda(Y,grid.path(p),'Y')
 }
 
