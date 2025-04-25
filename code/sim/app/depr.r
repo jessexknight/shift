@@ -31,14 +31,14 @@ for (Ti in T0){ id = Ti$id
 # default params
 
 P0 = list(
-  dtz    = cli.arg('dtz',     45),
-  n.pop  = cli.arg('n.pop',10000),
-  n.seed = cli.arg('n.seed', 100),
-  n.dur  = 1,
+  dtz = cli.arg('dtz',45), # final: 7
+  n.pop = cli.arg('n.pop',10000), # final: 10000
+  seed = 1:cli.arg('n.seed',7), # final: 100
+  n.dur = 1,
   het.distr = 'lnorm',
   dRR.shape = 'exp',
   dep_o.Ri.my = .01,
-  dep_x.Ri.my = .20,
+  dep_x.Ri.my = .50,
   dep.Ri.het  = 0,
   dep.cov     = 0,
   RR.dep_o.dep_p = 1,
