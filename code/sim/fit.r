@@ -37,10 +37,11 @@ prop.out = function(Q,vo,sub=NULL,vsub=FALSE){
     upper = qbeta(.975,k+.5,n-k+.5))
 }
 
-pois.out = function(Q,vo,vt,sub=NULL){
+pois.out = function(Q,vo,vt,sub=NULL,vt.na='act.ut'){
   Q = df.sub(Q,sub)
-  k = sum(Q[[vo]]); t = sum(Q[[vt]]); p = k/t
-  u = log(p); use = 1/sqrt(t*p)
+  k = sum(Q[[vo]])
+  t = sum(if.na(Q[[vt]],Q[[vt.na]]))
+  p = k/t; u = log(p); use = 1/sqrt(t*p)
   out = list(
     est.mu = u,
     est.se = use,
