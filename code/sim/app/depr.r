@@ -68,23 +68,89 @@ run.grid = function(p=NULL){
   save.rda(Y.all,grid.path(p),'Y.all')
 }
 
-load.grid = function(p=NULL,f=NULL){
-  Y = load.rda(grid.path(p),'Y')
-  Y$value = pmax(Y$value * 100, .1)
-  Y$Ro  = Y$dep_o.Ri.my * 100
-  Y$Rx  = Y$dep_x.Ri.my * 100
-  Y$het = Y$dep.Ri.het
-  Y$cor = Y$dep.cov
-  Y$RRp = Y$RR.dep_o.dep_p
-  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf) * log(2) / 360
-  Y[f] = lapply(Y[f],as.factor)
+# -----------------------------------------------------------------------------
+# plot setup
+
+ext = '.png'; font = 'Alegreya Sans'
+plot.1o = list(w1=2.0,h1=2,wo=2,ho=1.2) # plot size
+ymm = list(dep.now=c(01,20),dep.past=c(03,60)) # gray rects
+cmap = lapply(c(het='cividis',Ro='plasma',Rx='viridis'), # colormaps
+  function(o){ clr.map.d(option=o) })
+
+load.grid = function(p=NULL,f=NULL,age=FALSE){
+  Y = load.rda(grid.path(p),ifelse(age,'Y.age','Y.all'))
+  Y[c('targ.mu','targ.se','ll','t')] = NULL # rm cols
+  Y = cbind(Y,col.split(Y$id,':',c('out','age.10'))) # id -> out,age.10
+  Y$age.10 = add.na(int.cut(as.numeric(Y$age.10),seq(10,50,10),up=60),'10-59')
+  iR = which(Y$out %in% 'dep.Ro') # rate out rows
+  c3 = c('value','lower','upper') # out value cols
+  Y[ iR,c3] = Y[ iR,c3] * 100 * t1y # rates per 100 PY
+  Y[-iR,c3] = Y[-iR,c3] * 100       # props as %
+  Y$Ro  = Y$dep_o.Ri.my * 100 # per 100 PY
+  Y$Rx  = Y$dep_x.Ri.my * 1   # per   1 PY
+  Y$het = Y$dep.Ri.het        # shorthand
+  Y$cor = Y$dep.cov           # shorthand
+  Y$RRp = Y$RR.dep_o.dep_p    # shorthand
+  Y$RRu = round(if.null(Y$dsc.dep_x.dep_u,Inf) * log(2) / t1y) # TODO
+  Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
 }
 
-# -----------------------------------------------------------------------------
-# plot
+# grid subsets for plotting
+PGi = list(
+  Ro  = c(.2,.5,1,2,5,10),
+  Rx  = c(.2,.5,1,2,5,10),
+  het = c(0,.1,.2,.5,1,2,5),
+  cor = c(-.6,-.3, 0,+.3,+.6),
+  RRp = 1 + c(0,.1,.3,1,3),
+  RRu = c(Inf,30,10,3,1))
+PGii = list(Ro=c(.3,1,3,10),Rx=c(.3,1,3,10))
+PGiii = list(Ro=c(.3,3),Rx=c(.3,3))
+cor.lab = c('–0.9'=-.9,'–0.6'=-.6,'–0.3'=-.3,'0'=0,
+            '+0.3'=+.3,'+0.6'=+.6,'+0.9'=+.9)
 
-# TODO
+# aes labels
+l = list(
+  Ro  = 'Mean~onset rate~(per 100 PY)',
+  Rx  = 'Mean~recov rate~(per PY)',
+  het = 'Rate CV',
+  cor = 'Rate~correlation',
+  RRp = 'HR–1 relapse vs onset',
+  RRu = 'Recovery rate half-life (years)',
+  age = 'Age (years)',
+  dep.now  = 'Current~depression~prevalence (%)',
+  dep.past = 'Lifetime~depression~prevalence (%)',
+  dep.Ro   = 'Observed~onset rate~(per 100 PY)')
+
+# aes label utils
+hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
+grp = function(s){ gsub('~','\n',s) }
+axi = function(s){ gsub('~',' ',s) }
+fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
+  str.lab(str(' ',ss[1],': '),str(' ',ss[2])) }
+
+# -----------------------------------------------------------------------------
+# plot core
+
+plot.prev = function(g,out,ylim,by=NULL,ty='log10'){
+  by = if.null(by,c(.1,.2,.5,1,2,5,10,20,50,100))
+  xmm = layer_scales(g)$x$range$range
+  mask = def.args(annotate,'rect',alpha=1/2,fill='gray',xmin=xmm[1],xmax=xmm[2])
+  g = g + scale_y_continuous(trans=ty,breaks=by,labels=by,minor=NULL) +
+    mask(ymin=ylim[1],ymax=if.null(ymm[[out]][1],NA)) +
+    mask(ymax=ylim[2],ymin=if.null(ymm[[out]][2],NA))
+}
+
+plot.core = function(g,out='dep.now',tx='log10',ribbon=1/5,ylim=c(.1,100),by=NULL){
+  g = plot.prev(g,out,ylim,by)
+  g = plot.clean(g,font=font) +
+    stat_summary(geom='ribbon',color=NA,alpha=ribbon,
+      fun.min=qfun(.025),fun.max=qfun(.975)) +
+    stat_summary(fun=median,geom='line') +
+    scale_x_continuous(trans=tx) +
+    coord_cartesian(ylim=ylim) +
+    ylab(axi(l[[out]]))
+}
 
 # -----------------------------------------------------------------------------
 # main
