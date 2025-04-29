@@ -20,6 +20,7 @@ seqn = seq_len
 seqa = seq_along
 str = paste0
 set.names = setNames
+col.split = reshape2::colsplit
 no.warn = suppressWarnings
 stfu = suppressPackageStartupMessages
 
@@ -132,9 +133,17 @@ plot.size = function(g,...){
 
 clr.map.c = def.args(ggplot2::scale_color_viridis_c,aes=c('color','fill'))
 clr.map.d = def.args(ggplot2::scale_color_viridis_d,aes=c('color','fill'),begin=.1,end=.9)
+clr.map.b = def.args(ggplot2::scale_color_viridis_b,aes=c('color','fill'))
+qfun = function(p){ def.args(quantile,p=p) } # e.g. for stat_summary(...,fun=qfun(.5))
 
-plot.clean = function(g,...){
+str.lab = function(pre='',post=''){
+  # e.g. facet_*(...,labeller=str.lab('Y = ',' %')) -> 'Y = ... %'
+  ggplot2::as_labeller(function(x){ str(pre,x,post) })
+}
+
+plot.clean = function(g,font=NULL,...){
   g = g + theme_light() + theme(...,
+    text=element_text(family=font),
     strip.background=element_rect(fill='gray85'),
     strip.text.x=element_text(color='black'),
     strip.text.y=element_text(color='black'))
@@ -161,11 +170,18 @@ if.null = function(x,alt){
   if (is.null(x)){ return(alt) } else { return(x) }
 }
 
-int.cut = function(x,low){
+add.na = function(x,label='<NA>'){
+  x = addNA(x)
+  attributes(x)$levels[len(levels(x))] = label
+  return(x)
+}
+
+int.cut = function(x,low,up=Inf){
   # cut with simplified labels (assume integers)
   # e.g. int.cut(1:6,c(1,2,3,5)) -> c('1','2','3-4','3-4','5+','5+')
-  high = c(low[2:len(low)]-1,Inf)
-  labels = gsub('-Inf','+',ifelse(low==high,low,str(low,'-',high)))
+  high = c(low[2:len(low)]-1,up)
+  labels = ifelse(low==high,low,str(low,'-',high))
+  labels = gsub('-Inf','+',gsub(str('-',up,'$'),str('-',up-1),labels))
   x.cut = cut(x,breaks=c(low,Inf),labels=labels,right=FALSE)
 }
 
