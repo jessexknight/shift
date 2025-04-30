@@ -78,21 +78,24 @@ targ.ll = function(Ti,Yi){
 # -----------------------------------------------------------------------------
 # fitting
 
-fit.run = function(Si,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE){
+fit.run = function(Si,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
+                   p.vars=NULL,i.vars=NULL){
   # get log-likelihoods given sample Si, targets T, base params P0
   # i.e. get params, run model, run survey, get log-likelihoods
   Ps = get.pars.grid(ulist(P0,Si),...,.par=.par)
   Ms = sim.runs(Ps,sub='act',.par=.par)
-  Q  = srv.apply(Ms,srvs=srvs,.par=.par)
+  Q  = srv.apply(Ms,srvs=srvs,.par=.par,p.vars=p.vars,i.vars=i.vars)
   Y  = srv.targs(Q,T,aggr=aggr)
   Y  = cbind(as.list(Si),Y,row.names=NULL)
 }
 
-fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE){
+fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE,
+                        p.vars=NULL,i.vars=NULL){
   # fit.run over the grid of params PG & rbind the results
   Y = grid.apply(PG,function(...){
     status(3,list.str(list(...)))
-    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE),0)
+    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
+      p.vars=p.vars,i.vars=i.vars),0)
   },.rbind=TRUE,.par=.par)
 }
 
