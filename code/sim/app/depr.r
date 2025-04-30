@@ -15,14 +15,21 @@ T0 = list(
   list(id='dep.ne.0', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==0',vsub=TRUE),
   list(id='dep.ne.1', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==1',vsub=TRUE),
   list(id='dep.ne.2+',type='prop',mu=NA,se=NA,w=1,vo='dep.ne>1', vsub=TRUE),
-  list(id='dep.Ro',   type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
+  list(id='dep.Ro',   type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now'),
+  list(id='dep.Ro.n', type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now & !dep.past'),
+  list(id='dep.Ro.p', type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now &  dep.past'),
+  list(id='dep.Rx',   type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now'),
+  list(id='dep.Rx.n', type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now & !dep.past'),
+  list(id='dep.Rx.p', type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now &  dep.past'),
+  list(id='dep.eRo.n',type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
 T = list()
 ags = 10
 for (Ti in T0){ id = Ti$id
+  sub = ifelse(is.null(Ti$sub),'',str(Ti$sub,' & '))
   T[[Ti$id]] = do.call(gen.targ,Ti)
   for (a in seq(amin,amax-ags,ags)){
     Ti$id  = str(id,':',a)
-    Ti$sub = str('age >= ',a,' & age < ',a+ags)
+    Ti$sub = str(sub,'age >= ',a,' & age < ',a+ags)
     T[[Ti$id]] = do.call(gen.targ,Ti)
   }
 }
@@ -62,7 +69,7 @@ grid.path = function(p){
 }
 
 run.grid = function(p=NULL){
-  Y.age = fit.run.grid(PG[p],T,P0,srvs=srv.extra)
+  Y.age = fit.run.grid(PG[p],T,P0,srvs=srv.extra,i.vars=c('dep_o.Ri','dep_x.Ri'))
   Y.all = subset(Y.age,!grepl(':',id))
   save.rda(Y.age,grid.path(p),'Y.age')
   save.rda(Y.all,grid.path(p),'Y.all')
@@ -82,7 +89,7 @@ load.grid = function(p=NULL,f=NULL,age=FALSE){
   Y[c('targ.mu','targ.se','ll','t')] = NULL # rm cols
   Y = cbind(Y,col.split(Y$id,':',c('out','age.10'))) # id -> out,age.10
   Y$age.10 = add.na(int.cut(as.numeric(Y$age.10),seq(10,50,10),up=60),'10-59')
-  iR = which(Y$out %in% 'dep.Ro') # rate out rows
+  iR = which(Y$out %in% c('dep.Ho','dep.Ro')) # rate out rows
   c3 = c('value','lower','upper') # out value cols
   Y[ iR,c3] = Y[ iR,c3] * 100 * t1y # rates per 100 PY
   Y[-iR,c3] = Y[-iR,c3] * 100       # props as %
