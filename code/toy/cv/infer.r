@@ -2,15 +2,16 @@ source('utils.r')
 library('ggplot2')
 library('reshape2')
 # config & dummy data
+set.seed(333)
 chains = 7
 iter = 5000
-burn = 1000
+burn = 2000
 i = seq(iter)[-seq(burn)]
 options(mc.cores=chains)
 data = list(
   Py = c(dep=.03),                 # outcome prevalence
-  Pe = c(sex=.50,ace=.10,oth=.25), # exposure prevalence
-  OR = c(sex=2.0,ace=5.0,oth=3.0), # odds ratios
+  Pe = c(sex=.50,ace=.10,sle=.25), # exposure prevalence
+  OR = c(sex=2.0,ace=5.0,sle=1.5), # odds ratios
   N  = 1e4)                        # total population size
 X = expand.grid(lapply(data$Pe,function(P){ c(FALSE,TRUE) }))
 data$Ne = len(data$Pe) # num exposures
