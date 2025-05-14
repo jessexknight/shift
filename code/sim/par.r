@@ -228,8 +228,10 @@ def.tRR = function(shape,iRR,tsc,dtz){
 
 def.dRR = function(shape,dsc,dtz,t1y){
   # duration RR: choose shape function & dmax, then integrate & adjust
+  dsc = pmin(1e12,dsc) # HACK
   dRR.d = switch(shape,
     exp  = function(d){ (d<0) + (d>=0) * exp(-d/dsc) },
+    pow  = function(d){ (d<0) + (d>=0) * dsc/(d+dsc) },
     ramp = function(d){ (d<0) + (d>=0) * pmax(0,1-d/dsc) },
     step = function(d){ (d<0) + (d>=0) * (d <= dsc) })
   dmax = t1y*adur # dmax = all active timesteps
