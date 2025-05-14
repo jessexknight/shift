@@ -65,7 +65,7 @@ srv.targs = function(Q,T,vs=NULL,aggr.seed=FALSE){
   Ys = lapply(T,function(Ti){
     Yi = Ti$fun(Q,vs=vs) # estimate
     ll = targ.ll(Ti,Yi)  # likelihood
-    Yi = cbind(id=Ti$id,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
+    Yi = cbind(id=Ti$id,type=Ti$type,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
   })
   Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)),.par=FALSE)
 }
