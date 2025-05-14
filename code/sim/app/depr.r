@@ -1,6 +1,6 @@
 source('sim/meta.r')
 source('sim/fit.r')
-uid = '2025-04-25'
+uid = '2025-05-15'
 
 # -----------------------------------------------------------------------------
 # targets / outcomes
@@ -42,14 +42,14 @@ P0 = list(
   n.pop = cli.arg('n.pop',10000), # final: 10000
   seed = 1:cli.arg('n.seed',7), # final: 100
   n.dur = 1,
-  het.distr = 'lnorm',
-  dRR.shape = 'exp',
   dep_o.Ri.my = .01,
-  dep_x.Ri.my = .50,
-  dep.Ri.het  = 0,
-  dep.cov     = 0,
-  RR.dep_o.dep_p = 1,
+  dep_x.Ri.my = 1,
+  het.distr = 'lnorm',
+  dep.Ri.het = 0,
+  dep.cov = 0,
+  dRR.shape = 'pow',
   dsc.dep_x.dep_u = Inf,
+  RR.dep_o.dep_p = 1,
   run = get.run.par('dep',u=FALSE))
 t1y = add.pars.time(P0,P0$dtz)$t1y
 
@@ -57,12 +57,12 @@ t1y = add.pars.time(P0,P0$dtz)$t1y
 # param grid & run sims
 
 PG = list(
-  dep_o.Ri.my     = c(.001,.002,.003,.005,.01,.02,.03,.05,.10),
-  dep_x.Ri.my     = c(.100,.200,.300,.500, 1 , 2 , 3 , 5 ,10 ),
+  dep_o.Ri.my     = .005 + seq(0,.1,.01),
+  dep_x.Ri.my     = seq(.5,3,.5),
   dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,5),
   dep.cov         = c(-.9,-.6,-.3, 0,+.3,+.6,+.9),
   RR.dep_o.dep_p  = 1 + c(0,.1,.2,.3,.5,1,2,3,5),
-  dsc.dep_x.dep_u = c(Inf,50,30,20,10,5,3,2,1) * t1y / log(2))
+  dsc.dep_x.dep_u = c(Inf,1,.8,.6,.4,.2))
 
 grid.path = function(p){
   hash.path(ulist(P0,PG[p]),'data','sim','depr',uid)
@@ -89,30 +89,30 @@ load.grid = function(p=NULL,f=NULL,age=FALSE){
   Y[c('targ.mu','targ.se','ll','t')] = NULL # rm cols
   Y = cbind(Y,col.split(Y$id,':',c('out','age.10'))) # id -> out,age.10
   Y$age.10 = add.na(int.cut(as.numeric(Y$age.10),seq(10,50,10),up=60),'10-59')
-  iR = which(Y$out %in% c('dep.Ho','dep.Ro')) # rate out rows
+  iR = which(Y$type == 'pois') # rate out rows
   c3 = c('value','lower','upper') # out value cols
   Y[ iR,c3] = Y[ iR,c3] * 100 * t1y # rates per 100 PY
   Y[-iR,c3] = Y[-iR,c3] * 100       # props as %
   Y$Ro  = Y$dep_o.Ri.my * 100 # per 100 PY
-  Y$Rx  = Y$dep_x.Ri.my * 1   # per   1 PY
+  Y$Rx  = Y$dep_x.Ri.my * 100 # per 100 PY
   Y$het = Y$dep.Ri.het        # shorthand
   Y$cor = Y$dep.cov           # shorthand
   Y$RRp = Y$RR.dep_o.dep_p    # shorthand
-  Y$RRu = round(if.null(Y$dsc.dep_x.dep_u,Inf) * log(2) / t1y) # TODO
+  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf)
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
 }
 
 # grid subsets for plotting
 PGi = list(
-  Ro  = c(.2,.5,1,2,5,10),
-  Rx  = c(.2,.5,1,2,5,10),
+  Ro  = .5 + seq(0,10,2),
+  Rx  = seq(50,300,50),
   het = c(0,.1,.2,.5,1,2,5),
   cor = c(-.6,-.3, 0,+.3,+.6),
   RRp = 1 + c(0,.1,.3,1,3),
-  RRu = c(Inf,30,10,3,1))
-PGii = list(Ro=c(.3,1,3,10),Rx=c(.3,1,3,10))
-PGiii = list(Ro=c(.3,3),Rx=c(.3,3))
+  RRu = c(Inf,1,.8,.6,.4,.2))
+# PGii = TODO
+# PGiii = TODO
 cor.lab = c('–0.9'=-.9,'–0.6'=-.6,'–0.3'=-.3,'0'=0,
             '+0.3'=+.3,'+0.6'=+.6,'+0.9'=+.9)
 
@@ -140,7 +140,7 @@ fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
 # plot core
 
 plot.prev = function(g,out,ylim,by=NULL,ty='log10'){
-  by = if.null(by,c(.1,.2,.5,1,2,5,10,20,50,100))
+  by = if.null(by,seq(0,15,1))
   xmm = layer_scales(g)$x$range$range
   mask = def.args(annotate,'rect',alpha=1/2,fill='gray',xmin=xmm[1],xmax=xmm[2])
   g = g + scale_y_continuous(trans=ty,breaks=by,labels=by,minor=NULL) +
@@ -148,11 +148,11 @@ plot.prev = function(g,out,ylim,by=NULL,ty='log10'){
     mask(ymax=ylim[2],ymin=if.null(ymm[[out]][2],NA))
 }
 
-plot.core = function(g,out='dep.now',tx='log10',ribbon=1/5,ylim=c(.1,100),by=NULL){
+plot.core = function(g,out='dep.now',tx=NULL,ribbon=1/5,ylim=c(0,15),by=NULL,ci=.95){
   g = plot.prev(g,out,ylim,by)
   g = plot.clean(g,font=font) +
     stat_summary(geom='ribbon',color=NA,alpha=ribbon,
-      fun.min=qfun(.025),fun.max=qfun(.975)) +
+      fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)) +
     stat_summary(fun=median,geom='line') +
     scale_x_continuous(trans=tx) +
     coord_cartesian(ylim=ylim) +
