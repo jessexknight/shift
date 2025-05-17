@@ -1,6 +1,6 @@
 source('sim/meta.r')
 source('sim/fit.r')
-uid = '2025-05-15'
+uid = '2025-05-17'
 
 # -----------------------------------------------------------------------------
 # targets / outcomes
@@ -15,19 +15,20 @@ T0 = list(
   list(id='dep.ne.0', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==0',vsub=TRUE),
   list(id='dep.ne.1', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==1',vsub=TRUE),
   list(id='dep.ne.2+',type='prop',mu=NA,se=NA,w=1,vo='dep.ne>1', vsub=TRUE),
-  list(id='dep.Ro',   type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now'),
-  list(id='dep.Ro.n', type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now & !dep.past'),
-  list(id='dep.Ro.p', type='pois',mu=NA,se=NA,w=1,vo='dep_o.Ri',vt='.',sub='!dep.now &  dep.past'),
-  list(id='dep.Rx',   type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now'),
-  list(id='dep.Rx.n', type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now & !dep.past'),
-  list(id='dep.Rx.p', type='pois',mu=NA,se=NA,w=1,vo='dep_x.Ri',vt='.',sub=' dep.now &  dep.past'),
-  list(id='dep.eRo.n',type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
+  list(id='dep.um.3m',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y/4',vsub=TRUE,sub='dep.past'),
+  list(id='dep.um.6m',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y/2',vsub=TRUE,sub='dep.past'),
+  list(id='dep.um.1y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y',  vsub=TRUE,sub='dep.past'),
+  list(id='dep.um.2y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y*2',vsub=TRUE,sub='dep.past'),
+  list(id='dep.um.5y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y*5',vsub=TRUE,sub='dep.past'),
+  list(id='dep.eRo',  type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
 T = list()
 ags = 10
+alos = seq(amin,amax-ags,ags)
+aall = str(amin,'-',amax-1)
 for (Ti in T0){ id = Ti$id
   sub = ifelse(is.null(Ti$sub),'',str(Ti$sub,' & '))
   T[[Ti$id]] = do.call(gen.targ,Ti)
-  for (a in seq(amin,amax-ags,ags)){
+  for (a in alos){
     Ti$id  = str(id,':',a)
     Ti$sub = str(sub,'age >= ',a,' & age < ',a+ags)
     T[[Ti$id]] = do.call(gen.targ,Ti)
@@ -57,77 +58,82 @@ t1y = add.pars.time(P0,P0$dtz)$t1y
 # param grid & run sims
 
 PG = list(
-  dep_o.Ri.my     = .005 + seq(0,.1,.01),
+  dep_o.Ri.my     = seq(.01,.1,.01),
   dep_x.Ri.my     = seq(.5,3,.5),
-  dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,5),
+  dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,4,5),
   dep.cov         = c(-.9,-.6,-.3, 0,+.3,+.6,+.9),
-  RR.dep_o.dep_p  = 1 + c(0,.1,.2,.3,.5,1,2,3,5),
-  dsc.dep_x.dep_u = c(Inf,1,.8,.6,.4,.2))
+  RR.dep_o.dep_p  = 1+c(0,.1,.2,.3,.5,1,2,3,4,5),
+  dsc.dep_x.dep_u = round(t1y*c(Inf,1,.8,.6,.4,.2)))
+PGk = list(
+  hom = PG[c(1,2)],
+  het = PG[c(1,2,3,4)],
+  int = PG[c(1,2,5,6)])
 
-grid.path = function(p){
-  hash.path(ulist(P0,PG[p]),'data','sim','depr',uid)
+grid.path = function(k,.save=FALSE){
+  hash.path(ulist(P0,PGk[[k]]),'data','sim','depr',uid,.save=.save)
 }
 
-run.grid = function(p=NULL){
-  Y.age = fit.run.grid(PG[p],T,P0,srvs=srv.extra,i.vars=c('dep_o.Ri','dep_x.Ri'))
-  Y.all = subset(Y.age,!grepl(':',id))
-  save.rda(Y.age,grid.path(p),'Y.age')
-  save.rda(Y.all,grid.path(p),'Y.all')
+run.grid = function(k){
+  Y = fit.run.grid(PGk[[k]],T,P0,srvs=srv.extra)
+  Y = cbind(Y,col.split(Y$id,':',c('out','age')))
+  Y$age = add.na(int.cut(Y$age,alos,up=amax),aall)
+  Y[c('targ.mu','targ.se','ll')] = NULL
+  save.rda(Y,grid.path(k,.save=TRUE),'Y')
+  for (o in unique(Y$out)){
+    save.rda(subset(Y,out==o),grid.path(k),str('Y.',o))
+  }
 }
 
 # -----------------------------------------------------------------------------
 # plot setup
 
 ext = '.png'; font = 'Alegreya Sans'
-plot.1o = list(w1=2.0,h1=2,wo=2,ho=1.2) # plot size
-ymm = list(dep.now=c(01,20),dep.past=c(03,60)) # gray rects
+plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
+ymm = list(dep.now=c(01,12),dep.past=c(05,50)) # gray rects
 cmap = lapply(c(het='cividis',Ro='plasma',Rx='viridis'), # colormaps
   function(o){ clr.map.d(option=o) })
 
-load.grid = function(p=NULL,f=NULL,age=FALSE){
-  Y = load.rda(grid.path(p),ifelse(age,'Y.age','Y.all'))
-  Y[c('targ.mu','targ.se','ll','t')] = NULL # rm cols
-  Y = cbind(Y,col.split(Y$id,':',c('out','age.10'))) # id -> out,age.10
-  Y$age.10 = add.na(int.cut(as.numeric(Y$age.10),seq(10,50,10),up=60),'10-59')
-  iR = which(Y$type == 'pois') # rate out rows
+load.grid = function(k,out='dep.now',f=NULL,age=FALSE){
+  Y = load.rda(grid.path(k),str('Y.',out))
+  if (!age){ Y = subset(Y,age==aall) }
+  iR = Y$type == 'pois' # rate out rows
   c3 = c('value','lower','upper') # out value cols
-  Y[ iR,c3] = Y[ iR,c3] * 100 * t1y # rates per 100 PY
-  Y[-iR,c3] = Y[-iR,c3] * 100       # props as %
-  Y$Ro  = Y$dep_o.Ri.my * 100 # per 100 PY
-  Y$Rx  = Y$dep_x.Ri.my * 100 # per 100 PY
+  Y[ iR,c3] = Y[ iR,c3]*100*t1y # rates per 100 PY
+  Y[!iR,c3] = Y[!iR,c3]*100     # props as %
+  Y$Ro  = round(Y$dep_o.Ri.my*100,1) # per 100 PY
+  Y$Rx  = round(Y$dep_x.Ri.my*100,1) # per 100 PY
   Y$het = Y$dep.Ri.het        # shorthand
   Y$cor = Y$dep.cov           # shorthand
   Y$RRp = Y$RR.dep_o.dep_p    # shorthand
-  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf)
+  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf)/t1y
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
 }
 
 # grid subsets for plotting
 PGi = list(
-  Ro  = .5 + seq(0,10,2),
+  Ro  = seq(1,10,2),
   Rx  = seq(50,300,50),
   het = c(0,.1,.2,.5,1,2,5),
   cor = c(-.6,-.3, 0,+.3,+.6),
-  RRp = 1 + c(0,.1,.3,1,3),
+  RRp = 1+c(0,.1,.2,.5,1,2,5),
   RRu = c(Inf,1,.8,.6,.4,.2))
-# PGii = TODO
-# PGiii = TODO
+PGii = list(Ro=c(2,5,8),Rx=c(100,200,300),cor=c(-.6,0,+.6))
+PGiii = list(Ro=c(3,7),Rx=c(100,200))
 cor.lab = c('–0.9'=-.9,'–0.6'=-.6,'–0.3'=-.3,'0'=0,
             '+0.3'=+.3,'+0.6'=+.6,'+0.9'=+.9)
 
 # aes labels
 l = list(
   Ro  = 'Mean~onset rate~(per 100 PY)',
-  Rx  = 'Mean~recov rate~(per PY)',
+  Rx  = 'Mean~recov rate~(per 100 PY)',
   het = 'Rate CV',
   cor = 'Rate~correlation',
-  RRp = 'HR–1 relapse vs onset',
-  RRu = 'Recovery rate half-life (years)',
+  RRp = 'RR relapse~vs onset',
+  RRu = 'Recovery~waning scale~(years)',
   age = 'Age (years)',
   dep.now  = 'Current~depression~prevalence (%)',
-  dep.past = 'Lifetime~depression~prevalence (%)',
-  dep.Ro   = 'Observed~onset rate~(per 100 PY)')
+  dep.past = 'Lifetime~depression~prevalence (%)')
 
 # aes label utils
 hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
@@ -139,18 +145,16 @@ fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
 # -----------------------------------------------------------------------------
 # plot core
 
-plot.prev = function(g,out,ylim,by=NULL,ty='log10'){
-  by = if.null(by,seq(0,15,1))
-  xmm = layer_scales(g)$x$range$range
-  mask = def.args(annotate,'rect',alpha=1/2,fill='gray',xmin=xmm[1],xmax=xmm[2])
-  g = g + scale_y_continuous(trans=ty,breaks=by,labels=by,minor=NULL) +
-    mask(ymin=ylim[1],ymax=if.null(ymm[[out]][1],NA)) +
-    mask(ymax=ylim[2],ymin=if.null(ymm[[out]][2],NA))
+plot.prev = function(g,out,ylim,tx){
+  xmin = list(identity=-Inf,log10=0)[[tx]]
+  ymmo = if.null(ymm[[out]],c(-Inf,+Inf))
+  mask = def.args(annotate,'rect',alpha=1/2,fill='#ccc',xmin=xmin,xmax=+Inf)
+  g = g + mask(ymin=-Inf,ymax=ymmo[1]) + mask(ymax=+Inf,ymin=ymmo[2])
 }
 
-plot.core = function(g,out='dep.now',tx=NULL,ribbon=1/5,ylim=c(0,15),by=NULL,ci=.95){
-  g = plot.prev(g,out,ylim,by)
-  g = plot.clean(g,font=font) +
+plot.core = function(g,out='dep.now',tx='identity',ribbon=1/5,ylim=c(0,15),ci=.95){
+  g = plot.prev(g,out,ylim,tx)
+  g = plot.clean(g,font=font,legend.spacing=unit(0,'mm')) +
     stat_summary(geom='ribbon',color=NA,alpha=ribbon,
       fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)) +
     stat_summary(fun=median,geom='line') +
@@ -162,6 +166,6 @@ plot.core = function(g,out='dep.now',tx=NULL,ribbon=1/5,ylim=c(0,15),by=NULL,ci=
 # -----------------------------------------------------------------------------
 # main
 
-run.grid(c(1,2))
-run.grid(c(1,2,3,4))
-run.grid(c(1,2,5,6))
+run.grid('hom')
+run.grid('het')
+run.grid('int')
