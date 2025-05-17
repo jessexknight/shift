@@ -102,10 +102,10 @@ save.json = function(X,...,ext='.json',indent=2){
   write(rjson::toJSON(X,indent=indent),file=fname)
 }
 
-hash.path = function(info,...,.len=11){
+hash.path = function(info,...,.len=11,.save=TRUE){
   hash = substr(digest::sha1(info),1,.len)
   info = ulist(info,time=str(Sys.time()))
-  save.json(info,...,hash,'info')
+  if (.save){ save.json(info,...,hash,'info') }
   return(file.path(...,hash))
 }
 
@@ -144,7 +144,7 @@ str.lab = function(pre='',post=''){
 plot.clean = function(g,font=NULL,...){
   g = g + theme_light() + theme(...,
     text=element_text(family=font),
-    strip.background=element_rect(fill='gray85'),
+    strip.background=element_rect(fill='#eee'),
     strip.text.x=element_text(color='black'),
     strip.text.y=element_text(color='black'))
 }
@@ -323,7 +323,7 @@ fit.beta = function(qs,ps=p2){
 
 fit.weibull = function(m,cv2,...){
   efun = function(k){ s = gamma(1+1/k)^2; e = ((gamma(1+2/k)-s)/s-cv2)^2 }
-  shape = optimize(efun,c(1e-6,1e+6))$minimum
+  k = optimize(efun,c(1e-6,1e+6))$minimum
   par = list(shape=k,scale=m/gamma(1+1/k),...)
 }
 
