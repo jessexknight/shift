@@ -62,12 +62,14 @@ srv.extra = function(P,Q,E,t){
   Q$dep.ut   = sapply(E$dep_x,sum) - sapply(E$dep_o,sum) + t * Q$dep.now
   Q$dep.pt   = Q$dep.ut / Q$act.ut
   Q$dep.ne   = sapply(E$dep_o,len)
+  Q$dep.um   = Q$dep.ut / (sapply(E$dep_o,len)/2 + sapply(E$dep_x,len)/2)
   Q$haz.aao  = age.at(sapply(E$haz_o,first))
   Q$haz.tto  = time.to(Q$haz.aao)
   Q$haz.ur   = ifelse(Q$haz.now,t - sapply(E$haz_o,last),NA)
   Q$haz.ut   = sapply(E$haz_x,sum) - sapply(E$haz_o,sum) + t * Q$haz.now
   Q$haz.pt   = Q$haz.ut / Q$act.ut
   Q$haz.ne   = sapply(E$haz_o,len)
+  Q$haz.um   = Q$haz.ut / (sapply(E$haz_o,len)/2 + sapply(E$haz_x,len)/2)
   return(Q)
 }
 
