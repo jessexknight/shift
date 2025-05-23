@@ -264,6 +264,11 @@ df.compare = function(x,y,v=NULL,cast=as.numeric){
     ifelse(eq==TRUE,'OK',paste('\n',eq)))
 }
 
+df.ow = function(X,...){
+  # overwrite cols in X
+  as.data.frame(ulist(X,...))
+}
+
 # -----------------------------------------------------------------------------
 # *apply
 
