@@ -90,8 +90,9 @@ run.grid = function(k){
 ext = '.png'; font = 'Alegreya Sans'
 plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
 ymm = list(dep.now=c(01,12),dep.past=c(05,50)) # gray rects
-cmap = lapply(c(het='cividis',Ro='plasma',Rx='viridis'), # colormaps
+cmap = lapply(c(het='plasma',Ro='cividis',Rx='viridis'), # colormaps
   function(o){ clr.map.d(option=o) })
+cmap$dsc = clr.map.d(option='plasma',direction=-1)
 
 load.grid = function(k,out='dep.now',f=NULL,age=FALSE){
   Y = load.rda(grid.path(k),str('Y.',out))
@@ -102,10 +103,10 @@ load.grid = function(k,out='dep.now',f=NULL,age=FALSE){
   Y[!iR,c3] = Y[!iR,c3]*100     # props as %
   Y$Ro  = round(Y$dep_o.Ri.my*100,1) # per 100 PY
   Y$Rx  = round(Y$dep_x.Ri.my*100,1) # per 100 PY
-  Y$het = Y$dep.Ri.het        # shorthand
-  Y$cor = Y$dep.cov           # shorthand
-  Y$RRp = Y$RR.dep_o.dep_p    # shorthand
-  Y$RRu = if.null(Y$dsc.dep_x.dep_u,Inf)/t1y
+  Y$het = if.null(Y$dep.Ri.het,0)            # shorthand
+  Y$cor = if.null(Y$dep.cov,0)               # shorthand
+  Y$RRp = if.null(Y$RR.dep_o.dep_p,1)        # shorthand
+  Y$dsc = if.null(Y$dsc.dep_x.dep_u,Inf)/t1y # shorthand
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
 }
@@ -114,14 +115,16 @@ load.grid = function(k,out='dep.now',f=NULL,age=FALSE){
 PGi = list(
   Ro  = seq(1,10,2),
   Rx  = seq(50,300,50),
-  het = c(0,.1,.2,.5,1,2,5),
+  het = c(0,1,2,3,4,5),
   cor = c(-.6,-.3, 0,+.3,+.6),
-  RRp = 1+c(0,.1,.2,.5,1,2,5),
-  RRu = c(Inf,1,.8,.6,.4,.2))
+  RRp = 1+c(0,1,2,3,4,5),
+  dsc = c(Inf,1,.8,.6,.4,.2))
 PGii = list(Ro=c(2,5,8),Rx=c(100,200,300),cor=c(-.6,0,+.6))
-PGiii = list(Ro=c(3,7),Rx=c(100,200))
+PG2 = list(Ro=c(3,7),Rx=c(100,200))
+PG1 = list(Ro=5,Rx=150,het=0,cor=0,RRp=1,dsc=Inf)
 cor.lab = c('–0.9'=-.9,'–0.6'=-.6,'–0.3'=-.3,'0'=0,
             '+0.3'=+.3,'+0.6'=+.6,'+0.9'=+.9)
+dsc.max = 1.2
 
 # aes labels
 l = list(
@@ -130,10 +133,11 @@ l = list(
   het = 'Rate CV',
   cor = 'Rate~correlation',
   RRp = 'RR relapse~vs onset',
-  RRu = 'Recovery~waning scale~(years)',
+  dsc = 'Recovery~waning~half-life~(years)',
   age = 'Age (years)',
-  dep.now  = 'Current~depression~prevalence (%)',
-  dep.past = 'Lifetime~depression~prevalence (%)')
+  rel = 'Relative~MDD~prevalence',
+  dep.now  = 'Current~MDD~prevalence (%)',
+  dep.past = 'Lifetime~MDD~prevalence (%)')
 
 # aes label utils
 hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
@@ -141,6 +145,22 @@ grp = function(s){ gsub('~','\n',s) }
 axi = function(s){ gsub('~',' ',s) }
 fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
   str.lab(str(' ',ss[1],': '),str(' ',ss[2])) }
+exact.fun = list(
+  dep.now  = function(o,x){ k=o+x; P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k },
+  dep.past = function(o,x){ k=o;   P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k })
+
+run.exact = function(Y,n=1e5){
+  Y = subset(Y,seed==1)
+  qf = het.funs[[P0$het.distr]]$q
+  Ye = rbind.lapply(1:nrow(Y),function(i){ Yi = Y[i,]
+    fi = exact.fun[[Yi$out]]
+    R = copula(n,covs=if.null(Yi$dep.cov,0),qfuns=list(o=qf,x=qf),
+      o=list(m=Yi$dep_o.Ri.my,het=if.null(Yi$dep.Ri.het,0)),
+      x=list(m=Yi$dep_x.Ri.my,het=if.null(Yi$dep.Ri.het,0)))
+    Yi$value = mean(fi(R[,1],R[,2]))
+    return(Yi)
+  })
+}
 
 # -----------------------------------------------------------------------------
 # plot core
@@ -161,6 +181,10 @@ plot.core = function(g,out='dep.now',tx='identity',ribbon=1/5,ylim=c(0,15),ci=.9
     scale_x_continuous(trans=tx) +
     coord_cartesian(ylim=ylim) +
     ylab(axi(l[[out]]))
+}
+
+add.exact = function(g,Y){
+  g = g + geom_point(data=run.exact(Y),shape=21,fill='red',size=1)
 }
 
 # -----------------------------------------------------------------------------
