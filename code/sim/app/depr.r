@@ -67,7 +67,7 @@ PG = list(
 PGk = list(
   hom = PG[c(1,2)],
   het = PG[c(1,2,3,4)],
-  int = PG[c(1,2,5,6)])
+  ext = PG[c(1,2,5,6)])
 
 grid.path = function(k,.save=FALSE){
   hash.path(ulist(P0,PGk[[k]]),'data','sim','depr',uid,.save=.save)
@@ -89,7 +89,7 @@ run.grid = function(k){
 
 ext = '.png'; font = 'Alegreya Sans'
 plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
-ymm = list(dep.now=c(01,12),dep.past=c(05,50)) # gray rects
+ymm = list(raw=c(01,12),dep.now=c(01,12),dep.past=c(05,50)) # gray rects
 cmap = lapply(c(het='plasma',Ro='cividis',Rx='viridis'), # colormaps
   function(o){ clr.map.d(option=o) })
 cmap$dsc = clr.map.d(option='plasma',direction=-1)
@@ -135,9 +135,10 @@ l = list(
   RRp = 'RR relapse~vs onset',
   dsc = 'Recovery~waning~half-life~(years)',
   age = 'Age (years)',
-  rel = 'Relative~MDD~prevalence',
   dep.now  = 'Current~MDD~prevalence (%)',
   dep.past = 'Lifetime~MDD~prevalence (%)')
+l$rel = 'Relative~MDD~prevalence'
+l$raw = l$dep.now # HACK
 
 # aes label utils
 hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
@@ -188,8 +189,118 @@ add.exact = function(g,Y){
 }
 
 # -----------------------------------------------------------------------------
+# plot apps
+
+plot.eRo = function(){
+  Y = subset(load.grid('het',out='dep.eRo',f='het',age=TRUE),Rx==100 & cor==0)
+  g = ggplot(subset(Y,het %in% PGi$het),aes(x=Ro,y=value,color=het,fill=het))
+  g = plot.core(g,'dep.eRo',ylim=c(0,10)) + cmap$het +
+    facet_wrap('age',labeller=fct(l$age)) +
+    labs(color=grp(l$het),fill=grp(l$het),
+      x='Model input mean onset rate (per 100 PY)',
+      y='Observed mean onset rate (per 100 PY)')
+  plot.save(g,'depr',uid,'eRo',ext=ext)
+}
+
+plot.ever = function(){
+  Y = subset(load.grid('het',out='dep.past',f='het'),Rx==100 & cor==0)
+  g = ggplot(subset(Y,het %in% PGi$het),aes(x=Ro,y=value,color=het,fill=het))
+  g = plot.core(g,'dep.past',ylim=c(0,80)) + cmap$het +
+    labs(x=axi(l$Ro),color=grp(l$het),fill=grp(l$het)) +
+    geom_abline(intercept=0,slope=25,color='gray',lty='11')
+  plot.save(g,'depr',uid,'ever',ext=ext)
+  plot.save(add.exact(g,Y),'depr',uid,'ever.v',ext=ext)
+}
+
+plot.edur = function(k,clr){
+  umap = list('3m'=.25,'6m'=.5,'1y'=1,'2y'=2,'5y'=5)
+  Y = rbind.lapply(str('dep.um.',names(umap)),load.grid,k=k,f=clr) # load
+  Y = subset(Y,Ro==1 & cor==0 & RRp==1) # subset
+  Y$edur = as.numeric(umap[gsub('dep.um.','',Y$out)]) # Y$out -> Y$edur
+  Y = rbind(Y,df.ow(subset(Y,edur==1),edur=0,value=100)) # append dummy (edur=0)
+  g = ggplot(df.sub(Y,str('Rx %in% PGii$Rx & ',clr,' %in% PGi$',clr)),
+    aes.string(x='edur',y='value',color=clr,fill=clr))
+  g = plot.core(g,'edur',ylim=c(0,100)) + cmap[[clr]] +
+    facet_wrap('Rx',labeller=fct(l$Rx)) +
+    labs(color=grp(l[[clr]]),fill=grp(l[[clr]]),
+      x='Time sime onset (years)',
+      y='Proportion still depressed (%)')
+  plot.save(g,'depr',uid,str('edur.',clr),ext=ext)
+}
+
+plot.now.hom = function(){
+  Y = subset(load.grid('hom'))
+  g = ggplot(subset(Y,Rx %in% PGi$Rx),aes(x=Ro,y=value,color=factor(Rx),fill=factor(Rx)))
+  g = plot.core(g) + cmap$Rx + labs(x=axi(l$Ro),color=grp(l$Rx),fill=grp(l$Rx))
+  plot.save(g,'depr',uid,'now.hom.o',ext=ext)
+  g = ggplot(subset(Y,Ro %in% PGi$Ro),aes(x=Rx,y=value,color=factor(Ro),fill=factor(Ro)))
+  g = plot.core(g) + cmap$Ro + labs(x=axi(l$Rx),color=grp(l$Ro),fill=grp(l$Ro))
+  plot.save(g,'depr',uid,'now.hom.x',ext=ext)
+}
+
+plot.now.het = function(){
+  Y = subset(load.grid('het',f='Rx'),cor==0)
+  g = ggplot(subset(Y,Ro %in% PGii$Ro),aes(x=het,y=value,color=Rx,fill=Rx))
+  g = plot.core(g) + facet_wrap('Ro',labeller=fct(l$Ro)) + cmap$Rx +
+    labs(x=axi(l$het),color=grp(l$Rx),fill=grp(l$Rx))
+  plot.save(g,'depr',uid,'now.het',ext=ext)
+}
+
+plot.now.cor = function(){
+  Y = subset(load.grid('het'))
+  Y$cor.f = factor(Y$cor,cor.lab,names(cor.lab))
+  Y1 = subset(Y,cor %in% PGii$cor & Ro %in% PGii$Ro & Rx %in% PGii$Rx)
+  g = ggplot(Y1,aes(x=het,y=value,color=factor(Rx),fill=factor(Rx),lty=cor.f))
+  g = plot.core(g,ribbon=0) + facet_wrap('Ro',labeller=fct(l$Ro)) + cmap$Rx +
+    stat_summary(fun=median,geom='line',lty='solid',size=2/3) + # HACK
+    scale_linetype_manual(values=c('11','solid','31')) +
+    labs(x=axi(l$het),color=grp(l$Rx),fill=grp(l$Rx),lty=grp(l$cor))
+  plot.save(g,'depr',uid,'now.cor.x',ext=ext)
+  Y2 = subset(Y,het %in% PGi$het & Ro %in% PG2$Ro & Rx %in% PG2$Rx)
+  g = ggplot(Y2,aes(x=cor,y=value,color=factor(het),fill=factor(het)))
+  g = plot.core(g) + cmap$het +
+    facet_grid('Rx~Ro',labeller=labeller(.rows=fct(l$Rx),.cols=fct(l$Ro))) +
+    scale_x_continuous(breaks=cor.lab,labels=names(cor.lab)) +
+    labs(x=axi(l$cor),color=grp(l$het),fill=grp(l$het))
+  plot.save(g,'depr',uid,'now.cor.cor',ext=ext)
+  plot.save(add.exact(g,Y2),'depr',uid,'now.cor.cor.v',ext=ext)
+}
+
+plot.now.RRp = function(alt='raw'){
+  Y = subset(load.grid('ext',f='Rx'),dsc==Inf)
+  if (alt=='rel'){ Y$value = Y$value / Y$value[Y$RRp==PG1$RRp] }
+  g = ggplot(subset(Y,Rx %in% PGi$Rx & Ro %in% PGii$Ro),aes(x=RRp,y=value,color=Rx,fill=Rx))
+  g = plot.core(g,alt) + facet_wrap('Ro',labeller=fct(l$Ro)) + cmap$Rx +
+    labs(x=axi(l$RRp),color=grp(l$Rx),fill=grp(l$Rx))
+  plot.save(g,'depr',uid,str('now.RRp.',alt),ext=ext)
+}
+
+plot.now.dsc = function(alt='raw'){
+  f = function(dsc){ pmin(dsc.max,dsc) }
+  Y = subset(load.grid('ext',f='Rx'),RRp==1)
+  if (alt=='rel'){ Y$value = Y$value / Y$value[Y$dsc==PG1$dsc] }
+  g = ggplot(subset(Y,Rx %in% PGi$Rx & Ro %in% PGii$Ro),aes(x=f(dsc),y=value,color=Rx,fill=Rx))
+  g = plot.core(g,alt) + facet_wrap('Ro',labeller=fct(l$Ro)) + cmap$Rx +
+    scale_x_reverse(breaks=f(PGi$dsc),labels=PGi$dsc) + # HACK
+    labs(x=axi(l$dsc),color=grp(l$Rx),fill=grp(l$Rx))
+  plot.save(g,'depr',uid,str('now.dsc.',alt),ext=ext)
+}
+
+# -----------------------------------------------------------------------------
 # main
 
 run.grid('hom')
 run.grid('het')
-run.grid('int')
+run.grid('ext')
+
+plot.eRo()
+plot.ever()
+plot.edur('het','het')
+plot.edur('ext','dsc')
+plot.now.hom()
+plot.now.het()
+plot.now.cor()
+plot.now.RRp('raw')
+plot.now.RRp('rel')
+plot.now.dsc('raw')
+plot.now.dsc('rel')
