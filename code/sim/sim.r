@@ -72,6 +72,7 @@ init.inds = function(P){
 init.ptrs = function(P,I,i,z){
   # generate partners among I
   # mixing is random by splitting into 1st/2nd half
+  # TODO: non-random mixing via matchingR::roommate(utils=score)
   n = len(i)/2
   if (n==0){ return(NULL) }
   i1 = i[0+(1:n)]
@@ -198,6 +199,7 @@ sim.run = function(P,sub='act'){
     # if (z %% P$z1y == 0) { print(z/P$z1y) } # DEBUG
     # age inds ----------------------------------------------------------------
     I$age = I$age + 1/P$z1y
+    # TODO: ? mort
     # select active inds ------------------------------------------------------
     i = which(I$age > amin & I$age <= amax)
     J = I[i,] # (mostly) read-only copy of active

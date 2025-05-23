@@ -55,6 +55,7 @@ targ.funs = list(
   pois = def.args(targ.calc,ofun=pois.out),
   OR   = def.args(mass.calc,ofun=def.args(glm.out,family=binomial,ctx=exp)),
   PR   = def.args(mass.calc,ofun=def.args(glm.out,family=poisson, ctx=exp)))
+  # TODO: quasipoisson above?
 
 # -----------------------------------------------------------------------------
 # log-likelihoods
