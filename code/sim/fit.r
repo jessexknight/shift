@@ -11,7 +11,7 @@ fpar.sam = function(...,seed=666){ set.seed(seed); generateDesign(...) }
 # -----------------------------------------------------------------------------
 # targets
 
-gen.targ = function(id,type,mu,se,...,sub=NULL,w=1){
+gen.targ = function(id,type,...,sub=NULL,mu=NA,se=NA,w=1){
   Ti = list(id=id,type=type,mu=mu,se=se,sub=sub,w=w,
     fun=def.args(targ.funs[[type]],sub=sub,...))
 }
