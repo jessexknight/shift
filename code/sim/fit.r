@@ -93,6 +93,7 @@ fit.run = function(Si,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
 fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE,
                         p.vars=NULL,i.vars=NULL){
   # fit.run over the grid of params PG & rbind the results
+  status(2,'fit.run.grid: ',prod(lens(PG)),' @ ',list.str(lens(PG)))
   Y = grid.apply(PG,function(...){
     status(3,list.str(list(...)))
     Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
