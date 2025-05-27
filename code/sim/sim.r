@@ -5,9 +5,14 @@
 init.evts = function(P){
   # initialize event matrices for each event type & individual
   # TODO: could reduce mem req using ncol = adur*P$z1y < P$zf
-  # TODO: could reduce mem req using P$run
+  re = str(names(P$run[unlist(P$run)]),collapse='|') # TODO: cdm
   E = lapply(set.names(evts,evts),function(e){
-    matrix(FALSE,nrow=P$zf,ncol=P$n.tot) })
+    if (grepl(re,e)){
+      matrix(FALSE,nrow=P$zf,ncol=P$n.tot)
+    } else {
+      matrix(FALSE,1,1)
+    }
+  })
 }
 
 init.inds = function(P){
