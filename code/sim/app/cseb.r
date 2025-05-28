@@ -24,7 +24,7 @@ T = name.list(key='id',
 P0 = list(
   dtz   =   cli.arg('dtz',     45), # final: 7
   n.pop =   cli.arg('n.pop', 1000), # final: 1000
-  seed  = 1:cli.arg('n.seed',  21), # final: 100
+  seed  = 1:cli.arg('n.seed', 100), # final: 100
   n.dur = 1,
   null  = 'xRR',
   het.distr = 'lnorm',
