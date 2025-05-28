@@ -94,7 +94,7 @@ fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE,
                         p.vars=NULL,i.vars=NULL,.batch=1,.nbatch=1){
   # fit.run over the grid of params PG & rbind the results
   gs = c(lens(PG),seed=len(if.null(P0$seed,1:7)))
-  status(2,'fit.run.grid: ',prod(gs),' @ ',list.str(gs))
+  status(2,'fit.run.grid: ',prod(gs),' [',.batch,'/',.nbatch,'] @ ',list.str(gs))
   Y = grid.apply(PG,function(...){
     status(3,list.str(list(...)))
     Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,

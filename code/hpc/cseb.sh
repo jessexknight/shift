@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N cseb
 #PBS -l walltime=2:30:00
-#PBS -l select=1:ncpus=128:mem=64gb
+#PBS -l select=1:ncpus=128:mem=128gb
 #PBS -J 1-5
 
 module add tools/prod
