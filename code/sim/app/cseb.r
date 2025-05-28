@@ -2,6 +2,8 @@ source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
 uid = '2025-05-25'
+.b  = cli.arg('.b', 1)
+.nb = cli.arg('.nb',1)
 
 # -----------------------------------------------------------------------------
 # targets / outcomes
@@ -57,12 +59,18 @@ grid.path = function(k,.save=FALSE){
 # run & save/load
 
 run.grid = function(k){
-  Y = fit.run.grid(PGk[[k]],T,P0)
-  save.rda(Y,grid.path(k,.save=TRUE),'Y')
+  Y = fit.run.grid(PGk[[k]],T,P0,.b=.b,.nb=.nb)
+  save.rda(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
 }
 
-load.grid = function(k,f=NULL){
-  Y = load.rda(grid.path(k),'Y')
+recut.rda = function(k){
+  # join batches + split by target id for speed
+  Y = rbind.lapply(1:.nb,function(b){ load.rda(grid.path(k),str('b',.nb),str('Y.',b)) })
+  for (i in unique(Y$id)){ save.rda(subset(Y,id==i),grid.path(k),str('Y.',i)) }
+}
+
+load.grid = function(k,id='dep.haz.aor',f=NULL){
+  Y = load.rda(grid.path(k),str('Y.',id))
   iP = Y$type == 'prop' # prop out rows
   c3 = c('value','lower','upper') # out value cols
   Y[iP,c3] = Y[iP,c3]*100 # props as %
@@ -90,3 +98,4 @@ load.grid = function(k,f=NULL){
 # run.grid('hom')
 # run.grid('unc')
 # run.grid('het')
+# recut.rda(TODO)
