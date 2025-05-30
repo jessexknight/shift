@@ -48,8 +48,8 @@ PGk = list(
   ref = P0[names(PG[9:10])], # P0
   fix = PG[9:10],        # Ri* ~ fixed
   hom = PG[c(1:4,9:10)], # Ri* ~ homog
-  unc = PG[c(1:6,9:10)], # Ri* ~ heter + uncor
-  het = PG)              # Ri* ~ heter + cor
+  het = PG[c(1:6,9:10)], # Ri* ~ heter + uncor
+  cor = PG)              # Ri* ~ heter + cor
 
 grid.path = function(k,.save=FALSE){
   hash.path(ulist(P0,PGk[[k]]),'data','sim','cseb',uid,.save=.save)
@@ -96,6 +96,6 @@ load.grid = function(k,id='dep.haz.aor',f=NULL){
 # run.grid('ref')
 # run.grid('fix')
 # run.grid('hom')
-# run.grid('unc')
 # run.grid('het')
+# run.grid('cor')
 # recut.rda(TODO)
