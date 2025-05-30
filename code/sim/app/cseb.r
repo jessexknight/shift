@@ -75,13 +75,14 @@ load.grid = function(k,id='dep.haz.aor',f=NULL){
   c3 = c('value','lower','upper') # out value cols
   Y[iP,c3] = Y[iP,c3]*100 # props as %
   y = function(k){ if.null(Y[[k]],P0[[k]]) }
-  Y$d.Ro = round(y('dep_o.Ri.my')*100,1); Y$h.Ro = round(y('haz_o.Ri.my')*100,1) # per 100 PY
-  Y$d.Rx = round(y('dep_x.Ri.my')*100,1); Y$h.Rx = round(y('haz_x.Ri.my')*100,1) # per 100 PY
-  Y$d.het = y('dep.Ri.cv');               Y$h.het = y('haz.Ri.cv') # shorthand
-  Y$d.cor = y('dep.cov');                 Y$h.cor = y('haz.cov')   # shorthand
-  Y$RRo   = y('RR.haz_o.dep_w'); # shorthand
-  Y$RRx   = y('RR.haz_x.dep_w'); # shorthand
+  Y$dRo  = round(y('dep_o.Ri.my')*100,1); Y$hRo  = round(y('haz_o.Ri.my')*100,1) # per 100 PY
+  Y$dRx  = round(y('dep_x.Ri.my')*100,1); Y$hRx  = round(y('haz_x.Ri.my')*100,1) # per 100 PY
+  Y$dhet = y('dep.Ri.cv');                Y$hhet = y('haz.Ri.cv') # shorthand
+  Y$dcor = y('dep.cov');                  Y$hcor = y('haz.cov')   # shorthand
+  Y$RRo  = y('RR.haz_o.dep_w'); # shorthand
+  Y$RRx  = y('RR.haz_x.dep_w'); # shorthand
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
+  # Y = subset(Y, lower!=0 | upper!=Inf) # TODO
   return(Y)
 }
 
