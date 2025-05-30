@@ -1,7 +1,7 @@
 source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
-uid = '2025-05-25'
+uid = '2025-05-30'
 .b  = cli.arg('.b', 1)
 .nb = cli.arg('.nb',1)
 
@@ -23,12 +23,12 @@ T = name.list(key='id',
 
 P0 = list(
   dtz   =   cli.arg('dtz',     45), # final: 7
-  n.pop =   cli.arg('n.pop', 1000), # final: 1000
-  seed  = 1:cli.arg('n.seed', 100), # final: 100
+  n.pop =   cli.arg('n.pop',10000), # final: 10000
+  seed  = 1:cli.arg('n.seed',  10), # final: 10
   n.dur = 1,
   null  = 'xRR',
   het.distr = 'lnorm',
-  dep_o.Ri.my = .02, haz_o.Ri.my = .02,
+  dep_o.Ri.my = .04, haz_o.Ri.my = .04,
   dep_x.Ri.my = 1,   haz_x.Ri.my = 1,
   dep.Ri.het  = 0,   haz.Ri.het  = 0,
   dep.cov     = 0,   haz.cov     = 0,
@@ -45,7 +45,7 @@ PG = list(
   RR.haz_x.dep_w = signif(2^seq(-3, 0,.5),3))
 
 PGk = list(
-  ref = PG[1:8],         # RR = 1
+  ref = P0[names(PG[9:10])], # P0
   fix = PG[9:10],        # Ri* ~ fixed
   hom = PG[c(1:4,9:10)], # Ri* ~ homog
   unc = PG[c(1:6,9:10)], # Ri* ~ heter + uncor
