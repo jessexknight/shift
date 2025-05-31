@@ -304,9 +304,9 @@ grid.apply = function(x,fun,args=list(),...,
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   # optional: split grid args into .nbatch & run .batch only
   xg = ifelse(.grid,expand.grid,as.data.frame)(x,stringsAsFactors=FALSE)
-  gi = seqn(nrow(xg))
+  ng = nrow(xg); gi = seqn(ng);
   grid.args   = lapply(gi,function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
-  grid.args   = split(grid.args,ceiling(gi*.nbatch/len(gi)))[[.batch]]
+  grid.args   = split(grid.args,ceiling(gi*min(ng,.nbatch)/ng))[[min(ng,.batch)]]
   grid.fun    = ifelse(.cbind,function(...){ cbind(fun(...),...) },fun)
   grid.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
   grid.lapply(grid.args,do.call,what=grid.fun,.par=.par)
