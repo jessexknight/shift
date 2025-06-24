@@ -16,6 +16,28 @@ gen.targ = function(id,type,...,sub=NULL,mu=NA,se=NA,w=1){
     fun=def.args(targ.funs[[type]],sub=sub,...))
 }
 
+sub.targ = function(Ti,sub,sid,...){
+  # update target Ti to reflect a further subset
+  Ti$id  = str(Ti$id,':',sid)
+  Ti$sub = ifelse(is.null(Ti$sub),sub,str(Ti$sub,' & ',sub))
+  Ti$fun = def.args(Ti$fun,sub=Ti$sub) # HACK: nested def.args
+  Ti = ulist(Ti,...)
+}
+
+sub.targ.age = function(Ti,ags){
+  # generate sub-targets from Ti for ags-sized age strata
+  Tis = lapply(seq(amin,amax-ags,ags),function(a){
+    sub.targ(Ti,sub=str('age >= ',a,' & age < ',a+ags),sid=a)
+  })
+}
+
+sub.targs = function(T,fun=sub.targ,...,app=TRUE){
+  # apply sub.targ* to all T, append to T (maybe), and fix names
+  Ts = unlist(lapply(T,fun,...),recursive=FALSE)
+  if (app){ Ts = c(T,Ts) }
+  Ts = do.call(name.list,c(Ts,key='id'))
+}
+
 targ.calc = function(Q,ofun,...,vs=NULL){
   # compute outputs from Q for simple targets
   vs = c(vs,'t','seed')
