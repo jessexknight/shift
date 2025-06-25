@@ -111,6 +111,16 @@ fit.run = function(Si,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
   Y  = cbind(as.list(Si),Y,row.names=NULL)
 }
 
+fit.run.batch = function(S,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
+                         p.vars=NULL,i.vars=NULL,.batch=1,.nbatch=1){
+  status(2,'fit.run.batch: ',nrow(S),' [',.batch,'/',.nbatch,'] ')
+  Y = grid.apply(S,function(...){
+    status(3,list.str(list(...),sig=4))
+    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
+      p.vars=p.vars,i.vars=i.vars),0)
+  },.rbind=TRUE,.grid=FALSE,.par=.par,.batch=.batch,.nbatch=.nbatch)
+}
+
 fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE,
                         p.vars=NULL,i.vars=NULL,.batch=1,.nbatch=1){
   # fit.run over the grid of params PG & rbind the results
