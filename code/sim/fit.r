@@ -11,16 +11,14 @@ fpar.sam = function(...,seed=666){ set.seed(seed); generateDesign(...) }
 # -----------------------------------------------------------------------------
 # targets
 
-gen.targ = function(id,type,...,sub=NULL,mu=NA,se=NA,w=1){
-  Ti = list(id=id,type=type,mu=mu,se=se,sub=sub,w=w,
-    fun=def.args(targ.funs[[type]],sub=sub,...))
+gen.targ = function(id,type,...,mu=NA,se=NA,w=1){
+  Ti = list(id=id,type=type,mu=mu,se=se,w=w,arg=list(...))
 }
 
 sub.targ = function(Ti,sub,sid,...){
   # update target Ti to reflect a further subset
   Ti$id  = str(Ti$id,':',sid)
-  Ti$sub = ifelse(is.null(Ti$sub),sub,str(Ti$sub,' & ',sub))
-  Ti$fun = def.args(Ti$fun,sub=Ti$sub) # HACK: nested def.args
+  Ti$sub = ifelse(is.null(Ti$arg$sub),sub,str(Ti$arg$sub,' & ',sub))
   Ti = ulist(Ti,...)
 }
 
@@ -86,8 +84,9 @@ srv.targs = function(Q,T,vs=NULL,aggr.seed=FALSE){
   # log-likelihoods for each target T given survey Q
   if (aggr.seed){ Q$seed = 0 }
   Ys = lapply(T,function(Ti){
-    Yi = Ti$fun(Q,vs=vs) # estimate
-    ll = targ.ll(Ti,Yi)  # likelihood
+    fun = do.call(def.args,c(f=targ.funs[[Ti$type]],Ti$arg))
+    Yi = fun(Q,vs=vs)   # estimate
+    ll = targ.ll(Ti,Yi) # likelihood
     Yi = cbind(id=Ti$id,type=Ti$type,targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
   })
   Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)),.par=FALSE)
