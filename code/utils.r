@@ -306,7 +306,7 @@ grid.apply = function(x,fun,args=list(),...,
   xg = ifelse(.grid,expand.grid,as.data.frame)(x,stringsAsFactors=FALSE)
   ng = nrow(xg); gi = seqn(ng);
   grid.args   = lapply(gi,function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
-  grid.args   = split(grid.args,ceiling(gi*min(ng,.nbatch)/ng))[[min(ng,.batch)]]
+  grid.args   = get.batch(grid.args,.batch,.nbatch)
   grid.fun    = ifelse(.cbind,function(...){ cbind(fun(...),...) },fun)
   grid.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
   grid.lapply(grid.args,do.call,what=grid.fun,.par=.par)
@@ -314,6 +314,10 @@ grid.apply = function(x,fun,args=list(),...,
 
 fast.split = function(...){
   collapse::rsplit(...,flatten=TRUE)
+}
+
+get.batch = function(x,.batch=1,.nbatch=1){ nx = NROW(x)
+  split(x,ceiling(seqn(nx)*min(nx,.nbatch)/nx))[[min(nx,.batch)]]
 }
 
 # -----------------------------------------------------------------------------
