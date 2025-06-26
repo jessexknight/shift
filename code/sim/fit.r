@@ -97,6 +97,17 @@ targ.ll = function(Ti,Yi){
   ll = dnorm(z,log=TRUE)
 }
 
+targs.wide = function(Y,v.var='value'){
+  # convert Y "long" -> "wide" format
+  status(3,'targs.wide: ',nrow(Y),' @ ',len(unique(Y$id)))
+  d.var = setdiff(c('type','est.mu','est.se','value','lower','upper'),v.var)
+  i.var = setdiff(colnames(Y),c(d.var,v.var,'id'))
+  Y[i.var] = lapply(Y[i.var],round,digits=9) # HACK
+  W = reshape(Y,dir='wide',timevar='id',v.names=v.var,idvar=i.var,drop=d.var)
+  names(W) = gsub('^value.','',names(W))
+  return(W)
+}
+
 # -----------------------------------------------------------------------------
 # fitting
 
