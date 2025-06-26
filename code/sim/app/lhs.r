@@ -6,8 +6,8 @@ source('sim/fit.r')
 # config
 
 uid   = '2025-06-25'
-seed  = cli.arg('seed',   666)
-n.sam = cli.arg('n.sam',10000) # final: 100000
+seed  = cli.arg('seed',    666)
+n.sam = cli.arg('n.sam',100000) # final: 100000
 .b    = cli.arg('.b', 1)
 .nb   = cli.arg('.nb',1)
 
@@ -56,6 +56,20 @@ data.path = function(.save=FALSE){
 # -----------------------------------------------------------------------------
 # main
 
-S = fpar.sam(F,n=n.sam,seed=seed)
-Y = fit.run.batch(S,T,P0,.batch=.b,.nbatch=.nb)
-save.rda(Y,data.path(.save=TRUE),str('b',.nb),str('Y.',.b))
+run.lhs = function(){
+  S = fpar.sam(F,n=n.sam,seed=seed)
+  Y = fit.run.batch(S,T,P0,.batch=.b,.nbatch=.nb)
+  save.rda(Y,data.path(.save=TRUE),str('b',.nb),str('Y.',.b))
+}
+
+post.lhs = function(){
+  Y = rbind.lapply(1:.nb,function(b){
+    load.rda(data.path(),str('b',.nb),str('Y.',b)) })
+  Y[c('targ.mu','targ.se','ll')] = NULL
+  save.rda(Y,data.path(),'Y')
+  W = targs.wide(Y,'value')
+  save.rda(W,data.path(),'W')
+}
+
+# run.lhs()
+# post.lhs()
