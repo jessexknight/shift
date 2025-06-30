@@ -1,29 +1,13 @@
 source('sim/meta.r')
-source('sim/mass.r')
 source('sim/fit.r')
 
 # -----------------------------------------------------------------------------
 # config
-
-uid   = '2025-06-25'
+uid   = '2025-06-30'
 seed  = cli.arg('seed',    666)
 n.sam = cli.arg('n.sam',100000) # final: 100000
 .b    = cli.arg('.b', 1)
 .nb   = cli.arg('.nb',1)
-
-# -----------------------------------------------------------------------------
-# targets / outcomes
-
-T = name.list(key='id',
-  gen.targ(id='dep.now',    type='prop',vo='dep.now'),
-  gen.targ(id='dep.past',   type='prop',vo='dep.past'),
-  gen.targ(id='haz.now',    type='prop',vo='haz.now'),
-  gen.targ(id='haz.past',   type='prop',vo='haz.past'),
-  gen.targ(id='dep.haz.or', type='OR',  ve='dep.now',vo='haz.now',ao1=FALSE),
-  gen.targ(id='dep.haz.pr', type='PR',  ve='dep.now',vo='haz.now',ao1=FALSE),
-  gen.targ(id='dep.haz.aor',type='OR',  ve='dep.now',vo='haz.now',ao1=FALSE,va1='age'),
-  gen.targ(id='dep.haz.apr',type='PR',  ve='dep.now',vo='haz.now',ao1=FALSE,va1='age'))
-T = sub.targs(T,sub.targ.age,ags=10)
 
 # -----------------------------------------------------------------------------
 # params & priors
@@ -49,27 +33,40 @@ F = fpar.set(
   gen.fpar(id='RR.haz_x.dep_w',lo=.1, up= 1))
 
 data.path = function(.save=FALSE){
-  info = list(n.sam=n.sam,seed=seed,P0=P0,F=lapply(F$pars,unclass),T=T)
+  info = list(n.sam=n.sam,seed=seed,P0=P0,F=lapply(F$pars,unclass))
   hash.path(info,'data','sim','lhs',uid,n.sam,.save=.save)
 }
 
 # -----------------------------------------------------------------------------
+# dep:haz state stuff
+
+ages = amin:(amax-1)
+GI = expand.grid(dep.past=0:1,dep.now=0:1,haz.past=0:1,haz.now=0:1)
+bi = GI$dep.now <= GI$dep.past & GI$haz.now <= GI$haz.past # possible
+li = str('s',apply(GI,1,str,collapse='')) # labels
+gc = names(GI) # columns
+
+# -----------------------------------------------------------------------------
 # main
+
+run.sam = function(P0=NULL,...,.par=TRUE){
+  Ps = get.pars.grid(P0,...,.par=.par)
+  Ms = sim.runs(Ps,sub='act',.par=.par)
+  H  = rbind.lapply(Ms,function(M){
+    # build histogram by age (rows) & state (cols)
+    Hi = lapply(split(floor(M$I$age-amin+1),M$I[gc]),tabulate,nbins=adur)
+    Hi = data.frame(seed=M$P$seed,age=ages,set.names(Hi,li)[bi])
+  },.par=.par)
+}
 
 run.lhs = function(){
   S = fpar.sam(F,n=n.sam,seed=seed)
-  Y = fit.run.batch(S,T,P0,.batch=.b,.nbatch=.nb)
-  save.rda(Y,data.path(.save=TRUE),str('b',.nb),str('Y.',.b))
-}
-
-post.lhs = function(){
-  Y = rbind.lapply(1:.nb,function(b){
-    load.rda(data.path(),str('b',.nb),str('Y.',b)) })
-  Y[c('targ.mu','targ.se','ll')] = NULL
-  save.rda(Y,data.path(),'Y')
-  W = targs.wide(Y,'value')
-  save.rda(W,data.path(),'W')
+  status(2,'run.lhs: ',nrow(S),' [',.b,'/',.nb,'] ')
+  H = grid.apply(S,function(...){
+    status(3,list.str(list(...),sig=4))
+    Hi = verb.wrap(run.sam(...,P0=P0,.par=FALSE),0)
+  },.grid=FALSE,.rbind=TRUE,.cbind=TRUE,.par=TRUE,.batch=.b,.nbatch=.nb)
+  save.rda(H,data.path(.save=TRUE),str('b',.nb),str('H.',.b))
 }
 
 # run.lhs()
-# post.lhs()
