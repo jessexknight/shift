@@ -2,7 +2,7 @@
 #PBS -j oe
 #PBS -N lhs
 #PBS -l walltime=1:00:00
-#PBS -l ncpus=16:mem=16gb
+#PBS -l select=1:ncpus=16:mem=16gb
 #PBS -J 1-100
 
 module add tools/prod
