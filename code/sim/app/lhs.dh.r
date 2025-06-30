@@ -69,4 +69,11 @@ run.lhs = function(){
   save.rda(H,data.path(.save=TRUE),str('b',.nb),str('H.',.b))
 }
 
+post.lhs = function(){
+  H = rbind.lapply(1:.nb,function(b){
+    load.rda(data.path(),str('b',.nb),str('H.',b)) })
+  save.rda(H,data.path(),'H')
+}
+
 # run.lhs()
+# post.lhs()
