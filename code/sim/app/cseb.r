@@ -1,7 +1,7 @@
 source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
-uid = '2025-05-30'
+uid = '2025-07-20'
 .b  = cli.arg('.b', 1)
 .nb = cli.arg('.nb',1)
 
@@ -24,7 +24,7 @@ T = name.list(key='id',
 P0 = list(
   dtz   =   cli.arg('dtz',     45), # final: 7
   n.pop =   cli.arg('n.pop',10000), # final: 10000
-  seed  = 1:cli.arg('n.seed',  10), # final: 10
+  seed  = 1:cli.arg('n.seed', 100), # final: 100
   n.dur = 1,
   null  = 'xRR',
   het.distr = 'lnorm',
