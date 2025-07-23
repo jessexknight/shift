@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -j oe
 #PBS -N cseb
-#PBS -l walltime=1:00:00
-#PBS -l select=1:ncpus=128:mem=128gb
+#PBS -l walltime=0:30:00
+#PBS -l select=1:ncpus=128:mem=512gb
 #PBS -J 1-100
 
 module add tools/prod
