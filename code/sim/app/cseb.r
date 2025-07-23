@@ -2,6 +2,7 @@ source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
 uid = '2025-07-20'
+.k  = cli.arg('.k','hom')
 .b  = cli.arg('.b', 1)
 .nb = cli.arg('.nb',1)
 
@@ -24,7 +25,7 @@ T = name.list(key='id',
 P0 = list(
   dtz   =   cli.arg('dtz',     45), # final: 7
   n.pop =   cli.arg('n.pop',10000), # final: 10000
-  seed  = 1:cli.arg('n.seed', 100), # final: 100
+  seed  = 1:cli.arg('n.seed',  41), # final: 41
   n.dur = 1,
   null  = 'xRR',
   het.distr = 'lnorm',
@@ -232,18 +233,5 @@ plot.het.tile = function(){
 # -----------------------------------------------------------------------------
 # main
 
-# run.grid('ref')
-# run.grid('fix')
-# run.grid('hom')
-# run.grid('het')
-# run.grid('cor')
-# recut.rda(TODO)
-
-plot.basic.line('o')
-plot.basic.line('x')
-plot.basic.tile()
-plot.hom.f(1)
-plot.hom.f(2)
-plot.het.1()
-plot.het.2()
-plot.het.tile()
+run.grid(.k)
+# recut.rda(.k)
