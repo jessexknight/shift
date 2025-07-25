@@ -2,7 +2,7 @@ source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
 uid = '2025-07-25'
-.k  = cli.arg('.k','hom')
+.k  = cli.arg('.k','o6')
 .b  = cli.arg('.b', 1)
 .nb = cli.arg('.nb',1)
 
@@ -47,14 +47,15 @@ PG = list(
   dep.Ri.het  = 1,              haz.Ri.het  = 1) # HACK
 
 PGk = list(
-  fix  = PG[c(1:2)],       # fix all
-  hom  = PG[c(1:6)],       # fix hom
-  het0 = PG[c(1:6,11:12)], # fix het, no cor
-  het1 = PG[c(1:8)],       # vary het, no cor
-  het2 = PG[c(1:10)])      # vary het, vary cor
+  o2  = PG[c(1:2)],       # fix all (hom)
+  e2  = PG[c(1:2,11:12)], # fix all (het)
+  o6  = PG[c(1:6)],       # fix hom
+  e6  = PG[c(1:6,11:12)], # fix het, no cor
+  e8  = PG[c(1:8)],       # vary het, no cor
+  e10 = PG[c(1:10)])      # vary het, vary cor
 
 grid.path = function(k,.save=FALSE){
-  hash.path(ulist(P0,PGk[[k]],k=k),'data','sim','cseb',uid,.save=.save)
+  hash.path(ulist(P0,PGk[[k]],set=k),'data','sim','cseb',uid,.save=.save)
 }
 
 # -----------------------------------------------------------------------------
@@ -78,7 +79,7 @@ load.grid = function(k,id='dep.haz.aor',f=NULL){
   Y[iP,c3] = Y[iP,c3]*100 # props as %
   iZ = Y$lower==0 & Y$upper==Inf # degenerate glm
   Y[iZ,c3] = NA # TODO: better fix?
-  y = function(k){ if.null(Y[[k]],P0[[k]]) }
+  y = function(v){ if.null(Y[[v]],P0[[v]]) }
   Y$dRo  = round(y('dep_o.Ri.my')*100,1); Y$hRo  = round(y('haz_o.Ri.my')*100,1) # per 100 PY
   Y$dRx  = round(y('dep_x.Ri.my')*100,1); Y$hRx  = round(y('haz_x.Ri.my')*100,1) # per 100 PY
   Y$dhet = y('dep.Ri.het');               Y$hhet = y('haz.Ri.het') # shorthand
@@ -147,51 +148,51 @@ plot.tile = function(g,id='dep.haz.aor',ymm=c(NA,NA)){
 # -----------------------------------------------------------------------------
 # plots
 
-plot.base.meas = function(){
-  Y = subset(rbind.lapply(names(T)[5:8],load.grid,k='fix'),RRx==1)
+plot.base.meas = function(k){
+  Y = subset(rbind.lapply(names(T)[5:8],load.grid,k=k),RRx==1)
   Y$adj = factor(1+grepl('haz.a',Y$id),1:2,c('No','Yes'))
   g = ggplot(Y,aes(x=RRo,y=value,color=type,fill=type,lty=adj,alpha=adj))
   g = plot.line(g) + labs(x=la('RRo'),color=lg('type'),fill=lg('type'),alpha=lg('adj'),lty=lg('adj')) +
     scale_linetype_manual(values=c('solid','44')) + scale_alpha_manual(values=c(1/3,3/3))
-  plot.save(g,'cseb',uid,'base.meas',ext=ext)
+  plot.save(g,'cseb',uid,k,'base.meas',ext=ext)
 }
 
-plot.base.line = function(x='o'){
+plot.base.line = function(k,x='o'){
   RRa = list(o='RRo',x='RRx')[[x]] # axis
   RRg = list(o='RRx',x='RRo')[[x]] # group (color)
   sub = function(Y){ df.sub(Y,str(RRg,'%in% PG4$',RRg)) }
-  Y = sub(load.grid('fix',f=RRg)) # default output: dep.haz.aor
+  Y = sub(load.grid(k,f=RRg)) # default output: dep.haz.aor
   g = ggplot(df.sub(Y,str(RRg,'==1')),aes.string(y='value',x=RRa))
   g = plot.line(g,dy=1-2*(x=='x')) + labs(x=la(RRa))
   g = add.info(g,info=str(rep(' ',17),collapse='')) # HACK
-  plot.save(g,'cseb',uid,str('base.aor.',x),ext=ext) # RRa only (RRg==1)
+  plot.save(g,'cseb',uid,k,str('base.aor.',x),ext=ext) # RRa only (RRg==1)
   g = ggplot(Y,aes.string(y='value',x=RRa,color=RRg,fill=RRg))
   g = plot.line(g,dy=1-2*(x=='x')) + cmap[[RRg]] + labs(x=la(RRa),color=lg(RRg),fill=lg(RRg))
-  plot.save(g,'cseb',uid,str('base.aor.',x,2),ext=ext) # RRa (axis) & RRg (color)
+  plot.save(g,'cseb',uid,k,str('base.aor.',x,2),ext=ext) # RRa (axis) & RRg (color)
   for (id in c('dep.now','haz.now')){ # alternate outputs
-    Y = sub(load.grid('fix',id=id,f=RRg))
+    Y = sub(load.grid(k,id=id,f=RRg))
     g = ggplot(Y,aes.string(y='value',x=RRa,color=RRg,fill=RRg))
     g = plot.line(g,id=id,dy=NA,ymm=c(0,8),tx='identity',ty='identity') + cmap[[RRg]] + labs(x=la(RRa),color=lg(RRg),fill=lg(RRg))
-    plot.save(g,'cseb',uid,str('base.',id,'.',x),ext=ext) # RRa (axis) & RRg (color)
+    plot.save(g,'cseb',uid,k,str('base.',id,'.',x),ext=ext) # RRa (axis) & RRg (color)
   }
 }
 
-plot.base.tile = function(){
-  Y = load.grid('fix',f=c('RRo','RRx'))
+plot.base.tile = function(k){
+  Y = load.grid(k,f=c('RRo','RRx'))
   g = ggplot(Y,aes(z=value,x=RRo,y=RRx))
   g = plot.tile(g) + clr.map.c(option='inferno',trans='log2',limits=c(1,8)) + labs(x=la('RRo'),y=la('RRx'))
-  plot.save(g,'cseb',uid,'base.aor.tile',ext=ext)
+  plot.save(g,'cseb',uid,k,'base.aor.tile',ext=ext)
 }
 
-plot.hom.rates = function(){
-  Y = load.grid('hom')
+plot.vs.rates = function(k){
+  Y = load.grid(k)
   Rs = c('dRo','dRx','hRo','hRx')
   for (Ri in Rs){
     Y$f = factor(Y[[Ri]])
     sub = list.str(PG0[c('RRx',Rs[Rs!=Ri])],def='==',join=' & ')
     g = ggplot(df.sub(Y,sub),aes(y=value,x=RRo,color=f,fill=f))
     g = plot.line(g) + cmap$Ri + labs(x=la('RRo'),color=lg(Ri),fill=lg(Ri))
-    plot.save(g,'cseb',uid,str('aor.',Ri),ext=ext)
+    plot.save(g,'cseb',uid,k,str('aor.',Ri),ext=ext)
   }
 }
 
@@ -201,8 +202,10 @@ plot.hom.rates = function(){
 # run.grid(.k)
 # recut.rda(.k)
 
-# plot.base.meas()
-# plot.base.line('o')
-# plot.base.line('x')
-# plot.base.tile()
-# plot.hom.rates()
+# k2='o2'; k6='o6' # hom
+# k2='e2'; k6='e6' # het
+# plot.base.meas(k=k2)
+# plot.base.line(k=k2,x='o')
+# plot.base.line(k=k2,x='x')
+# plot.base.tile(k=k2)
+# plot.vs.rates (k=k6)
