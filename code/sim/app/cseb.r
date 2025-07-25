@@ -38,19 +38,20 @@ P0 = list(
   run = get.run.par(c('dep','haz'),u=FALSE))
 
 PG = list(
+  RR.haz_o.dep_w = signif(2^seq( 0,+3,.5),3),
+  RR.haz_x.dep_w = signif(2^seq(-3, 0,.5),3),
   dep_o.Ri.my = c(.02,.04,.06), haz_o.Ri.my = c(.01,.02,.03),
   dep_x.Ri.my = c(1,2,3),       haz_x.Ri.my = c(.167,.333,.500),
   dep.Ri.het  = c(0,1,3),       haz.Ri.het  = c(0,1,3),
   dep.cov     = c(-.5,0,+.5),   haz.cov     = c(-.5,0,+.5),
-  RR.haz_o.dep_w = signif(2^seq( 0,+3,.5),3),
-  RR.haz_x.dep_w = signif(2^seq(-3, 0,.5),3))
+  dep.Ri.het  = 1,              haz.Ri.het  = 1) # HACK
 
 PGk = list(
-  ref = P0[names(PG[9:10])], # P0
-  fix = PG[9:10],        # Ri* ~ fixed (IRR only)
-  hom = PG[c(1:4,9:10)], # Ri* ~ homog (no heter + cor)
-  het = PG[c(1:6,9:10)], # Ri* ~ heter + uncor
-  cor = PG)              # Ri* ~ heter + cor
+  fix  = PG[c(1:2)],       # fix all
+  hom  = PG[c(1:6)],       # fix hom
+  het0 = PG[c(1:6,11:12)], # fix het, no cor
+  het1 = PG[c(1:8)],       # vary het, no cor
+  het2 = PG[c(1:10)])      # vary het, vary cor
 
 grid.path = function(k,.save=FALSE){
   hash.path(ulist(P0,PGk[[k]],k=k),'data','sim','cseb',uid,.save=.save)
@@ -90,7 +91,7 @@ load.grid = function(k,id='dep.haz.aor',f=NULL){
 
 # PG for subsets after scaling
 PG4 = list(RRo=c(1,2,4,8),RRx=1/c(1,2,4,8))
-PG0 = list(dRo=4,dRx=100,hRo=4,hRx=100,dhet=0,hhet=0,dcor=0,hcor=0,RRo=1,RRx=1)
+PG0 = list(dRo=4,dRx=100,hRo=2,hRx=33.3,dhet=0,hhet=0,dcor=0,hcor=0,RRo=1,RRx=1)
 
 # -----------------------------------------------------------------------------
 # plot config
@@ -170,7 +171,7 @@ plot.base.line = function(x='o'){
   for (id in c('dep.now','haz.now')){ # alternate outputs
     Y = sub(load.grid('fix',id=id,f=RRg))
     g = ggplot(Y,aes.string(y='value',x=RRa,color=RRg,fill=RRg))
-    g = plot.line(g,id=id,dy=NA,ymm=c(0,7),tx='identity',ty='identity') + cmap[[RRg]] + labs(x=la(RRa),color=lg(RRg),fill=lg(RRg))
+    g = plot.line(g,id=id,dy=NA,ymm=c(0,8),tx='identity',ty='identity') + cmap[[RRg]] + labs(x=la(RRa),color=lg(RRg),fill=lg(RRg))
     plot.save(g,'cseb',uid,str('base.',id,'.',x),ext=ext) # RRa (axis) & RRg (color)
   }
 }
