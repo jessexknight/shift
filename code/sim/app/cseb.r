@@ -41,7 +41,7 @@ PG = list(
   RR.haz_o.dep_w = signif(2^seq( 0,+3,.5),3),
   RR.haz_x.dep_w = signif(2^seq(-3, 0,.5),3),
   dep_o.Ri.my = c(.02,.04,.06), haz_o.Ri.my = c(.01,.02,.03),
-  dep_x.Ri.my = c(1,2,3),       haz_x.Ri.my = c(.167,.333,.500),
+  dep_x.Ri.my = c(.5,1,1.5),    haz_x.Ri.my = c(.167,.333,.500),
   dep.Ri.het  = c(0,1,3),       haz.Ri.het  = c(0,1,3),
   dep.cov     = c(-.5,0,+.5),   haz.cov     = c(-.5,0,+.5),
   dep.Ri.het  = 1,              haz.Ri.het  = 1) # HACK
