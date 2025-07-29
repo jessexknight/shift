@@ -53,7 +53,7 @@ PGk = list(
   ep6 = ulist(PG0[1:6],dep.Ri.het=1,haz.Ri.het=1,dep.cov=+.5,haz.cov=+.5))
 
 grid.path = function(k,.save=FALSE){
-  hash.path(ulist(P0,PGk,set=k),'data','sim','aor',uid,k,.save=.save)
+  hash.path(ulist(P0,PGk[[k]],set=k),'data','sim','aor',uid,k,.save=.save)
 }
 
 # -----------------------------------------------------------------------------
