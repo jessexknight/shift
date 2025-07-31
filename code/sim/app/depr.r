@@ -5,35 +5,23 @@ uid = '2025-05-17'
 # -----------------------------------------------------------------------------
 # targets / outcomes
 
-T0 = list(
-  list(id='dep.now',  type='prop',mu=NA,se=NA,w=1,vo='dep.now'),
-  list(id='dep.past', type='prop',mu=NA,se=NA,w=1,vo='dep.past'),
-  list(id='dep.pt.30',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.30',vsub=TRUE),
-  list(id='dep.pt.10',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.10',vsub=TRUE),
-  list(id='dep.pt.03',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.03',vsub=TRUE),
-  list(id='dep.pt.01',type='prop',mu=NA,se=NA,w=1,vo='dep.pt>.01',vsub=TRUE),
-  list(id='dep.ne.0', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==0',vsub=TRUE),
-  list(id='dep.ne.1', type='prop',mu=NA,se=NA,w=1,vo='dep.ne==1',vsub=TRUE),
-  list(id='dep.ne.2+',type='prop',mu=NA,se=NA,w=1,vo='dep.ne>1', vsub=TRUE),
-  list(id='dep.um.3m',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y/4',vsub=TRUE,sub='dep.past'),
-  list(id='dep.um.6m',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y/2',vsub=TRUE,sub='dep.past'),
-  list(id='dep.um.1y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y',  vsub=TRUE,sub='dep.past'),
-  list(id='dep.um.2y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y*2',vsub=TRUE,sub='dep.past'),
-  list(id='dep.um.5y',type='prop',mu=NA,se=NA,w=1,vo='dep.um>t1y*5',vsub=TRUE,sub='dep.past'),
-  list(id='dep.eRo',  type='pois',mu=NA,se=NA,w=1,vo='dep.past',vt='dep.tto'))
-T = list()
-ags = 10
-alos = seq(amin,amax-ags,ags)
-aall = str(amin,'-',amax-1)
-for (Ti in T0){ id = Ti$id
-  sub = ifelse(is.null(Ti$sub),'',str(Ti$sub,' & '))
-  T[[Ti$id]] = do.call(gen.targ,Ti)
-  for (a in alos){
-    Ti$id  = str(id,':',a)
-    Ti$sub = str(sub,'age >= ',a,' & age < ',a+ags)
-    T[[Ti$id]] = do.call(gen.targ,Ti)
-  }
-}
+T = name.list(key='id',
+  gen.targ(id='dep.now',  type='prop',vo='dep.now'),
+  gen.targ(id='dep.past', type='prop',vo='dep.past'),
+  gen.targ(id='dep.pt.30',type='prop',vo='dep.pt>.30',vsub=TRUE),
+  gen.targ(id='dep.pt.10',type='prop',vo='dep.pt>.10',vsub=TRUE),
+  gen.targ(id='dep.pt.03',type='prop',vo='dep.pt>.03',vsub=TRUE),
+  gen.targ(id='dep.pt.01',type='prop',vo='dep.pt>.01',vsub=TRUE),
+  gen.targ(id='dep.ne.0', type='prop',vo='dep.ne==0',vsub=TRUE),
+  gen.targ(id='dep.ne.1', type='prop',vo='dep.ne==1',vsub=TRUE),
+  gen.targ(id='dep.ne.2+',type='prop',vo='dep.ne>1', vsub=TRUE),
+  gen.targ(id='dep.um.3m',type='prop',vo='dep.um>t1y/4',vsub=TRUE,sub='dep.past'),
+  gen.targ(id='dep.um.6m',type='prop',vo='dep.um>t1y/2',vsub=TRUE,sub='dep.past'),
+  gen.targ(id='dep.um.1y',type='prop',vo='dep.um>t1y',  vsub=TRUE,sub='dep.past'),
+  gen.targ(id='dep.um.2y',type='prop',vo='dep.um>t1y*2',vsub=TRUE,sub='dep.past'),
+  gen.targ(id='dep.um.5y',type='prop',vo='dep.um>t1y*5',vsub=TRUE,sub='dep.past'),
+  gen.targ(id='dep.eRo',  type='pois',vo='dep.past',vt='dep.tto'))
+T = sub.targs(T,sub.targ.age,ags=10)
 
 # -----------------------------------------------------------------------------
 # default params
