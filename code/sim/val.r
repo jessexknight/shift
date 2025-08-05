@@ -17,10 +17,10 @@ P0 = list(
   dep_o.Ri.my = .10, dep_x.Ri.my = .50,
   haz_o.Ri.my = .20, haz_x.Ri.my = .50,
   ptr_o.Ri.my = 2.0, ptr_x.Ri.my = 1.0, ptr.max.m = 3,
-  vio.Ri.cv   = 0,
-  dep.Ri.cv   = 0,
-  haz.Ri.cv   = 0,
-  ptr.Ri.cv   = 0,
+  vio.Ri.het   = 0,
+  dep.Ri.het   = 0,
+  haz.Ri.het   = 0,
+  ptr.Ri.het   = 0,
   null = 'xRR')
 
 # =============================================================================
@@ -39,7 +39,7 @@ aRR5 = c( 1, 5, 2, 4, 3)/3
 age.10.fun   = function(Q){ int.cut(Q$age.1,seq(10,50,10)) }
 vio.nt.c.fun = function(Q){ int.cut(Q$vio.nt,c(0,ns2)) }
 
-vals = list(
+vals = list( # TODO: name.list
   # base rates
   Ri.m     =list(pars=ulist(P0),evts=evts[1:7]),
   ptr.n.pop=list(pars=ulist(P0,n.pop=c(100,300,900)),evts=c('ptr_o','ptr_x')),
