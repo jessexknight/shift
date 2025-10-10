@@ -78,7 +78,7 @@ plot.cor = function(){
     labs(x='Input Correlation (ρ)',y='Sample Correlation',
       lty='Measure',color='Measure')
   g = plot.clean(g)
-  plot.save(g,'toy','het.cor',ext=ext,size=c(8,5))
+  plot.save(g,'toy','het.2d.cor',ext=ext,size=c(8,5))
 }
 
 plot.1d()
