@@ -11,6 +11,7 @@ cli.arg = function(name,default=NA){
 options(
   stringsAsFactors=FALSE,
   showNCalls=500,
+  scipen=99,
   width=200,
   warn=1)
 
@@ -246,7 +247,7 @@ list.str = function(x,def=' = ',join=', ',sig=Inf,rnd=Inf,null=''){
 }
 
 .isep = ' x '
-interac = function(...){ interaction(...,sep=.isep) }
+interac = function(...,sep=.isep){ interaction(...,sep=sep) }
 
 # -----------------------------------------------------------------------------
 # data.frame tools
@@ -361,6 +362,11 @@ het.funs = list(
     d = function(x,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); dlnorm(x,meanlog=u,sdlog=s) },
     p = function(q,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); plnorm(q,meanlog=u,sdlog=s) },
     q = function(p,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); qlnorm(p,meanlog=u,sdlog=s) }),
+  norm = list(
+    r = function(n,m,het){ rnorm(n,mean=m,sd=m*het) },
+    d = function(x,m,het){ dnorm(x,mean=m,sd=m*het) },
+    p = function(q,m,het){ pnorm(q,mean=m,sd=m*het) },
+    q = function(p,m,het){ qnorm(p,mean=m,sd=m*het) }),
   R2 = list( # m = mean; het = xR; p0 = 0.5 (fixed)
     r = function(n,m,het){ x0 = 2*m/(1+het); x = rR2(n,x0=x0,xR=het,p0=.5) },
     q = function(p,m,het){ x0 = 2*m/(1+het); x = qR2(p,x0=x0,xR=het,p0=.5) }))
@@ -385,5 +391,5 @@ aggr.form = function(y,x,ny=NULL,.log=3){
   ny = if.null(ny,if.null(names(y),y))
   f = str('cbind( ',paste(ny,y,sep=' = ',collapse=' , '),' ) ~ ',str(x,collapse=' + '))
   status(.log,'aggr: ',f)
-  return(f)
+  return(as.formula(f))
 }
