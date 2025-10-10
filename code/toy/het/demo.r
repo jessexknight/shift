@@ -51,7 +51,7 @@ plot.2d = function(distr,tx='raw'){
     scale_y_continuous(trans=tf,breaks=bs,labels=bs) +
     coord_fixed(xlim=c(1e-6,20),ylim=c(1e-6,20))
   g = plot.clean(g)
-  plot.save(g,'toy',str('het.2d',distr,'.',tx),ext=ext,size=c(6,6))
+  plot.save(g,'toy',str('het.2d.',distr,'.',tx),ext=ext,size=c(6,6))
 }
 
 plot.cor = function(){
