@@ -12,6 +12,9 @@ pyplots*
 Rplots*
 code/tikz/main.pdf
 
+# data
+*.rds
+
 # tex
 *.aux
 *.log
