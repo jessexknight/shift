@@ -44,7 +44,7 @@ g = ggplot(S,aes(x=value,color=chain)) +
   clr.map.d(aes='color') +
   labs(y='Density',x='Value',color='Chain')
 g = plot.clean(g,axis.text.y=element_blank())
-plot.save(g,'toy','cv.infer.par',size=c(7,2.5),ext='.png')
+plot.save(g,'toy','het.infer.par',size=c(7,2.5),ext='.png')
 # prev dist posterior ---------------------------------------------------------
 po = seq(0,1,.01)
 vars = c('Density'='p','Cumulative'='cp')
@@ -65,4 +65,4 @@ g = ggplot(S,aes(y=100*value,x=100*prev)) +
   lims(x=c(NA,50)) +
   labs(y='Probability (%)',x='Prevalence (%)')
 g = plot.clean(g)
-plot.save(g,'toy','cv.infer.dist',size=c(5,5),ext='.png')
+plot.save(g,'toy','het.infer.dist',size=c(5,5),ext='.png')
