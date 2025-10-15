@@ -24,7 +24,7 @@ clean.df = function(X,sub=.sub){
   X$type = factor(X$type,names(types),types)
   return(X) }
 # aao =========================================================================
-load.aao = function(plot=1){
+load.aao = function(plot=0){
   E = load.csv('data','pub','McGrath2023'); m = age$max # HACK
   E = subset(E, age<=m & var=='dep')
   E = rbind.lapply(.par=0,split(E,E$sex),function(Ei){
@@ -134,11 +134,12 @@ plot.dur.refs = function(E){
     facet_wrap('f',ncol=1,scales='free_x') +
     geom_point(data=subset(E,ref!='*'),aes(y=100*p,shape=epi,color=ref)) +
     geom_step(data=subset(E,ref=='*'),aes(y=100*value),color='black') +
+    scale_shape_manual(values=c(1,0,2)) +
     labs(x='Time since onset (years)',
          y='Proportion still depressed (%)',
          color='Reference',shape='Episode')
   g = plot.clean(g)
-  plot.save(g,'depr',uid,'dep.dur.refs',ext=.ext,size=c(7,6))
+  plot.save(g,'depr',uid,'dur.refs',ext=.ext,size=c(7,6))
 }
 load.dur = function(){
   E = load.csv('data','pub','dep.edur.aggr')
