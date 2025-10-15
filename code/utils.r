@@ -142,6 +142,17 @@ str.lab = function(pre='',post=''){
   ggplot2::as_labeller(function(x){ str(pre,x,post) })
 }
 
+add.sublabs = function(g,X,loc='tl',...,dx=1,dy=1){
+  X = X[!duplicated(X),]
+  X$label = LETTERS[1:nrow(X)]
+  geom = def.args(geom_text,data=X,inherit.aes=FALSE)
+  g = g + switch(loc,
+    'tl' = geom(aes(x=-Inf,y=+Inf,label=label),hjust=0-dx,vjust=1+dy,...),
+    'tr' = geom(aes(x=+Inf,y=+Inf,label=label),hjust=1+dx,vjust=1+dy,...),
+    'bl' = geom(aes(x=-Inf,y=-Inf,label=label),hjust=0-dx,vjust=0-dy,...),
+    'br' = geom(aes(x=+Inf,y=-Inf,label=label),hjust=1+dx,vjust=0-dy,...))
+}
+
 plot.clean = function(g,font=NULL,...){
   g = g + theme_light() + theme(...,
     text=element_text(family=font),
