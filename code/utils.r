@@ -142,9 +142,19 @@ str.lab = function(pre='',post=''){
   ggplot2::as_labeller(function(x){ str(pre,x,post) })
 }
 
-add.sublabs = function(g,X,loc='tl',...,dx=1,dy=1){
+add.enum = function(x,fmt='a',pre='(',post=') '){
+  i = seqa(x)
+  y = set.names(str(pre,list('1'=i,
+    'a'=letters[i],
+    'A'=LETTERS[i],
+    'I'=as.roman(i),
+    'i'=tolower(as.roman(i))
+  )[[fmt]],post,x),names(x))
+}
+
+add.sublabs = function(g,X,loc='tl',...,dx=1,dy=1,labs=LETTERS){
   X = X[!duplicated(X),]
-  X$label = LETTERS[1:nrow(X)]
+  X$label = labs[1:nrow(X)]
   geom = def.args(geom_text,data=X,inherit.aes=FALSE)
   g = g + switch(loc,
     'tl' = geom(aes(x=-Inf,y=+Inf,label=label),hjust=0-dx,vjust=1+dy,...),
@@ -280,6 +290,16 @@ df.compare = function(x,y,v=NULL,cast=as.numeric){
 df.ow = function(X,...){
   # overwrite cols in X
   as.data.frame(ulist(X,...))
+}
+
+rbind.fill = function(...,fill=NA){
+  # rbind but fill missing columns with fill=NA
+  Xs = list(...)
+  cols = Reduce(union,lapply(Xs,colnames))
+  X = do.call(rbind,lapply(Xs,function(Xi){
+    Xi[setdiff(cols,colnames(Xi))] = fill
+    return(Xi)
+  }))
 }
 
 # -----------------------------------------------------------------------------
