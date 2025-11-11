@@ -196,6 +196,7 @@ rate.data = function(M,t,p.vars=NULL,i.vars=NULL,e.dts=NULL,x.cols=NULL){
 }
 
 rate.data.sub = function(K,t,dt=t,sub=NULL){
+  if (missing(t)){ t = K$t[1] }
   tx.w = t    # obs end
   to.w = t-dt # obs start
   K = subset(K, to <= tx.w & tx >= to.w) # observed

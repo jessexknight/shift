@@ -22,10 +22,10 @@ sub.targ = function(Ti,sub,sid,...){
   Ti = ulist(Ti,...)
 }
 
-sub.targ.age = function(Ti,ags){
+sub.targ.age = function(Ti,da){
   # generate sub-targets from Ti for ags-sized age strata
-  Tis = lapply(seq(amin,amax-ags,ags),function(a){
-    sub.targ(Ti,sub=str('age >= ',a,' & age < ',a+ags),sid=a)
+  Tis = lapply(avec(da),function(a){
+    sub.targ(Ti,sub=str('age >= ',a,' & age < ',a+da),sid=a)
   })
 }
 
@@ -41,7 +41,7 @@ targ.calc = function(Q,ofun,...,vs=NULL){
   vs = c(vs,'t','seed')
   Y = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
     out = ofun(Qi,...) # calculate estimate
-    Yi = cbind(Qi[1,vs,drop=FALSE],as.list(out))
+    Yi = cbind(Qi[1,vs,drop=FALSE],as.list(out),row.names=NULL)
   },.par=FALSE)
 }
 
@@ -107,6 +107,12 @@ targs.wide = function(Y,v.var='value'){
   W = reshape(Y,dir='wide',timevar='id',v.names=v.var,idvar=i.var,drop=d.var)
   names(W) = gsub('^value.','',names(W))
   return(W)
+}
+
+targs.age = function(Y,da,f=TRUE){
+  Y[c('id','age')] = col.split(Y$id,':',c('id','age'))
+  if (f){ Y$age = add.na(int.cut(Y$age,avec(da),up=amax),str(amin,'-',amax-1)) }
+  return(Y)
 }
 
 # -----------------------------------------------------------------------------

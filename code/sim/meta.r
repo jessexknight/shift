@@ -3,6 +3,7 @@
 amin = 10 # age of cohort entry
 amax = 60 # age of cohort exit
 adur = amax - amin # duration in cohort
+avec = function(da){ seq(amin,amax-da,da) }
 
 # event types
 evts = c(
