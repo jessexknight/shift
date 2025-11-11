@@ -49,27 +49,21 @@ srv.base = function(P,Q,E,t){
 srv.extra = function(P,Q,E,t){
   E = clip.evts(E,t=t)
   age.at  = function(tes){ (tes - Q$t.born) / P$t1y }
-  time.to = function(aas){ (aas - amin) * P$t1y }
   Q$age.1    = floor(Q$age)
   Q$age.10   = int.cut(Q$age,seq(10,50,10))
-  Q$act.ut   = (Q$age - amin) * P$t1y
+  Q$mod.ut   = (Q$age - amin) * P$t1y
   Q$vio.aai  = age.at(sapply(E$vio,first))
-  Q$vio.tti  = time.to(Q$vio.aai)
   Q$vio.dr   = t - sapply(E$vio,last)
   Q$dep.aao  = age.at(sapply(E$dep_o,first))
-  Q$dep.tto  = time.to(Q$dep.aao)
   Q$dep.ur   = ifelse(Q$dep.now,t - sapply(E$dep_o,last),NA)
   Q$dep.ut   = sapply(E$dep_x,sum) - sapply(E$dep_o,sum) + t * Q$dep.now
-  Q$dep.pt   = Q$dep.ut / Q$act.ut
-  Q$dep.ne   = sapply(E$dep_o,len)
   Q$dep.um   = Q$dep.ut / (sapply(E$dep_o,len)/2 + sapply(E$dep_x,len)/2)
+  Q$dep.no   = sapply(E$dep_o,len)
   Q$haz.aao  = age.at(sapply(E$haz_o,first))
-  Q$haz.tto  = time.to(Q$haz.aao)
   Q$haz.ur   = ifelse(Q$haz.now,t - sapply(E$haz_o,last),NA)
   Q$haz.ut   = sapply(E$haz_x,sum) - sapply(E$haz_o,sum) + t * Q$haz.now
-  Q$haz.pt   = Q$haz.ut / Q$act.ut
-  Q$haz.ne   = sapply(E$haz_o,len)
   Q$haz.um   = Q$haz.ut / (sapply(E$haz_o,len)/2 + sapply(E$haz_x,len)/2)
+  Q$haz.no   = sapply(E$haz_o,len)
   return(Q)
 }
 
