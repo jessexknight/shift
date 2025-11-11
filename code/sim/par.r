@@ -96,13 +96,9 @@ add.pars.def = function(P=NULL){
 }
 
 add.pars.time = function(P,dtz){
-  P$dtz  = dtz              # days in 1 timestep
-  P$z3m  = round(365/dtz/4) # timesteps in 3 months
-  P$z6m  = 2 * P$z3m        # timesteps in 6 months
-  P$z1y  = 4 * P$z3m        # timesteps in 1 year
-  P$t1y  = dtz * P$z1y      # days in 1 year
-  P$t3m  = dtz * P$z3m      # days in 3 months
-  P$t6m  = dtz * P$z6m      # days in 6 months
+  P$dtz = dtz              # days in 1 timestep
+  P$z1y = round(365/dtz)   # timesteps in 1 year
+  P$t1y = dtz * P$z1y      # days in 1 year
   return(P)
 }
 
