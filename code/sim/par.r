@@ -32,10 +32,13 @@ add.pars.def = function(P=NULL){
   P$dep.cov     = -.9      # approx covariance among dep_o,dep_x
   P$haz.cov     = -.9      # approx covariance among haz_o,haz_x
   P$ptr.cov     = +.9      # approx covariance among ptr_o,ptr_x,ptr.max
-  P$vio.Ri.het  = 0.5      # heterog (gamma CV): vio
-  P$dep.Ri.het  = 0.5      # heterog (gamma CV): dep_o,dep_x
-  P$haz.Ri.het  = 0.5      # heterog (gamma CV): haz_o,haz_x
-  P$ptr.Ri.het  = 0.1      # heterog (gamma CV): ptr_o,ptr_x
+  P$vio.Ri.het   = 0.5     # heterog (CV): vio
+  P$dep_o.Ri.het = 0.5     # heterog (CV): dep_o
+  P$dep_x.Ri.het = 0.5     # heterog (CV): dep_x
+  P$haz_o.Ri.het = 0.5     # heterog (CV): haz_o
+  P$haz_x.Ri.het = 0.5     # heterog (CV): haz_x
+  P$ptr_o.Ri.het = 0.1     # heterog (CV): ptr_o
+  P$ptr_x.Ri.het = 0.1     # heterog (CV): ptr_x
   P$het.distr   = 'gamma'  # heterog distr type
   # *RR shapes & aggr
   P$aggr.rate = 'mult'
@@ -130,6 +133,10 @@ add.pars.cond = function(P){
   # dRR: durs
   P$dRRu.dep_x.dep_u = def.dRR(P$dRR.shape,P$dsc.dep_x.dep_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
   P$dRRu.haz_x.haz_u = def.dRR(P$dRR.shape,P$dsc.haz_x.haz_u,P$dtz,P$t1y) - 1 # dRR-1: dep dur -> dep end
+  # TEMP: backward compat
+  if (!is.null(P$dep.Ri.het)){ P$dep_o.Ri.het = P$dep_x.Ri.het = P$dep.Ri.het } # heterog (CV): dep_o, dep_x
+  if (!is.null(P$haz.Ri.het)){ P$haz_o.Ri.het = P$haz_x.Ri.het = P$haz.Ri.het } # heterog (CV): haz_o, haz_x
+  if (!is.null(P$ptr.Ri.het)){ P$ptr_o.Ri.het = P$ptr_x.Ri.het = P$ptr.Ri.het } # heterog (CV): ptr_o, ptr_x
   # pre-compute Ri.m (per day) from Ri.my (per year)
   for (x in filter.names(P,'Ri\\.my$')){
     P[[gsub('my$','m',x)]] = P[[x]] / P$t1y
