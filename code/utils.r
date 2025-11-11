@@ -25,6 +25,11 @@ col.split = reshape2::colsplit
 no.warn = suppressWarnings
 stfu = suppressPackageStartupMessages
 
+xdf = function(xd,xf){
+  # return (d)ebug or (f)inal variable
+  if (.debug){ xd } else { xf }
+}
+
 def.args = function(f,...){
   # pre-specify some args, but allow later override of named args
   args.pre = list(...)
@@ -135,6 +140,12 @@ plot.size = function(g,...){
 clr.map.c = def.args(ggplot2::scale_color_viridis_c,aes=c('color','fill'))
 clr.map.d = def.args(ggplot2::scale_color_viridis_d,aes=c('color','fill'),begin=.1,end=.9)
 clr.map.b = def.args(ggplot2::scale_color_viridis_b,aes=c('color','fill'))
+clr.map.v = function(...){ list(
+  def.args(scico::scale_color_scico,palette='vik',oob=scales::squish)(...),
+  def.args(scico::scale_fill_scico,palette='vik',oob=scales::squish)(...)) }
+clr.map.m = function(x,...){ list(
+  ggplot2::scale_color_manual(values=x,...),
+  ggplot2::scale_fill_manual(values=x,...)) }
 qfun = function(p){ def.args(quantile,p=p) } # e.g. for stat_summary(...,fun=qfun(.5))
 
 str.lab = function(pre='',post=''){
