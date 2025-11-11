@@ -51,7 +51,7 @@ prop.out = function(Q,vo,sub=NULL,vsub=FALSE){
   k = sum(x); n = nrow(Q); p = k/n
   out = list(
     est.mu = p,
-    est.se = p*(1-p)/n,
+    est.se = sqrt(p*(1-p)/n),
     value = p,
     lower = qbeta(.025,k+.5,n-k+.5),
     upper = qbeta(.975,k+.5,n-k+.5))
