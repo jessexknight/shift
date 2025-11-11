@@ -49,21 +49,21 @@ srv.base = function(P,Q,E,t){
 srv.extra = function(P,Q,E,t){
   E = clip.evts(E,t=t)
   age.at  = function(tes){ (tes - Q$t.born) / P$t1y }
-  Q$age.1    = floor(Q$age)
-  Q$age.10   = int.cut(Q$age,seq(10,50,10))
-  Q$mod.ut   = (Q$age - amin) * P$t1y
-  Q$vio.aai  = age.at(sapply(E$vio,first))
-  Q$vio.dr   = t - sapply(E$vio,last)
-  Q$dep.aao  = age.at(sapply(E$dep_o,first))
-  Q$dep.ur   = ifelse(Q$dep.now,t - sapply(E$dep_o,last),NA)
-  Q$dep.ut   = sapply(E$dep_x,sum) - sapply(E$dep_o,sum) + t * Q$dep.now
-  Q$dep.um   = Q$dep.ut / (sapply(E$dep_o,len)/2 + sapply(E$dep_x,len)/2)
-  Q$dep.no   = sapply(E$dep_o,len)
-  Q$haz.aao  = age.at(sapply(E$haz_o,first))
-  Q$haz.ur   = ifelse(Q$haz.now,t - sapply(E$haz_o,last),NA)
-  Q$haz.ut   = sapply(E$haz_x,sum) - sapply(E$haz_o,sum) + t * Q$haz.now
-  Q$haz.um   = Q$haz.ut / (sapply(E$haz_o,len)/2 + sapply(E$haz_x,len)/2)
-  Q$haz.no   = sapply(E$haz_o,len)
+  Q$age.1    = floor(Q$age) # 1-year age group
+  Q$age.10   = int.cut(Q$age,seq(10,50,10)) # 10-year age group
+  Q$mod.ut   = (Q$age - amin) * P$t1y # time in model
+  Q$vio.aai  = age.at(sapply(E$vio,first)) # age at first vio event
+  Q$vio.dr   = t - sapply(E$vio,last) # time since last vio event
+  Q$dep.aao  = age.at(sapply(E$dep_o,first)) # age at first dep onset
+  Q$dep.ur   = ifelse(Q$dep.now,t - sapply(E$dep_o,last),NA) # last dep epi dur
+  Q$dep.ut   = sapply(E$dep_x,sum) - sapply(E$dep_o,sum) + t * Q$dep.now # total time dep
+  Q$dep.um   = Q$dep.ut / (sapply(E$dep_o,len)/2 + sapply(E$dep_x,len)/2) # mean dep epi dur
+  Q$dep.no   = sapply(E$dep_o,len) # total num dep epis
+  Q$haz.aao  = age.at(sapply(E$haz_o,first)) # age at first haz onset
+  Q$haz.ur   = ifelse(Q$haz.now,t - sapply(E$haz_o,last),NA) # last haz epi dur
+  Q$haz.ut   = sapply(E$haz_x,sum) - sapply(E$haz_o,sum) + t * Q$haz.now # total time haz
+  Q$haz.um   = Q$haz.ut / (sapply(E$haz_o,len)/2 + sapply(E$haz_x,len)/2) # mean haz epi dur
+  Q$haz.no   = sapply(E$haz_o,len) # total num haz epis
   return(Q)
 }
 
