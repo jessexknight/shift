@@ -18,6 +18,7 @@ T = name.list(key='id',
   gen.targ(id='dep.haz.pr', type='PR',  ve='dep.now',vo='haz.now',ao1=FALSE),
   gen.targ(id='dep.haz.aor',type='OR',  ve='dep.now',vo='haz.now',ao1=FALSE,va1='age'),
   gen.targ(id='dep.haz.apr',type='PR',  ve='dep.now',vo='haz.now',ao1=FALSE,va1='age'))
+T = sub.targs(T,sub.targ.age,ags=10)
 
 # -----------------------------------------------------------------------------
 # params & grid
