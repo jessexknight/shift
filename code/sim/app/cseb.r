@@ -99,8 +99,12 @@ PG0 = list(dRo=4,dRx=100,hRo=2,hRx=33.3,dhet=0,hhet=0,dcor=0,hcor=0,RRo=1,RRx=1)
 
 ext = '.png'; font = 'Alegreya Sans'
 plot.1o = list(w1=2,h1=2,wo=2,ho=1) # plot size
-cmap = lapply(c(RRo='cividis',RRx='viridis',Ri='plasma',het='viridis'),
-  function(o){ clr.map.d(option=o) })
+clrs = list( # HACK
+  RRo=c('#600','#903','#c06','#f6c'), # red
+  RRx=c('#063','#096','#0c9','#3fc'), # green
+  dRo=c('#06c','#39f','#6cf'),hRo=c('#639','#96c','#c9f'), # blue, orange
+  dRx=c('#930','#c60','#f90'),hRx=c('#960','#c90','#fc0')) # purple, yellow
+cmap = lapply(clrs,function(v){ clr.map.m(values=v) })
 
 l = list( # aes labels
   dRo='Mean~depression~onset rate~(per 100 PY)', hRo='Mean~drinking~onset rate~(per 100 PY)',
@@ -152,7 +156,8 @@ plot.base.meas = function(k){
   Y = subset(rbind.lapply(names(T)[5:8],load.grid,k=k),RRx==1)
   Y$adj = factor(1+grepl('haz.a',Y$id),1:2,c('No','Yes'))
   g = ggplot(Y,aes(x=RRo,y=value,color=type,fill=type,lty=adj,alpha=adj))
-  g = plot.line(g) + labs(x=la('RRo'),color=lg('type'),fill=lg('type'),alpha=lg('adj'),lty=lg('adj')) +
+  g = plot.line(g) + clr.map.m(values=c(clrs$RRo[3],'#666')) +
+    labs(y='Measure',x=la('RRo'),color=lg('type'),fill=lg('type'),alpha=lg('adj'),lty=lg('adj')) +
     scale_linetype_manual(values=c('solid','44')) + scale_alpha_manual(values=c(1/3,3/3))
   plot.save(g,'cseb',uid,k,'base.meas',ext=ext)
 }
@@ -162,8 +167,8 @@ plot.base.line = function(k,x='o'){
   RRg = list(o='RRx',x='RRo')[[x]] # group (color)
   sub = function(Y){ df.sub(Y,str(RRg,'%in% PG4$',RRg)) }
   Y = sub(load.grid(k,f=RRg)) # default output: dep.haz.aor
-  g = ggplot(df.sub(Y,str(RRg,'==1')),aes.string(y='value',x=RRa))
-  g = plot.line(g,dy=1-2*(x=='x')) + labs(x=la(RRa))
+  g = ggplot(df.sub(Y,str(RRg,'==1')),aes.string(y='value',x=RRa,color=RRg,fill=RRg))
+  g = plot.line(g,dy=1-2*(x=='x')) + labs(x=la(RRa)) + clr.map.m(values=clrs[[RRa]][3],guide='none')
   g = add.info(g,info=str(rep(' ',17),collapse='')) # HACK
   plot.save(g,'cseb',uid,k,str('base.aor.',x),ext=ext) # RRa only (RRg==1)
   g = ggplot(Y,aes.string(y='value',x=RRa,color=RRg,fill=RRg))
@@ -191,7 +196,7 @@ plot.vs.rates = function(k){
     Y$f = factor(Y[[Ri]])
     sub = list.str(PG0[c('RRx',Rs[Rs!=Ri])],def='==',join=' & ')
     g = ggplot(df.sub(Y,sub),aes(y=value,x=RRo,color=f,fill=f))
-    g = plot.line(g) + cmap$Ri + labs(x=la('RRo'),color=lg(Ri),fill=lg(Ri))
+    g = plot.line(g) + cmap[[Ri]] + labs(x=la('RRo'),color=lg(Ri),fill=lg(Ri))
     plot.save(g,'cseb',uid,k,str('aor.',Ri),ext=ext)
   }
 }
