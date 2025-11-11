@@ -57,7 +57,7 @@ prop.out = function(Q,vo,sub=NULL,vsub=FALSE){
     upper = qbeta(.975,k+.5,n-k+.5))
 }
 
-pois.out = function(Q,vo,vt,sub=NULL,vt.na='act.ut'){
+pois.out = function(Q,vo,vt,sub=NULL,vt.na='mod.ut'){
   Q = df.sub(Q,sub)
   k = sum(Q[[vo]])
   t = sum(if.na(Q[[vt]],Q[[vt.na]]))
