@@ -22,20 +22,20 @@ init.inds = function(P){
   dep = as.data.frame(copula(n,
     covs = P$dep.cov,
     qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q),
-    o.Ri = list(m=P$dep_o.Ri.m,het=P$dep.Ri.het),
-    x.Ri = list(m=P$dep_x.Ri.m,het=P$dep.Ri.het)))
+    o.Ri = list(m=P$dep_o.Ri.m,het=P$dep_o.Ri.het),
+    x.Ri = list(m=P$dep_x.Ri.m,het=P$dep_x.Ri.het)))
   # plot(dep,col=rgb(0,0,0,.1)) # DEBUG
   haz = as.data.frame(copula(n,
     covs = P$haz.cov,
     qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q),
-    o.Ri = list(m=P$haz_o.Ri.m,het=P$haz.Ri.het),
-    x.Ri = list(m=P$haz_x.Ri.m,het=P$haz.Ri.het)))
+    o.Ri = list(m=P$haz_o.Ri.m,het=P$haz_o.Ri.het),
+    x.Ri = list(m=P$haz_x.Ri.m,het=P$haz_x.Ri.het)))
   # plot(haz,col=rgb(0,0,0,.1)) # DEBUG
   ptr = as.data.frame(copula(n,
     covs = P$ptr.cov,
     qfuns = list(o.Ri=P$het$q,x.Ri=P$het$q,max=qgeom),
-    o.Ri = list(m=P$ptr_o.Ri.m,het=P$ptr.Ri.het),
-    x.Ri = list(m=P$ptr_x.Ri.m,het=P$ptr.Ri.het),
+    o.Ri = list(m=P$ptr_o.Ri.m,het=P$ptr_o.Ri.het),
+    x.Ri = list(m=P$ptr_x.Ri.m,het=P$ptr_x.Ri.het),
     max  = list(prob=1/P$ptr.max.m)))
   # for (i in 1:3) plot(ptr[,-i],col=rgb(0,0,0,.1)) # DEBUG
   sex.Ri = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
