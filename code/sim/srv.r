@@ -135,10 +135,10 @@ tox.vec = function(to,tx,tf){ cumsum(tabulate(to,tf)-tabulate(tx,tf)) }
 # =============================================================================
 # rate funs
 
-rate.datas = function(Ms,t,dt=t,...,sub=NULL){
+rate.datas = function(Ms,t,dt=t,...,sub=NULL,.par=TRUE){
   status(3,'rate.datas: ',len(Ms))
   if (missing(t)){ t = Ms[[1]]$P$tf }
-  K = rbind.lapply(Ms,rate.data,t=t,...); status(4,'\n')
+  K = rbind.lapply(Ms,rate.data,t=t,...,.par=.par); status(4,'\n')
   K = rate.data.sub(K,t,dt,sub=sub)
 }
 
@@ -200,7 +200,7 @@ rate.data.sub = function(K,t,dt=t,sub=NULL){
   K = df.sub(K,sub) # any other subset
 }
 
-rate.est = function(K,e,strat='seed'){
+rate.est = function(K,e,strat=NULL){
   K$w = switch(e, # person-time weight
     vio   = 1,
     dep_o = K$dep.now==0,
@@ -209,15 +209,16 @@ rate.est = function(K,e,strat='seed'){
     haz_x = K$haz.now==1,
     ptr_o = K$sex.act & K$ptr.nw < K$ptr.max,
     ptr_x = K$ptr.nw)
+  strat = c(strat,'t','seed')
   k.strat = fast.split(1:nrow(K),K[strat])
   R = rbind.lapply(k.strat,function(k){
     ne = sum(K$e[k]==e)
     dt = sum((K$tx[k] - K$to[k]) * K$w[k])
     cbind(K[k[1],strat,drop=FALSE],
-      var=e,ne=ne,dt=dt,value=ne/dt,
+      id=e,type='rate',ne=ne,dt=dt,value=ne/dt,
       # poisson 95% CI
-      value.lo=qchisq(.025,2*ne  )/dt/2,
-      value.hi=qchisq(.975,2*ne+2)/dt/2)
+      lower=qchisq(.025,2*ne  )/dt/2,
+      upper=qchisq(.975,2*ne+2)/dt/2)
   })
 }
 
