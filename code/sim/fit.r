@@ -129,26 +129,13 @@ fit.run = function(Si,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
   Y  = cbind(as.list(Si),Y,row.names=NULL)
 }
 
-fit.run.batch = function(S,T,P0=NULL,...,srvs=NULL,aggr=FALSE,.par=TRUE,
-                         p.vars=NULL,i.vars=NULL,.batch=1,.nbatch=1){
-  status(2,'fit.run.batch: ',nrow(S),' [',.batch,'/',.nbatch,'] ')
-  Y = grid.apply(S,function(...){
-    status(3,list.str(list(...),sig=4))
-    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
-      p.vars=p.vars,i.vars=i.vars),0)
-  },.rbind=TRUE,.grid=FALSE,.par=.par,.batch=.batch,.nbatch=.nbatch)
-}
-
-fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.par=TRUE,
+fit.run.grid = function(PG,T,P0=NULL,srvs=NULL,aggr=FALSE,.grid=TRUE,.par=TRUE,
                         p.vars=NULL,i.vars=NULL,.batch=1,.nbatch=1){
   # fit.run over the grid of params PG & rbind the results
-  gs = c(lens(PG),seed=len(if.null(P0$seed,1:7)))
-  status(2,'fit.run.grid: ',prod(gs),' [',.batch,'/',.nbatch,'] @ ',list.str(gs))
   Y = grid.apply(PG,function(...){
-    status(3,list.str(list(...)))
-    Yi = verb.wrap(fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
-      p.vars=p.vars,i.vars=i.vars),0)
-  },.rbind=TRUE,.par=.par,.batch=.batch,.nbatch=.nbatch)
+    Yi = fit.run(Si=list(...),T=T,P0=P0,srvs=srvs,aggr=aggr,.par=FALSE,
+      p.vars=p.vars,i.vars=i.vars)
+  },.rbind=TRUE,.grid=.grid,.par=.par,.batch=.batch,.nbatch=.nbatch,.log=3)
 }
 
 opt.run = function(F,T,P0=NULL,...,h.init=4,n.iter=100){
