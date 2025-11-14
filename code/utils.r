@@ -83,17 +83,16 @@ save.csv = function(X,...,ext='.csv'){
   write.csv(X,file=fname,row.names=FALSE)
 }
 
-load.rda = function(...,ext='.rda'){
+load.rds = function(...,ext='.rds'){
   fname = root.path(...,ext=ext)
   status(3,'load: ',fname)
-  load(fname)
-  return(X)
+  readRDS(fname)
 }
 
-save.rda = function(X,...,ext='.rda'){
+save.rds = function(X,...,ext='.rds'){
   fname = root.path(...,ext=ext,create=TRUE)
   status(3,'save: ',fname)
-  save(X,file=fname)
+  saveRDS(X,file=fname)
 }
 
 load.json = function(...,ext='.json'){
