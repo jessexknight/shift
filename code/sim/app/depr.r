@@ -1,139 +1,112 @@
 source('sim/meta.r')
 source('sim/fit.r')
-uid = '2025-05-17'
+uid = '2025-11-14'
+.b     = cli.arg('.b', 1)
+.nb    = cli.arg('.nb',1)
+.debug = cli.arg('.debug',1)
 
 # -----------------------------------------------------------------------------
-# targets / outcomes
-
-T = name.list(key='id',
-  gen.targ(id='dep.now',  type='prop',vo='dep.now'),
-  gen.targ(id='dep.past', type='prop',vo='dep.past'),
-  gen.targ(id='dep.pt.30',type='prop',vo='dep.pt>.30',vsub=TRUE),
-  gen.targ(id='dep.pt.10',type='prop',vo='dep.pt>.10',vsub=TRUE),
-  gen.targ(id='dep.pt.03',type='prop',vo='dep.pt>.03',vsub=TRUE),
-  gen.targ(id='dep.pt.01',type='prop',vo='dep.pt>.01',vsub=TRUE),
-  gen.targ(id='dep.ne.0', type='prop',vo='dep.ne==0',vsub=TRUE),
-  gen.targ(id='dep.ne.1', type='prop',vo='dep.ne==1',vsub=TRUE),
-  gen.targ(id='dep.ne.2+',type='prop',vo='dep.ne>1', vsub=TRUE),
-  gen.targ(id='dep.um.3m',type='prop',vo='dep.um>t1y/4',vsub=TRUE,sub='dep.past'),
-  gen.targ(id='dep.um.6m',type='prop',vo='dep.um>t1y/2',vsub=TRUE,sub='dep.past'),
-  gen.targ(id='dep.um.1y',type='prop',vo='dep.um>t1y',  vsub=TRUE,sub='dep.past'),
-  gen.targ(id='dep.um.2y',type='prop',vo='dep.um>t1y*2',vsub=TRUE,sub='dep.past'),
-  gen.targ(id='dep.um.5y',type='prop',vo='dep.um>t1y*5',vsub=TRUE,sub='dep.past'),
-  gen.targ(id='dep.eRo',  type='pois',vo='dep.past',vt='dep.tto'))
-T = sub.targs(T,sub.targ.age,ags=10)
-
-# -----------------------------------------------------------------------------
-# default params
+# params & grid
 
 P0 = list(
-  dtz = cli.arg('dtz',45), # final: 7
-  n.pop = cli.arg('n.pop',10000), # final: 10000
-  seed = 1:cli.arg('n.seed',7), # final: 100
+  seed = 1:cli.arg('n.seed',xdf(7,100)),
+  dtz = cli.arg('dtz',xdf(15,7)),
+  n.pop = cli.arg('n.pop',xdf(3000,10000)),
   n.dur = 1,
   dep_o.Ri.my = .01,
   dep_x.Ri.my = 1,
-  het.distr = 'lnorm',
-  dep.Ri.het = 0,
+  dep_o.Ri.het = 0,
+  dep_x.Ri.het = 0,
   dep.cov = 0,
-  dRR.shape = 'pow',
-  dsc.dep_x.dep_u = Inf,
-  RR.dep_o.dep_p = 1,
+  het.distr = 'gamma',
   run = get.run.par('dep',u=FALSE))
-t1y = add.pars.time(P0,P0$dtz)$t1y
-
-# -----------------------------------------------------------------------------
-# param grid & run sims
 
 PG = list(
-  dep_o.Ri.my     = seq(.01,.1,.01),
-  dep_x.Ri.my     = seq(.5,3,.5),
-  dep.Ri.het      = c(0,.1,.2,.3,.5,1,2,3,4,5),
-  dep.cov         = c(-.9,-.6,-.3, 0,+.3,+.6,+.9),
-  RR.dep_o.dep_p  = 1+c(0,.1,.2,.3,.5,1,2,3,4,5),
-  dsc.dep_x.dep_u = round(t1y*c(Inf,1,.8,.6,.4,.2)))
-PGk = list(
-  hom = PG[c(1,2)],
-  het = PG[c(1,2,3,4)],
-  ext = PG[c(1,2,5,6)])
+  dep_o.Ri.my  = xdf(c(.01,.03,.05),seq(.01,.05,.01)),
+  dep_x.Ri.my  = xdf(c(1,2,3),      seq(.5,3,.5)),
+  dep_o.Ri.het = xdf(c(0,2,4,6),    seq(0,6,1)),
+  dep_x.Ri.het = xdf(c(0,1,2,3),    seq(0,3,.5)),
+  dep.cov      = xdf(c(-.5,0,+.5),  seq(-.9,+.9,.3)))
 
-grid.path = function(k,.save=FALSE){
-  hash.path(ulist(P0,PGk[[k]]),'data','sim','depr',uid,.save=.save)
+t1y = add.pars.time(P0,P0$dtz)$t1y
+for (v in names(PG)){ PG[[v]] = round(PG[[v]],2) }
+YP0 = function(Y,v){ if.null(Y[[v]],P0[[v]]) }
+
+PGk = list(
+  base = P0[names(PG)],
+  past = PG[c(1,3)],
+  hom  = PG[1:2],
+  hetu = PG[1:4],
+  hetc = PG[1:5])
+
+# -----------------------------------------------------------------------------
+# run sims & save/load
+
+T = name.list(key='id',
+  gen.targ(id='dep.now', type='prop',vo='dep.now'),
+  gen.targ(id='dep.past',type='prop',vo='dep.past'))
+
+est.rates = function(K,...,strat=NULL,e=c('dep_o','dep_x')){
+  R = cbind(rbind.lapply(e,rate.est,K=K,strat=strat,.par=FALSE),...)
 }
 
-run.grid = function(k){
-  Y = fit.run.grid(PGk[[k]],T,P0,srvs=srv.extra)
-  Y = cbind(Y,col.split(Y$id,':',c('out','age')))
-  Y$age = add.na(int.cut(Y$age,alos,up=amax),aall)
-  Y[c('targ.mu','targ.se','ll')] = NULL
-  save.rda(Y,grid.path(k,.save=TRUE),'Y')
-  for (o in unique(Y$out)){
-    save.rda(subset(Y,out==o),grid.path(k),str('Y.',o))
+run.one = function(...,.par=FALSE){
+  Ps = get.pars.grid(ulist(P0,...),.par=.par)
+  Ms = sim.runs(Ps,sub='act',.par=.par)
+  K  = rate.datas(Ms,e.dts=list(dep_o=t1y,dep_x=t1y),.par=.par)
+  K$age.10 = int.cut(K$age.1,avec(10))
+  Y = rbind.fill(
+    est.rates(K=K), # onset & recov: overall
+    est.rates(K=K,strat='age.10'), # onset & recov: by age
+    est.rates(K=K,strat='dep.past',e='dep_o'), # onset: by dep.past
+    est.rates(K=K,strat=c('age.10','dep.past'),e='dep_o'), # onset: by age x dep.past
+    est.rates(K=subset(K,age.1==10),      e='dep_o',sub='t1oi'), # 1-yr onset
+    est.rates(K=subset(K,dep_x.dt.c==t1y),e='dep_o',sub='t1ol'), # 1-yr relap
+    est.rates(K=subset(K,dep_o.dt.c==t1y),e='dep_x',sub='t1x'),  # 1-yr recov
+    srv.targs(subset(K,e=='tmax'),T=T,strat='age.10'), # prev: by age
+    srv.targs(subset(K,e=='tmax'),T=T)) # prev: overall
+  Y[c('targ.mu','targ.se','ll','est.mu','est.se')] = NULL
+  row.names(Y) = NULL
+  return(Y)
+}
+
+run.grid = function(k='hetc'){
+  Y = grid.apply(PGk[[k]],run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
+  save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
+}
+
+merge.rda = function(){
+  Y = rbind.lapply(1:.nb,function(b){
+    Yb = load.rds(grid.path('hetc'),str('b',.nb),str('Y.',b)) })
+  Y = as.data.frame(Y)
+  for (k in names(PGk)){
+    Yk = merge(Y,do.call(expand.grid,ulist(P0[names(PG)],PGk[[k]])))
+    save.rds(Yk,grid.path(k),'Y')
   }
 }
 
-# -----------------------------------------------------------------------------
-# plot setup
-
-ext = '.png'; font = 'Alegreya Sans'
-plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
-ymm = list(raw=c(01,12),dep.now=c(01,12),dep.past=c(05,50)) # gray rects
-cmap = lapply(c(het='plasma',Ro='cividis',Rx='viridis'), # colormaps
-  function(o){ clr.map.d(option=o) })
-cmap$dsc = clr.map.d(option='plasma',direction=-1)
-
-load.grid = function(k,out='dep.now',f=NULL,age=FALSE){
-  Y = load.rda(grid.path(k),str('Y.',out))
-  if (!age){ Y = subset(Y,age==aall) }
-  iR = Y$type == 'pois' # rate out rows
-  c3 = c('value','lower','upper') # out value cols
-  Y[ iR,c3] = Y[ iR,c3]*100*t1y # rates per 100 PY
-  Y[!iR,c3] = Y[!iR,c3]*100     # props as %
-  Y$Ro  = round(Y$dep_o.Ri.my*100,1) # per 100 PY
-  Y$Rx  = round(Y$dep_x.Ri.my*100,1) # per 100 PY
-  Y$het = if.null(Y$dep.Ri.het,0)            # shorthand
-  Y$cor = if.null(Y$dep.cov,0)               # shorthand
-  Y$RRp = if.null(Y$RR.dep_o.dep_p,1)        # shorthand
-  Y$dsc = if.null(Y$dsc.dep_x.dep_u,Inf)/t1y # shorthand
+load.grid = function(k,f=NULL){
+  Y = load.rds(grid.path(k),'Y')
+  i = Y$type=='rate'
+  v3 = c('value','lower','upper')
+  Y[ i,v3] = Y[ i,v3]*100*t1y # rates per 100 PY
+  Y[!i,v3] = Y[!i,v3]*100     # props as %
+  Y$mo  = YP0(Y,'dep_o.Ri.my')*100 # shorthand, per 100 PY
+  Y$mx  = YP0(Y,'dep_x.Ri.my')*100 # shorthand, per 100 PY
+  Y$ho  = YP0(Y,'dep_o.Ri.het')    # shorthand
+  Y$hx  = YP0(Y,'dep_x.Ri.het')    # shorthand
+  Y$cov = YP0(Y,'dep.cov')         # shorthand
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
 }
 
-# grid subsets for plotting
-PGi = list(
-  Ro  = seq(1,10,2),
-  Rx  = seq(50,300,50),
-  het = c(0,1,2,3,4,5),
-  cor = c(-.6,-.3, 0,+.3,+.6),
-  RRp = 1+c(0,1,2,3,4,5),
-  dsc = c(Inf,1,.8,.6,.4,.2))
-PGii = list(Ro=c(2,5,8),Rx=c(100,200,300),cor=c(-.6,0,+.6))
-PG2 = list(Ro=c(3,7),Rx=c(100,200))
-PG1 = list(Ro=5,Rx=150,het=0,cor=0,RRp=1,dsc=Inf)
-cor.lab = c('–0.9'=-.9,'–0.6'=-.6,'–0.3'=-.3,'0'=0,
-            '+0.3'=+.3,'+0.6'=+.6,'+0.9'=+.9)
-dsc.max = 1.2
+grid.path = function(k,.save=FALSE){
+  hash.path(ulist(P0,PGk[[k]],set=k),'data','sim','depr',uid,k,.save=.save)
+}
 
-# aes labels
-l = list(
-  Ro  = 'Mean~onset rate~(per 100 PY)',
-  Rx  = 'Mean~recov rate~(per 100 PY)',
-  het = 'Rate CV',
-  cor = 'Rate~correlation',
-  RRp = 'RR relapse~vs onset',
-  dsc = 'Recovery~waning~half-life~(years)',
-  age = 'Age (years)',
-  dep.now  = 'Current~MDD~prevalence (%)',
-  dep.past = 'Lifetime~MDD~prevalence (%)')
-l$rel = 'Relative~MDD~prevalence'
-l$raw = l$dep.now # HACK
+# -----------------------------------------------------------------------------
+# exact model
 
-# aes label utils
-hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
-grp = function(s){ gsub('~','\n',s) }
-axi = function(s){ gsub('~',' ',s) }
-fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
-  str.lab(str(' ',ss[1],': '),str(' ',ss[2])) }
 exact.fun = list(
   dep.now  = function(o,x){ k=o+x; P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k },
   dep.past = function(o,x){ k=o;   P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k })
@@ -142,38 +115,64 @@ run.exact = function(Y,n=1e5){
   Y = subset(Y,seed==1)
   qf = het.funs[[P0$het.distr]]$q
   Ye = rbind.lapply(1:nrow(Y),function(i){ Yi = Y[i,]
-    fi = exact.fun[[Yi$out]]
-    R = copula(n,covs=if.null(Yi$dep.cov,0),qfuns=list(o=qf,x=qf),
-      o=list(m=Yi$dep_o.Ri.my,het=if.null(Yi$dep.Ri.het,0)),
-      x=list(m=Yi$dep_x.Ri.my,het=if.null(Yi$dep.Ri.het,0)))
-    Yi$value = mean(fi(R[,1],R[,2]))
+    R = copula(n,covs=YP0(Yi,'dep.cov'),qfuns=list(o=qf,x=qf),
+      o=list(m=YP0(Yi,'dep_o.Ri.my'),het=YP0(Yi,'dep_o.Ri.het')),
+      x=list(m=YP0(Yi,'dep_x.Ri.my'),het=YP0(Yi,'dep_x.Ri.het')))
+    R = round(R,12)+1e-12 # HACK: numerical stability
+    Yi$value = mean(exact.fun[[Yi$id]](R[,1],R[,2]))
     return(Yi)
   })
 }
 
 # -----------------------------------------------------------------------------
-# plot core
+# plot utils
 
-plot.prev = function(g,out,ylim,tx){
-  xmin = list(identity=-Inf,log10=0)[[tx]]
-  ymmo = if.null(ymm[[out]],c(-Inf,+Inf))
-  mask = def.args(annotate,'rect',alpha=1/2,fill='#ccc',xmin=xmin,xmax=+Inf)
-  g = g + mask(ymin=-Inf,ymax=ymmo[1]) + mask(ymax=+Inf,ymin=ymmo[2])
-}
+# aes labels
+l = list(
+  mo  = 'Mean~onset rate~(per 100 PY)',
+  mx  = 'Mean~recov rate~(per 100 PY)',
+  ho  = 'Onset rate~frailty σ',
+  hx  = 'Recov rate~frailty σ',
+  cov = 'Rate~correlation',
+  age = 'Age (years)',
+  dep.now  = 'Current~MDD~prevalence (%)',
+  dep.past = 'Lifetime~MDD~prevalence (%)')
 
-plot.core = function(g,out='dep.now',tx='identity',ribbon=1/5,ylim=c(0,15),ci=.95){
-  g = plot.prev(g,out,ylim,tx)
-  g = plot.clean(g,font=font,legend.spacing=unit(0,'mm')) +
+# aes label utils
+hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
+grp = function(s){ gsub('~','\n',s) }
+axi = function(s){ gsub('~',' ',s) }
+fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
+  str.lab(str(' ',ss[1],': '),str(' ',ss[2])) }
+
+# colormaps
+cmap = lapply(list(mo='rocket',ho='rocket',mx='mako',hx='mako'),
+  function(o){ clr.map.d(option=o) })
+
+# grey rects
+yyy = list(dep.now=c(01,12,20),dep.past=c(15,30,60)) # rect,rect,lim
+rect = def.args(annotate,'rect',xmin=-Inf,xmax=+Inf,
+  alpha=1/2,fill='#ccc',color='#ccc',lty='11')
+
+plot.core = function(g,id,ylim,ribbon=1/5,ci=.95){
+  yi = if.null(yyy[[id]],c(-Inf,+Inf,NA))
+  g = g + rect(ymin=-Inf,ymax=yi[1]) + rect(ymax=+Inf,ymin=yi[2]) +
     stat_summary(geom='ribbon',color=NA,alpha=ribbon,
       fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)) +
-    stat_summary(fun=median,geom='line') +
-    scale_x_continuous(trans=tx) +
-    coord_cartesian(ylim=ylim) +
-    ylab(axi(l[[out]]))
+    stat_summary(geom='line',fun=median) +
+    coord_cartesian(ylim=c(0,yi[3])) +
+    ylab(axi(l[[id]]))
 }
 
-add.exact = function(g,Y){
-  g = g + geom_point(data=run.exact(Y),shape=21,fill='red',size=1)
+plot.exact = function(Y){
+  geom_point(data=run.exact(Y),shape=21,fill='#fc0',size=1)
+}
+
+plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
+
+plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
+  g = plot.clean(g,font=font,legend.spacing=unit(0,'mm'))
+  plot.save(g,'depr',uid,...,ext=ext)
 }
 
 # -----------------------------------------------------------------------------
@@ -277,9 +276,8 @@ plot.now.dsc = function(alt='raw'){
 # -----------------------------------------------------------------------------
 # main
 
-run.grid('hom')
-run.grid('het')
-run.grid('ext')
+# run.grid()
+# merge.rda()
 
 plot.eRo()
 plot.ever()
