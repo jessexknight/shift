@@ -64,6 +64,14 @@ verb.wrap = function(code,.verb.tmp){
   return (out)
 }
 
+log.args = function(f,lvl){
+  # wrap f to silence & print args
+  f.pre = function(...){
+    status(lvl,list.str(list(...)))
+    verb.wrap(f(...),0)
+  }
+}
+
 status = function(lvl,...,id=NULL){
   if (lvl > .verb | lvl <= 0){ return() }
   pre = list(c(rep('-',80),'\n'),'',' > ','')[[lvl]]
@@ -342,17 +350,20 @@ wapply = function(...){
 }
 
 grid.apply = function(x,fun,args=list(),...,
-  .par=TRUE,.rbind=FALSE,.cbind=FALSE,.grid=TRUE,.batch=1,.nbatch=1){
+  .par=TRUE,.rbind=FALSE,.cbind=FALSE,.grid=TRUE,.batch=1,.nbatch=1,.log=0){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
   # optional: split grid args into .nbatch & run .batch only
+  # optional: log args & silence inner logs
   xg = ifelse(.grid,expand.grid,as.data.frame)(x,stringsAsFactors=FALSE)
   ng = nrow(xg); gi = seqn(ng);
-  grid.args   = lapply(gi,function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
-  grid.args   = get.batch(grid.args,.batch,.nbatch)
-  grid.fun    = ifelse(.cbind,function(...){ cbind(fun(...),...) },fun)
-  grid.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
-  grid.lapply(grid.args,do.call,what=grid.fun,.par=.par)
+  g.args   = lapply(gi,function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
+  g.args.b = get.batch(g.args,.batch,.nbatch)
+  i.fun    = ifelse(.log,log.args(fun,.log),fun)
+  g.fun    = ifelse(.cbind,function(...){ cbind(i.fun(...),...) },i.fun)
+  g.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
+  status(.log-1,'grid: [',.batch,'/',.nbatch,'] (',len(g.args.b),'/',len(g.args),')')
+  g.lapply(g.args.b,do.call,what=g.fun,.par=.par)
 }
 
 fast.split = function(...){
