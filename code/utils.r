@@ -350,20 +350,20 @@ wapply = function(...){
 }
 
 grid.apply = function(x,fun,args=list(),...,
-  .par=TRUE,.rbind=FALSE,.cbind=FALSE,.grid=TRUE,.batch=1,.nbatch=1,.log=0){
+  .grid=TRUE,.rbind=FALSE,.cbind=FALSE,
+  .par=TRUE,.batch=1,.nbatch=1,.log=0,.dry=FALSE){
   # e.g. grid.lapply(list(a=1:2,b=3:4),fun,c=5) runs:
   # fun(a=1,b=3,c=5), fun(a=2,b=3,c=5), fun(a=1,b=4,c=5), fun(a=2,b=4,c=5)
-  # optional: split grid args into .nbatch & run .batch only
-  # optional: log args & silence inner logs
   xg = ifelse(.grid,expand.grid,as.data.frame)(x,stringsAsFactors=FALSE)
   ng = nrow(xg); gi = seqn(ng);
   g.args   = lapply(gi,function(i){ ulist(as.list(xg[i,,drop=FALSE]),args,...) })
   g.args.b = get.batch(g.args,.batch,.nbatch)
-  i.fun    = ifelse(.log,log.args(fun,.log),fun)
-  g.fun    = ifelse(.cbind,function(...){ cbind(i.fun(...),...) },i.fun)
+  fun.1    = ifelse(.dry,log.args(function(...){ NA },3),fun)
+  fun.2    = ifelse(.log,log.args(fun.1,.log),fun.1)
+  fun.3    = ifelse(.cbind,function(...){ cbind(fun.2(...),...) },fun.2)
   g.lapply = ifelse(.rbind,rbind.lapply,par.lapply)
   status(.log-1,'grid: [',.batch,'/',.nbatch,'] (',len(g.args.b),'/',len(g.args),')')
-  g.lapply(g.args.b,do.call,what=g.fun,.par=.par)
+  g.lapply(g.args.b,do.call,what=fun.3,.par=.par)
 }
 
 fast.split = function(...){

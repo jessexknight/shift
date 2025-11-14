@@ -90,7 +90,7 @@ srv.targs = function(Q,T,strat=NULL,aggr.seed=FALSE){
     Yi = cbind(id=Ti$id,type=Ti$type,sub=if.null(Ti$sub,''),
       targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
   })
-  Y = rbind.lapply(Ys,`[`,Reduce(intersect,lapply(Ys,colnames)),.par=FALSE)
+  Y = do.call(rbind.fill,Ys)
 }
 
 targ.ll = function(Ti,Yi){
