@@ -36,12 +36,12 @@ sub.targs = function(T,fun=sub.targ,...,app=TRUE){
   Ts = do.call(name.list,c(Ts,key='id'))
 }
 
-targ.calc = function(Q,ofun,...,vs=NULL){
+targ.calc = function(Q,ofun,...,strat=NULL){
   # compute outputs from Q for simple targets
-  vs = c(vs,'t','seed')
-  Y = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
+  strat = c(strat,'t','seed')
+  Y = rbind.lapply(split(Q,Q[strat]),function(Qi){ # strata
     out = ofun(Qi,...) # calculate estimate
-    Yi = cbind(Qi[1,vs,drop=FALSE],as.list(out),row.names=NULL)
+    Yi = cbind(Qi[1,strat,drop=FALSE],as.list(out),row.names=NULL)
   },.par=FALSE)
 }
 
@@ -80,12 +80,12 @@ targ.funs = list(
 # -----------------------------------------------------------------------------
 # log-likelihoods
 
-srv.targs = function(Q,T,vs=NULL,aggr.seed=FALSE){
+srv.targs = function(Q,T,strat=NULL,aggr.seed=FALSE){
   # log-likelihoods for each target T given survey Q
   if (aggr.seed){ Q$seed = 0 }
   Ys = lapply(T,function(Ti){
     fun = do.call(def.args,c(f=targ.funs[[Ti$type]],sub=Ti$sub,Ti$arg))
-    Yi = fun(Q,vs=vs)   # estimate
+    Yi = fun(Q,strat=strat) # estimate
     ll = targ.ll(Ti,Yi) # likelihood
     Yi = cbind(id=Ti$id,type=Ti$type,sub=if.null(Ti$sub,''),
       targ.mu=Ti$mu,targ.se=Ti$se,ll=ll,Yi)
