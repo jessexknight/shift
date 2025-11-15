@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -j oe
 #PBS -N depr
-#PBS -l walltime=0:10:00
+#PBS -l walltime=0:20:00
 #PBS -l select=1:ncpus=16:mem=64gb
 #PBS -J 1-1000
 
@@ -14,5 +14,5 @@ cd $PBS_O_WORKDIR
 
 # total runs = 216090  <- 21 * 5 * 6 * 7 * 7
 # batch runs = 216     <- 216090 / 1000
-# batch time = 0:10:00 <- 216 * 30s / 16 cpu = 0:06:75 (+)
-# batch mem  = 64      <- 3 GB * 16 = 48 GB (+)
+# batch time = 0:20:00 <- 216 * 1:00 (+) / 16 cpu = 0:13:50 (+)
+# batch mem  = 64      <- 3 GB (+) * 16 = 48 GB (+)
