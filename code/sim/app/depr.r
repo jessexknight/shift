@@ -9,9 +9,9 @@ uid = '2025-11-14'
 # params & grid
 
 P0 = list(
-  seed = 1:cli.arg('n.seed',xdf(7,100)),
-  dtz = cli.arg('dtz',xdf(15,7)),
-  n.pop = cli.arg('n.pop',xdf(3000,10000)),
+  seed = 1:xdf(7,21),
+  dtz = xdf(15,7),
+  n.pop = xdf(3000,10000),
   n.dur = 1,
   dep_o.Ri.my = .01,
   dep_x.Ri.my = 1,
@@ -22,6 +22,7 @@ P0 = list(
   run = get.run.par('dep',u=FALSE))
 
 PG = list(
+  seed = 1:xdf(7,21),
   dep_o.Ri.my  = xdf(c(.01,.03,.05),seq(.01,.05,.01)),
   dep_x.Ri.my  = xdf(c(1,2,3),      seq(.5,3,.5)),
   dep_o.Ri.het = xdf(c(0,2,4,6),    seq(0,6,1)),
@@ -34,10 +35,10 @@ YP0 = function(Y,v){ if.null(Y[[v]],P0[[v]]) }
 
 PGk = list(
   base = P0[names(PG)],
-  past = PG[c(1,3)],
-  hom  = PG[1:2],
-  hetu = PG[1:4],
-  hetc = PG[1:5])
+  past = PG[c(1,2,4)],
+  hom  = PG[1:3],
+  hetu = PG[1:5],
+  hetc = PG[1:6])
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
