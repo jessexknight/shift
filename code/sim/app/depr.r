@@ -48,6 +48,7 @@ T = name.list(key='id',
   gen.targ(id='dep.past',type='prop',vo='dep.past'))
 
 est.rates = function(K,...,strat=NULL,e=c('dep_o','dep_x')){
+  if (nrow(K)==0){ return(NULL) } # HACK
   R = cbind(rbind.lapply(e,rate.est,K=K,strat=strat,.par=FALSE),...)
 }
 
