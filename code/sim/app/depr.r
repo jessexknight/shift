@@ -31,14 +31,19 @@ PG = list(
 
 t1y = add.pars.time(P0,P0$dtz)$t1y
 for (v in names(PG)){ PG[[v]] = round(PG[[v]],2) }
+grid.path = hash.path(ulist(P0,PG),'data','sim','depr',uid,.save=TRUE)
 YP0 = function(Y,v){ if.null(Y[[v]],P0[[v]]) }
 
+# subsets for plotting
 PGk = list(
   base = P0[names(PG)],
   past = PG[c(1,2,4)],
   hom  = PG[1:3],
   hetu = PG[1:5],
   hetc = PG[1:6])
+PGi = list(mo=3,mx=150,ho=3,hx=1.5,cov=0)
+PGii = list(mo=c(2,4),mx=c(100,200),ho=c(0,4),hx=c(0,2),cov=c('–0.6','0','+0.6'))
+PGiii = list(mo=c(1,3,5),mx=c(50,150,250),ho=c(0,2,4,6),hx=c(0,1,2,3))
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
@@ -62,48 +67,51 @@ run.one = function(...,.par=FALSE){
     est.rates(K=K,strat='age.10'), # onset & recov: by age
     est.rates(K=K,strat='dep.past',e='dep_o'), # onset: by dep.past
     est.rates(K=K,strat=c('age.10','dep.past'),e='dep_o'), # onset: by age x dep.past
+    est.rates(K=subset(K,age.1==10|dep_x.dt.c==t1y),e='dep_o',sub='t1oa'), # 1-yr o/r
     est.rates(K=subset(K,age.1==10),      e='dep_o',sub='t1oi'), # 1-yr onset
     est.rates(K=subset(K,dep_x.dt.c==t1y),e='dep_o',sub='t1ol'), # 1-yr relap
     est.rates(K=subset(K,dep_o.dt.c==t1y),e='dep_x',sub='t1x'),  # 1-yr recov
     srv.targs(subset(K,e=='tmax'),T=T,strat='age.10'), # prev: by age
     srv.targs(subset(K,e=='tmax'),T=T)) # prev: overall
-  Y[c('targ.mu','targ.se','ll','est.mu','est.se')] = NULL
+  Y[c('seed','targ.mu','targ.se','ll','est.mu','est.se')] = NULL
   row.names(Y) = NULL
   return(Y)
 }
 
-run.grid = function(k='hetc'){
-  Y = grid.apply(PGk[[k]],run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
-  save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
+run.grid = function(){
+  Y = grid.apply(PG,run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
+  save.rds(Y,grid.path,str('b',.nb),str('Y.',.b))
 }
 
 merge.rda = function(){
   Y = rbind.lapply(1:.nb,function(b){
-    Yb = load.rds(grid.path('hetc'),str('b',.nb),str('Y.',b)) })
-  Y = as.data.frame(Y)
-  for (k in names(PGk)){
-    Yk = merge(Y,do.call(expand.grid,ulist(P0[names(PG)],PGk[[k]])))
-    save.rds(Yk,grid.path(k),'Y')
-  }
+    Yb = load.rds(grid.path,str('b',.nb),str('Y.',b)) })
+  par.lapply(unique(Y$id),function(i){
+    Yi = subset(Y,id==i)
+    for (k in names(PGk)){
+      P0Gk = ulist(P0[names(PG)],PGk[[k]])
+      Yik = merge(Yi,do.call(expand.grid,P0Gk))
+      save.rds(Yik,grid.path,str('Y-',i,'-',k))
+    }
+  })
 }
 
-load.grid = function(k,f=NULL){
-  Y = load.rds(grid.path(k),'Y')
-  i = Y$type=='rate'
+load.grid = function(k,i='dep.now',a10=FALSE,f=NULL){
+  # TODO: a few id = NA?
+  Y = load.rds(grid.path,str('Y-',i,'-',k))
+  Y = subset(Y,is.na(age.10)!=a10)
+  j = Y$type=='rate'
   v3 = c('value','lower','upper')
-  Y[ i,v3] = Y[ i,v3]*100*t1y # rates per 100 PY
-  Y[!i,v3] = Y[!i,v3]*100     # props as %
+  Y[ j,v3] = Y[ j,v3]*100*t1y # rates per 100 PY
+  Y[!j,v3] = Y[!j,v3]*100     # props as %
   Y$mo  = YP0(Y,'dep_o.Ri.my')*100 # shorthand, per 100 PY
   Y$mx  = YP0(Y,'dep_x.Ri.my')*100 # shorthand, per 100 PY
   Y$ho  = YP0(Y,'dep_o.Ri.het')    # shorthand
   Y$hx  = YP0(Y,'dep_x.Ri.het')    # shorthand
   Y$cov = YP0(Y,'dep.cov')         # shorthand
+  Y$cov = factor(Y$cov,fl$cov,names(fl$cov))
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
-}
-
-grid.path = function(k,.save=FALSE){
-  hash.path(ulist(P0,PGk[[k]],set=k),'data','sim','depr',uid,k,.save=.save)
 }
 
 # -----------------------------------------------------------------------------
@@ -137,6 +145,7 @@ l = list(
   hx  = 'Recov rate~frailty σ',
   cov = 'Rate~correlation',
   age = 'Age (years)',
+  fup = 'Follow-up~time',
   dep.now  = 'Current~MDD~prevalence (%)',
   dep.past = 'Lifetime~MDD~prevalence (%)')
 
@@ -146,6 +155,17 @@ grp = function(s){ gsub('~','\n',s) }
 axi = function(s){ gsub('~',' ',s) }
 fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
   str.lab(str(' ',ss[1],': '),str(' ',ss[2])) }
+
+# factor labsl
+fl = list(
+  cov = c('–0.9'=-.9,'–0.6'=-.6,'–0.5'=-.5,'–0.3'=-.3,
+     '0'=0,'+0.3'=+.3,'+0.5'=+.5,'+0.6'=+.6,'+0.9'=+.9),
+  ro = list(
+    'Rate: first onset' = 0,
+    'Rate: any relapse' = 1,
+    'Rate: any onset or relapse' = NA,
+    'RR: relapse vs onset' = 'RR'),
+  fup = c('all available'=0,'first year'=1))
 
 # colormaps
 cmap = lapply(list(mo='rocket',ho='rocket',mx='mako',hx='mako'),
@@ -181,21 +201,33 @@ plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
 # plot apps
 
 plot.past = function(){
-  Y = subset(load.grid('past',f='ho'),id=='dep.past' & is.na(age.10))
-  g = ggplot(Y,aes(x=mo,y=value,color=ho,fill=ho))
-  g = plot.core(g,'dep.past') + cmap$ho +labs(x=axi(l$mo),color=grp(l$ho),fill=grp(l$ho))
-  plot.save.i(g + plot.exact(Y),'past.v')
+  Y = load.grid(k='past',i='dep.past',f='ho')
+  g = ggplot(Y,aes(y=value,x=mo,color=ho,fill=ho))
+  g = plot.core(g,'dep.past') + cmap$ho + labs(x=axi(l$mo),color=grp(l$ho),fill=grp(l$ho))
+  plot.save.i(g + plot.exact(Y),'v','past.v')
   plot.save.i(g,'past')
 }
 
 plot.now.hom = function(){
-  Y = load.grid('hom')
-  g = ggplot(subset(Y,id=='dep.now'),aes(x=mo,y=value,color=factor(mx),fill=factor(mx)))
-  g = plot.core(g,'dep.now') + cmap$mx +labs(x=axi(l$mo),color=grp(l$mx),fill=grp(l$mx))
+  Y = load.grid(k='hom')
+  g = ggplot(Y,aes(y=value,x=mo,color=factor(mx),fill=factor(mx)))
+  g = plot.core(g,'dep.now') + cmap$mx + labs(x=axi(l$mo),color=grp(l$mx),fill=grp(l$mx))
+  plot.save.i(g + plot.exact(Y),'v','now.hom.o.v')
   plot.save.i(g,'now.hom.o')
-  g = ggplot(subset(Y,id=='dep.now'),aes(x=mx,y=value,color=factor(mo),fill=factor(mo)))
-  g = plot.core(g,'dep.now') + cmap$mo +labs(x=axi(l$mx),color=grp(l$mo),fill=grp(l$mo))
+  g = ggplot(Y,aes(y=value,x=mx,color=factor(mo),fill=factor(mo)))
+  g = plot.core(g,'dep.now') + cmap$mo + labs(x=axi(l$mx),color=grp(l$mo),fill=grp(l$mo))
+  plot.save.i(g + plot.exact(Y),'v','now.hom.x.v')
   plot.save.i(g,'now.hom.x')
+}
+
+plot.now.hetc = function(){
+  Y = subset(load.grid(k='hetc',f='cov'), mo==PGi$mo & mx==PGi$mx & cov%in%PGii$cov)
+  g = ggplot(Y,aes(y=value,x=ho,color=factor(hx))) + facet_grid('. ~ cov',labeller=fct(l$cov))
+  g = plot.core(g,'dep.now',ribbon=0) + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx))
+  plot.save.i(g,'now.hetc.o')
+  g = ggplot(Y,aes(y=value,x=hx,color=factor(ho))) + facet_grid('. ~ cov',labeller=fct(l$cov))
+  g = plot.core(g,'dep.now',ribbon=0) + cmap$ho + labs(x=axi(l$hx),color=grp(l$ho))
+  plot.save.i(g,'now.hetc.x')
 }
 
 # -----------------------------------------------------------------------------
@@ -206,3 +238,4 @@ plot.now.hom = function(){
 
 # plot.past()
 # plot.now.hom()
+# plot.now.hetc()
