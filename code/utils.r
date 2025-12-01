@@ -326,7 +326,7 @@ rbind.fill = function(...,fill=NA){
 .cores = cli.arg('.cores',7)
 
 par.lapply = function(...,.par=TRUE){
-  if (.par && len(list(...)[[1]]) > 1){
+  if (.par && .cores > 1 && len(list(...)[[1]]) > 1){
     parallel::mclapply(...,mc.cores=.cores)
   } else {
     lapply(...)
@@ -334,7 +334,7 @@ par.lapply = function(...,.par=TRUE){
 }
 
 par.mapply = function(...,.par=TRUE){
-  if (.par){
+  if (.par && .cores > 1){
     parallel::mcmapply(...,mc.cores=.cores,SIMPLIFY=FALSE)
   } else {
     mapply(...,SIMPLIFY=FALSE)
