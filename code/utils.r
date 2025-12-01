@@ -371,7 +371,7 @@ fast.split = function(...){
 }
 
 get.batch = function(x,.batch=1,.nbatch=1){ nx = NROW(x)
-  split(x,ceiling(seqn(nx)*min(nx,.nbatch)/nx))[[min(nx,.batch)]]
+  fast.split(x,ceiling(seqn(nx)*min(nx,.nbatch)/nx))[[min(nx,.batch)]]
 }
 
 # -----------------------------------------------------------------------------
