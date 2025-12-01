@@ -1,6 +1,6 @@
 source('sim/meta.r')
 source('sim/fit.r')
-uid = '2025-11-14'
+uid = '2025-12-01'
 .b     = cli.arg('.b', 1)
 .nb    = cli.arg('.nb',1)
 .debug = cli.arg('.debug',1)
