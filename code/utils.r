@@ -370,7 +370,8 @@ fast.split = function(...){
   collapse::rsplit(...,flatten=TRUE)
 }
 
-get.batch = function(x,.batch=1,.nbatch=1){ nx = NROW(x)
+get.batch = function(x,.batch=1,.nbatch=1){
+  nx = as.numeric(NROW(x)) # avoid int overflow
   fast.split(x,ceiling(seqn(nx)*min(nx,.nbatch)/nx))[[min(nx,.batch)]]
 }
 
