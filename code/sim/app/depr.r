@@ -232,6 +232,39 @@ plot.now.hetc = function(){
   plot.save.i(g,'now.hetc.x')
 }
 
+plot.ro.hetc = function(){
+  Y = subset(load.grid(k='hetc',i='dep_o',f=c('hx','cov')),eval(hetc.sub) & hx %in% (0:3/2))
+  names(fl$ro) = add.enum(names(fl$ro),'i')
+  lRR = names(fl$ro)[4] # helper
+  Y$dep.past[Y$sub=='t1oi'] = 0 # HACK
+  Y$dep.past[Y$sub=='t1ol'] = 1 # HACK
+  Y$id = factor(str(Y$dep.past),fl$ro,names(fl$ro)) # onset,relap,any,RR
+  Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
+  Y = rbind(Y,df.ow(subset(Y,is.na(dep.past)),id=lRR, # add RR
+    value=subset(Y,dep.past==1)$value/subset(Y,dep.past==0)$value))
+  print(m95(subset(Y,id==lRR & ho==0 & hx==0)$value)) # NUM
+  Yi = aggregate(cbind(value=mo)~ho+hx+id+cov,Y,mean) # model input
+  Yi$value[Yi$id==lRR] = 1
+  for (t1 in 0:1){ # any,1-year
+    g = ggplot(subset(Y,is.na(sub)!=t1),aes(y=value,x=ho,color=hx,fill=hx)) +
+      facet_grid('id ~ cov',labeller=labeller(.cols=fct(l$cov)),scales='free') +
+      geom_line(data=Yi,color='#ccc',lty='11')
+    g = plot.core(g,'dep_o') + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx),fill=grp(l$hx))
+    plot.save.i(g,str('ro.hetc.',ifelse(t1,'all','t1')))
+  }
+}
+
+plot.rx.hetc = function(){
+  Y = subset(load.grid(k='hetc',i='dep_x',f=c('ho','cov')),eval(hetc.sub) & ho %in% 0:3)
+  Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
+  Yi = aggregate(cbind(value=mx)~ho+hx+id+cov,Y,mean) # model input
+  g = ggplot(subset(Y,is.na(dep.past)),aes(y=value,x=hx,color=ho,fill=ho)) +
+    facet_grid('fup ~ cov',labeller=labeller(.rows=fct(l$fup),.cols=fct(l$cov))) +
+    geom_line(data=Yi,color='#ccc',lty='11')
+  g = plot.core(g,'dep_x') + cmap$ho + labs(x=axi(l$hx),color=grp(l$ho),fill=grp(l$ho))
+  plot.save.i(g,'rx.hetc')
+}
+
 # -----------------------------------------------------------------------------
 # main
 
@@ -241,3 +274,5 @@ plot.now.hetc = function(){
 # plot.past()
 # plot.now.hom()
 # plot.now.hetc()
+# plot.ro.hetc()
+# plot.rx.hetc()
