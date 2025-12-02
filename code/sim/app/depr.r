@@ -41,9 +41,7 @@ PGk = list(
   hom  = PG[1:3],
   hetu = PG[1:5],
   hetc = PG[1:6])
-PGi = list(mo=3,mx=150,ho=3,hx=1.5,cov=0)
-PGii = list(mo=c(2,4),mx=c(100,200),ho=c(0,4),hx=c(0,2),cov=c('–0.6','0','+0.6'))
-PGiii = list(mo=c(1,3,5),mx=c(50,150,250),ho=c(0,2,4,6),hx=c(0,1,2,3))
+hetc.sub = quote(mo == 3 & mx == 150 & cov %in% c('–0.6','0','+0.6'))
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
@@ -114,6 +112,10 @@ load.grid = function(k,i='dep.now',a10=FALSE,f=NULL){
   return(Y)
 }
 
+add.m0 = function(Y,v=0){
+  Y = rbind(Y,df.ow(subset(Y,mo==Y$mo[1]),dep_o.Ri.my=0,mo=0,value=v))
+}
+
 # -----------------------------------------------------------------------------
 # exact model
 
@@ -121,14 +123,14 @@ exact.fun = list(
   dep.now  = function(o,x){ k=o+x; P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k },
   dep.past = function(o,x){ k=o;   P = 100*(adur-(1-exp(-adur*k))/k)*o/adur/k })
 
-run.exact = function(Y,n=1e5){
+run.exact = function(Y,n=1e5,eps=1e-12){
   Y = subset(Y,seed==1)
   qf = het.funs[[P0$het.distr]]$q
   Ye = rbind.lapply(1:nrow(Y),function(i){ Yi = Y[i,]
     R = copula(n,covs=YP0(Yi,'dep.cov'),qfuns=list(o=qf,x=qf),
-      o=list(m=YP0(Yi,'dep_o.Ri.my'),het=YP0(Yi,'dep_o.Ri.het')),
-      x=list(m=YP0(Yi,'dep_x.Ri.my'),het=YP0(Yi,'dep_x.Ri.het')))
-    R = round(R,12)+1e-12 # HACK: numerical stability
+      o=list(m=YP0(Yi,'dep_o.Ri.my')+eps,het=YP0(Yi,'dep_o.Ri.het')+eps),
+      x=list(m=YP0(Yi,'dep_x.Ri.my')+eps,het=YP0(Yi,'dep_x.Ri.het')+eps))
+    R = round(R,12)+eps # HACK: numerical stability
     Yi$value = mean(exact.fun[[Yi$id]](R[,1],R[,2]))
     return(Yi)
   })
@@ -139,10 +141,10 @@ run.exact = function(Y,n=1e5){
 
 # aes labels
 l = list(
-  mo  = 'Mean~onset rate~(per 100 PY)',
-  mx  = 'Mean~recov rate~(per 100 PY)',
-  ho  = 'Onset rate~frailty σ',
-  hx  = 'Recov rate~frailty σ',
+  mo  = 'Baseline~onset rate~(per 100 PY)',
+  mx  = 'Baseline~recov rate~(per 100 PY)',
+  ho  = 'Onset~frailty~SD (σ)',
+  hx  = 'Recov~frailty~SD (σ)',
   cov = 'Rate~correlation',
   age = 'Age (years)',
   fup = 'Follow-up~time',
@@ -150,7 +152,7 @@ l = list(
   dep.past = 'Lifetime~MDD~prevalence (%)')
 
 # aes label utils
-hom = function(s){ gsub('Mean~(.)','\\U\\1',s,perl=TRUE) }
+hom = function(s){ gsub('Baseline~(.)','\\U\\1',s,perl=TRUE) }
 grp = function(s){ gsub('~','\n',s) }
 axi = function(s){ gsub('~',' ',s) }
 fct = function(s){ ss = strsplit(axi(s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
@@ -169,12 +171,12 @@ fl = list(
 
 # colormaps
 cmap = lapply(list(mo='rocket',ho='rocket',mx='mako',hx='mako'),
-  function(o){ clr.map.d(option=o) })
+  function(o){ clr.map.d(option=o,end=.7) })
 
 # grey rects
 yyy = list(dep.now=c(01,12,20),dep.past=c(15,30,60)) # rect,rect,lim
 rect = def.args(annotate,'rect',xmin=-Inf,xmax=+Inf,
-  alpha=1/2,fill='#ccc',color='#ccc',lty='11')
+  alpha=1/3,fill='#ccc',color='#ccc',lty='11')
 
 plot.core = function(g,id,ylim,ribbon=1/5,ci=.95){
   yi = if.null(yyy[[id]],c(-Inf,+Inf,NA))
@@ -190,7 +192,7 @@ plot.exact = function(Y){
   geom_point(data=run.exact(Y),shape=21,fill='#fc0',size=1)
 }
 
-plot.1o = list(w1=2.0,h1=2,wo=2,ho=1) # plot size
+plot.1o = list(w1=1.5,h1=1.5,wo=2,ho=1) # plot size
 
 plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
   g = plot.clean(g,font=font,legend.spacing=unit(0,'mm'))
@@ -201,7 +203,7 @@ plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
 # plot apps
 
 plot.past = function(){
-  Y = load.grid(k='past',i='dep.past',f='ho')
+  Y = add.m0(load.grid(k='past',i='dep.past',f='ho'))
   g = ggplot(Y,aes(y=value,x=mo,color=ho,fill=ho))
   g = plot.core(g,'dep.past') + cmap$ho + labs(x=axi(l$mo),color=grp(l$ho),fill=grp(l$ho))
   plot.save.i(g + plot.exact(Y),'v','past.v')
@@ -209,7 +211,7 @@ plot.past = function(){
 }
 
 plot.now.hom = function(){
-  Y = load.grid(k='hom')
+  Y = add.m0(load.grid(k='hom'))
   g = ggplot(Y,aes(y=value,x=mo,color=factor(mx),fill=factor(mx)))
   g = plot.core(g,'dep.now') + cmap$mx + labs(x=axi(l$mo),color=grp(l$mx),fill=grp(l$mx))
   plot.save.i(g + plot.exact(Y),'v','now.hom.o.v')
@@ -221,7 +223,7 @@ plot.now.hom = function(){
 }
 
 plot.now.hetc = function(){
-  Y = subset(load.grid(k='hetc',f='cov'), mo==PGi$mo & mx==PGi$mx & cov%in%PGii$cov)
+  Y = subset(load.grid(k='hetc',f='cov'),eval(hetc.sub))
   g = ggplot(Y,aes(y=value,x=ho,color=factor(hx))) + facet_grid('. ~ cov',labeller=fct(l$cov))
   g = plot.core(g,'dep.now',ribbon=0) + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx))
   plot.save.i(g,'now.hetc.o')
