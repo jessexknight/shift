@@ -27,10 +27,12 @@ clean.df = function(X,ys){
 load.aao = function(plot=0){
   E = load.csv('data','pub','McGrath2023'); m = age$max # HACK
   E = subset(E, age<=m & var=='dep')
+  E = rbind.fill(E,cbind(aggregate(value~type+age,E,mean),sex='pooled'))
+  # print(aggregate(value~type+sex,subset(E,age>=10),mean))
   E = rbind.lapply(.par=0,split(E,E$sex),function(Ei){
     b = Ei$type=='haz'
     Ei$sv = ifelse(b,'HR','CI')
-    Ei$sk = 'Extracted'
+    Ei$sk = as.factor('Extracted')
     h = Ei$value[ b]
     F = Ei$value[!b]
     Ei = rbind(Ei,
@@ -39,10 +41,13 @@ load.aao = function(plot=0){
       df.ow(Ei[b,],sv='CI',sk='Converted',type='inc',value=diffe(F,dn=NA)),
       df.ow(Ei[b,],sv='CI',sk='Converted',type='haz',value=diffe(-log(1-F),dn=NA)))
   })
+  E$sex = factor(E$sex,c('female','male','pooled'))
+  E$sv  = factor(E$sv,c('HR','CI'))
   if (plot){
-    g = plot.aao(E,ys=c('haz','inc','cum'),f='type~sex',lty=sk,color=sv) +
-      scale_linetype_manual(values=c('21','solid')) +
-      labs(lty='',color='Source')
+    g = plot.aao(E,ys=c('haz','inc','cum'),f='type~sex',alpha=sk,color=sv) +
+      scale_alpha_manual(values=c(1,.2)) +
+      labs(alpha='',color='Source') +
+      theme(legend.position='top')
     plot.save(g,'depr',uid,'aao.McGrath2023',ext=.ext,size=c(7,6)) }
   E = df.ow(subset(E,sv=='HR'),src='data',ref='McGrath2023')
 }
@@ -79,8 +84,9 @@ plot.aao = function(E,M=NULL,ys=NULL,f='type',...){
 main.aao = function(){
   E0 = cbind(load.aao(),cv=NA)
   sex = list(
-    'female' = list(m=.014,cv=0:3,wa=c(.03,.02,.00,-.01),s=c(1.00,1.00,1.20,1.20)),
-    'male'   = list(m=.008,cv=0:3,wa=c(.025,.02,.01,.00),s=c(0.90,0.90,1.00,1.20)))
+    'pooled' = list(m=.011,cv=0:3,wa=c(.027,.02,.005,-.02),s=c(0.95,0.95,1.10,1.40)),
+    'female' = list(m=.014,cv=0:3,wa=c(.030,.02,.000,-.04),s=c(1.00,1.00,1.20,1.50)),
+    'male'   = list(m=.008,cv=0:3,wa=c(.025,.02,.010,-.01),s=c(0.90,0.90,1.00,1.20)))
   cfg = list(
     '(a) Frailty'                      = list(am=10,as=Inf,s=1,wa=0),
     '(b) Frailty + ramp'               = list(am=12,as=0.4,s=1,wa=0),
@@ -92,10 +98,11 @@ main.aao = function(){
       par.k = ulist(sex[[s]],cfg[[k]],k=factor(k))
       M.k = grid.apply(par.k,model.aao,.rbind=1,.grid=0,.par=0)
     })
+    M$value[M$value>1.5] = NA # HACK
     g = plot.aao(E,M,lty=src,color=factor(cv),f='type~k') +
-      clr.map.d(option='plasma',na.value='#0cc') +
+      clr.map.d(option='rocket',na.value='#0cf',end=.7) +
       scale_linetype_manual(values=c('21','solid')) +
-      labs(lty='Source',color='Frailty\nSD (σ)') + lims(x=c(0,age$max))
+      labs(lty='Source',color='Onset\nfrailty\nSD (σ)') + lims(x=c(0,age$max))
     plot.save(g,'depr',uid,str('aao.',s),ext=.ext)
   }
 }
@@ -111,35 +118,37 @@ prep.dur = function(plot=1){
     Ei = df.ow(Ei[1,],month=m,p=approx(Ei$month,Ei$p,m)$y)
   })
   lapply(split(E,E$ref),function(Ei){
-    Ai = aggr.dur(Ei)
+    Ai = aggr.srv(Ei)
     qqq = approx(Ai$value,Ai$month,3:1/4,ties='mean')$y
     cat(round(qqq,1),'@',str(Ei$ref[1]),'\n')
   })
-  A = cbind(aggr.dur(E,'g'),ref=factor('*'),type='srv')
-  if (plot){ plot.dur.refs(rbind.fill(E,A)) }
+  A = cbind(aggr.srv(E),ref='*')
+  if (plot){
+    g = plot.srv.refs(E,A,dt=1/12,t0='onset',shape=epi) + labs(shape='Episode')
+    plot.save(g,'depr',uid,'dur.refs',ext=.ext,size=c(7,5)) }
   save.csv(A,'data','pub','dep.edur.aggr')
 }
-aggr.dur = function(E,g='g',v='value'){
+aggr.srv = function(E,g='g',v='value'){
   E$s = E$p * E$n
   E$e = -unlist(lapply(split(E$s,E[g]),diffe,dn=0))
-  A = aggregate(cbind(s=s,e=e)~month,E,sum)
+  A = aggregate(cbind(s=s,e=e)~month+type,E,sum)
   A[v] = c(1,cumprod(1-A$e/A$s)[-nrow(A)])
   A[c('e','s')] = NULL
   return(A)
 }
-plot.dur.refs = function(E){
-  E = rbind(cbind(subset(E,month <= 24),f=factor('First 24 months')),
-    cbind(E,f=factor('All available follow-up')))
+plot.srv.refs = function(E,A,dt=1,t0,...){
+  E = clean.df(E,c('srv','haz'))
+  A = rbind(A,df.ow(A,type='haz',value=diffe(-A$value,dn=NA)/dt))
+  A = clean.df(A,c('srv','haz'))
   g = ggplot(E,aes(x=month/12)) +
-    facet_wrap('f',ncol=1,scales='free_x') +
-    geom_point(data=subset(E,ref!='*'),aes(y=100*p,shape=epi,color=ref)) +
-    geom_step(data=subset(E,ref=='*'),aes(y=100*value),color='black') +
+    facet_grid('type',scales='free_y') +
+    geom_point(aes(y=p,color=ref,...)) +
+    geom_step(data=A,aes(y=value),color='black') +
     scale_shape_manual(values=c(1,0,2)) +
-    labs(x='Time since onset (years)',
-         y='Proportion still depressed (%)',
-         color='Reference',shape='Episode')
-  g = plot.clean(g)
-  plot.save(g,'depr',uid,'dur.refs',ext=.ext,size=c(7,6))
+    scale_x_continuous(breaks=2*0:10) +
+    labs(x=str('Time since ',t0,' (years)'),
+         y='Value',color='Reference')
+  g = plot.clean(g) + lims(y=c(0,NA))
 }
 load.dur = function(){
   E = load.csv('data','pub','dep.edur.aggr')
@@ -182,17 +191,17 @@ main.dur = function(prep=0){
   if (prep){ prep.dur() }
   E = cbind(load.dur(),cv=NA)
   cfg = list(
-    '(a) Frailty only'           = list(m=2.8,cv=0:3/2,wd=Inf),
-    '(b) Frailty + waning'       = list(m=2.8,cv=0:3/2,wd=.5),
-    '(c) Frailty + waning (fit)' = list(m=2.8,cv=0:3/2,wd=c(.3,.45,4,Inf)))
+    '(a) Frailty only'          = list(m=2.8,cv=0:3/2,wd=Inf),
+    '(b) Frailty + decay'       = list(m=2.8,cv=0:3/2,wd=.5),
+    '(c) Frailty + decay (fit)' = list(m=2.8,cv=0:3/2,wd=c(.3,.45,4,Inf)))
   M = rbind.lapply(names(cfg),function(k){
     par.k = ulist(cfg[[k]],k=factor(k))
     M.k = grid.apply(par.k,model.dur,.rbind=1,.grid=0,.par=0)
   })
   g = plot.dur(E,M,lty=src,color=factor(cv),f='type~k') +
-    clr.map.d(option='plasma',na.value='#0cc') +
+    clr.map.d(option='mako',na.value='#f60',end=.7) +
     scale_linetype_manual(values=c('11','solid')) +
-    labs(lty='Source',color='Frailty\nSD (σ)') + lims(x=c(0,dur$max))
+    labs(lty='Source',color='Recovery\nfrailty\nSD (σ)') + lims(x=c(0,dur$max))
   plot.save(g,'depr',uid,'dur.main',ext=.ext)
 }
 # main ========================================================================
