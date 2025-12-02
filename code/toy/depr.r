@@ -107,7 +107,7 @@ main.aao = function(){
   }
 }
 # dur =========================================================================
-prep.dur = function(plot=1){
+prep.dur = function(plot=0){
   E = load.csv('data','pub','dep.edur.refs')
   E = subset(E,inc==1)
   E$g = cumsum(E$month==0)
@@ -204,6 +204,36 @@ main.dur = function(prep=0){
     labs(lty='Source',color='Recovery\nfrailty\nSD (σ)') + lims(x=c(0,dur$max))
   plot.save(g,'depr',uid,'dur.main',ext=.ext)
 }
+# int =========================================================================
+prep.int = function(plot=0){
+  E = load.csv('data','pub','dep.idur.refs')
+  E = subset(E,inc==1)
+  E$g = cumsum(E$month==0)
+  E$ref = factor(E$ref,unique(E$ref))
+  E = rbind.lapply(split(E,E$g),function(Ei){
+    m = seq(0,max(Ei$month),6)
+    mo = na.to.num(Ei$offset[1])
+    f  = approxfun(Ei$month,Ei$p)
+    Ei = df.ow(Ei[1,],month=m,p=f(m),po=f(m)/f(mo))
+  })
+  lapply(split(E,E$ref),function(Ei){
+    Ai = aggr.srv(Ei)
+    qqq = approx(Ai$value,Ai$month,3:1/4,ties='mean')$y
+    cat(round(qqq,1),'@',str(Ei$ref[1]),'\n')
+  })
+  A = cbind(aggr.srv(E),ref='*')
+  A$inc = -log(A$value)*12/A$month
+  print(subset(A,month %in% c(6,12,24,60,120,180)))
+  if (plot){
+    g = plot.srv.refs(E,A,dt=1/2,t0='recovery')
+    plot.save(g,'depr',uid,'int.refs',ext=.ext,size=c(7,5)) }
+  save.csv(A,'data','pub','dep.idur.aggr')
+}
+
 # main ========================================================================
+
+load.aao(plot=1)
+prep.dur(plot=1)
+prep.int(plot=1)
 main.aao()
 main.dur()
