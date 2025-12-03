@@ -19,6 +19,7 @@ P0 = list(
   dep_x.Ri.het = 0,
   dep.cov = 0,
   het.distr = 'gamma',
+  RR.dep_o.dep_p = 1,
   run = get.run.par('dep',u=FALSE))
 
 PG = list(
@@ -27,20 +28,22 @@ PG = list(
   dep_x.Ri.my  = xdf(c(1,2,3),      seq(.5,3,.5)),
   dep_o.Ri.het = xdf(c(0,2,4,6),    seq(0,6,1)),
   dep_x.Ri.het = xdf(c(0,1,2,3),    seq(0,3,.5)),
-  dep.cov      = xdf(c(-.5,0,+.5),  seq(-.9,+.9,.3)))
+  dep.cov      = xdf(c(-.5,0,+.5),  seq(-.9,+.9,.3)),
+  RR.dep_o.dep_p = xdf(c(1,3,10,30),c(1:10,10*2:5)))
 
 t1y = add.pars.time(P0,P0$dtz)$t1y
 for (v in names(PG)){ PG[[v]] = round(PG[[v]],2) }
 grid.path = hash.path(ulist(P0,PG),'data','sim','depr',uid,.save=TRUE)
 YP0 = function(Y,v){ if.null(Y[[v]],P0[[v]]) }
 
-# subsets for plotting
+# subsets
 PGk = list(
-  base = P0[names(PG)],
+  base = PG[1],
   past = PG[c(1,2,4)],
   hom  = PG[1:3],
   hetu = PG[1:5],
-  hetc = PG[1:6])
+  hetc = PG[1:6],
+  scar = PG[c(1:3,7)])
 hetc.sub = quote(mo == 3 & mx == 150 & cov %in% c('–0.6','0','+0.6'))
 
 # -----------------------------------------------------------------------------
@@ -76,17 +79,18 @@ run.one = function(...,.par=FALSE){
   return(Y)
 }
 
-run.grid = function(){
-  Y = grid.apply(PG,run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
-  save.rds(Y,grid.path,str('b',.nb),str('Y.',.b))
+run.grid = function(k='hetc'){
+  Y = grid.apply(PGk[[k]],run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
+  save.rds(Y,grid.path,k,str('b',.nb),str('Y.',.b))
 }
 
-merge.rda = function(){
+merge.rda = function(k='hetc'){
   Y = rbind.lapply(1:.nb,function(b){
-    Yb = load.rds(grid.path,str('b',.nb),str('Y.',b)) })
+    Yb = load.rds(grid.path,k,str('b',.nb),str('Y.',b)) })
   par.lapply(unique(Y$id),function(i){
     Yi = subset(Y,id==i)
     for (k in names(PGk)){
+      if (!all(names(PGk[[k]]) %in% names(Yi))){ next }
       P0Gk = ulist(P0[names(PG)],PGk[[k]])
       Yik = merge(Yi,do.call(expand.grid,P0Gk))
       save.rds(Yik,grid.path,str('Y-',i,'-',k))
@@ -107,6 +111,7 @@ load.grid = function(k,i='dep.now',a10=FALSE,f=NULL){
   Y$ho  = YP0(Y,'dep_o.Ri.het')    # shorthand
   Y$hx  = YP0(Y,'dep_x.Ri.het')    # shorthand
   Y$cov = YP0(Y,'dep.cov')         # shorthand
+  Y$RRp = YP0(Y,'RR.dep_o.dep_p')  # shorthand
   Y$cov = factor(Y$cov,fl$cov,names(fl$cov))
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
