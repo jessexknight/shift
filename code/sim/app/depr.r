@@ -69,8 +69,8 @@ run.one = function(...,.par=FALSE){
     est.rates(K=K,strat='age.10'), # onset & recov: by age
     est.rates(K=K,strat='dep.past',e='dep_o'), # onset: by dep.past
     est.rates(K=K,strat=c('age.10','dep.past'),e='dep_o'), # onset: by age x dep.past
-    est.rates(K=subset(K,age.1==10|dep_x.dt.c==t1y),e='dep_o',sub='t1oa'), # 1-yr o/r
-    est.rates(K=subset(K,age.1==10),      e='dep_o',sub='t1oi'), # 1-yr onset
+    est.rates(K=subset(K,age.1==10 | dep_x.dt.c==t1y),e='dep_o',sub='t1oa'), # 1-yr o/r
+    est.rates(K=subset(K,age.1==10 & dep.past==0),    e='dep_o',sub='t1oi'), # 1-yr onset
     est.rates(K=subset(K,dep_x.dt.c==t1y),e='dep_o',sub='t1ol'), # 1-yr relap
     est.rates(K=subset(K,dep_o.dt.c==t1y),e='dep_x',sub='t1x'),  # 1-yr recov
     srv.targs(subset(K,e=='tmax'),T=T,strat='age.10'), # prev: by age
