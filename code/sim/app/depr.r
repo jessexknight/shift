@@ -1,6 +1,7 @@
 source('sim/meta.r')
 source('sim/fit.r')
 uid = '2025-12-01'
+.k     = cli.arg('.k','hetc')
 .b     = cli.arg('.b', 1)
 .nb    = cli.arg('.nb',1)
 .debug = cli.arg('.debug',1)
@@ -274,8 +275,8 @@ plot.rx.hetc = function(){
 # -----------------------------------------------------------------------------
 # main
 
-# run.grid()
-# merge.rda()
+# run.grid(.k)
+# merge.rda(.k)
 
 # plot.past()
 # plot.now.hom()
