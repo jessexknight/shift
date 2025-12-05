@@ -43,7 +43,7 @@ PGk = list(
   hom  = PG[1:3],
   hetu = PG[1:5],
   hetc = PG[1:6],
-  scar = PG[c(1:3,7)])
+  scar = PG[c(1:4,7)])
 hetc.sub = quote(mo == 3 & mx == 150 & cov %in% c('–0.6','0','+0.6'))
 
 # -----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ load.grid = function(k,i='dep.now',a10=FALSE,f=NULL){
   Y$ho  = YP0(Y,'dep_o.Ri.het')    # shorthand
   Y$hx  = YP0(Y,'dep_x.Ri.het')    # shorthand
   Y$cov = YP0(Y,'dep.cov')         # shorthand
-  Y$RRp = YP0(Y,'RR.dep_o.dep_p')  # shorthand
+  Y$rrp = YP0(Y,'RR.dep_o.dep_p')  # shorthand
   Y$cov = factor(Y$cov,fl$cov,names(fl$cov))
   Y[f] = lapply(Y[f],as.factor) # Y[f] -> factors
   return(Y)
@@ -151,6 +151,7 @@ l = list(
   ho  = 'Onset~frailty~SD (σ)',
   hx  = 'Recov~frailty~SD (σ)',
   cov = 'Rate~correlation',
+  rrp = 'Applied RR:~relap/onset',
   age = 'Age (years)',
   fup = 'Follow-up~time',
   dep.now  = 'Current~MDD~prevalence (%)',
