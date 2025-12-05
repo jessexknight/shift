@@ -45,7 +45,8 @@ PGk = list(
   hetu = PG[1:5],
   hetc = PG[1:6],
   scar = PG[c(1:4,7)])
-hetc.sub = quote(mo == 3 & mx == 150 & cov %in% c('–0.6','0','+0.6'))
+hetc.sub = quote(mx == 150 & mo == 3 & cov %in% c('–0.6','0','+0.6'))
+scar.sub = quote(mx == 150 & rrp %in% c(1,10*1:5))
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
@@ -118,10 +119,6 @@ load.grid = function(k,i='dep.now',a10=FALSE,f=NULL){
   return(Y)
 }
 
-add.m0 = function(Y,v=0){
-  Y = rbind(Y,df.ow(subset(Y,mo==Y$mo[1]),dep_o.Ri.my=0,mo=0,value=v))
-}
-
 # -----------------------------------------------------------------------------
 # exact model
 
@@ -180,14 +177,16 @@ fl = list(
 cmap = lapply(list(mo='rocket',ho='rocket',mx='mako',hx='mako'),
   function(o){ clr.map.d(option=o,end=.7) })
 
-# grey rects
-yyy = list(dep.now=c(01,12,20),dep.past=c(15,30,60)) # rect,rect,lim
-rect = def.args(annotate,'rect',xmin=-Inf,xmax=+Inf,
+# grey rects / lines
+yyy = list(dep.now=c(01,15,20),dep.past=c(15,50,65)) # rect,rect,lim
+ref.rect = def.args(annotate,'rect',xmin=-Inf,xmax=+Inf,
   alpha=1/3,fill='#ccc',color='#ccc',lty='11')
+ref.line = def.args(geom_line,color='#ccc',lty='11')
 
 plot.core = function(g,id,ylim,ribbon=1/5,ci=.95){
   yi = if.null(yyy[[id]],c(-Inf,+Inf,NA))
-  g = g + rect(ymin=-Inf,ymax=yi[1]) + rect(ymax=+Inf,ymin=yi[2]) +
+  g = g + ref.rect(ymin=-Inf,ymax=yi[1]) +
+          ref.rect(ymax=+Inf,ymin=yi[2]) +
     stat_summary(geom='ribbon',color=NA,alpha=ribbon,
       fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)) +
     stat_summary(geom='line',fun=median) +
@@ -199,7 +198,7 @@ plot.exact = function(Y){
   geom_point(data=run.exact(Y),shape=21,fill='#fc0',size=1)
 }
 
-plot.1o = list(w1=1.5,h1=1.5,wo=2,ho=1) # plot size
+plot.1o = list(w1=1.8,h1=1.6,wo=2,ho=1) # plot size
 
 plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
   g = plot.clean(g,font=font,legend.spacing=unit(0,'mm'))
@@ -208,6 +207,10 @@ plot.save.i = function(g,...,ext='.png',font='Alegreya Sans'){
 
 # -----------------------------------------------------------------------------
 # plot apps
+
+add.m0 = function(Y,v=0){
+  Y = rbind(Y,df.ow(subset(Y,mo==Y$mo[1]),dep_o.Ri.my=0,mo=0,value=v))
+}
 
 plot.past = function(){
   Y = add.m0(load.grid(k='past',i='dep.past',f='ho'))
@@ -231,16 +234,15 @@ plot.now.hom = function(){
 
 plot.now.hetc = function(){
   Y = subset(load.grid(k='hetc',f='cov'),eval(hetc.sub))
-  g = ggplot(Y,aes(y=value,x=ho,color=factor(hx))) + facet_grid('. ~ cov',labeller=fct(l$cov))
-  g = plot.core(g,'dep.now',ribbon=0) + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx))
+  g = ggplot(Y,aes(y=value,x=ho,color=factor(hx),fill=factor(hx))) + facet_grid('. ~ cov',labeller=fct(l$cov))
+  g = plot.core(g,'dep.now') + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx),fill=grp(l$hx))
   plot.save.i(g,'now.hetc.o')
-  g = ggplot(Y,aes(y=value,x=hx,color=factor(ho))) + facet_grid('. ~ cov',labeller=fct(l$cov))
-  g = plot.core(g,'dep.now',ribbon=0) + cmap$ho + labs(x=axi(l$hx),color=grp(l$ho))
+  g = ggplot(Y,aes(y=value,x=hx,color=factor(ho),fill=factor(ho))) + facet_grid('. ~ cov',labeller=fct(l$cov))
+  g = plot.core(g,'dep.now') + cmap$ho + labs(x=axi(l$hx),color=grp(l$ho),fill=grp(l$ho))
   plot.save.i(g,'now.hetc.x')
 }
 
-plot.ro.hetc = function(){
-  Y = subset(load.grid(k='hetc',i='dep_o',f=c('hx','cov')),eval(hetc.sub) & hx %in% (0:3/2))
+clean.ro = function(Y){
   names(fl$ro) = add.enum(names(fl$ro),'i')
   lRR = names(fl$ro)[4] # helper
   Y$dep.past[Y$sub=='t1oi'] = 0 # HACK
@@ -249,27 +251,52 @@ plot.ro.hetc = function(){
   Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
   Y = rbind(Y,df.ow(subset(Y,is.na(dep.past)),id=lRR, # add RR
     value=subset(Y,dep.past==1)$value/subset(Y,dep.past==0)$value))
-  print(m95(subset(Y,id==lRR & ho==0 & hx==0)$value)) # NUM
-  Yi = aggregate(cbind(value=mo)~ho+hx+id+cov,Y,mean) # model input
-  Yi$value[Yi$id==lRR] = 1
+}
+
+plot.ro.hetc = function(){
+  Y = clean.ro(subset(load.grid(k='hetc',i='dep_o',f=c('hx','cov')),eval(hetc.sub) & hx %in% (0:3/2)))
+  print(m95(subset(Y,id==last(id) & ho==0 & hx==0)$value)) # NUM
+  Yi = aggregate(cbind(value=mo)~id+ho+hx+cov,Y,mean) # model input
+  Yi$value[Yi$id==last(Y$id)] = 1
   for (t1 in 0:1){ # any,1-year
-    g = ggplot(subset(Y,is.na(sub)!=t1),aes(y=value,x=ho,color=hx,fill=hx)) +
+    g = ggplot(subset(Y,is.na(sub)==t1),aes(y=value,x=ho,color=hx,fill=hx)) +
       facet_grid('id ~ cov',labeller=labeller(.cols=fct(l$cov)),scales='free') +
-      geom_line(data=Yi,color='#ccc',lty='11')
+      ref.line(data=Yi)
     g = plot.core(g,'dep_o') + cmap$hx + labs(x=axi(l$ho),color=grp(l$hx),fill=grp(l$hx))
     plot.save.i(g,str('ro.hetc.',ifelse(t1,'all','t1')))
   }
 }
 
+plot.ro.age = function(){
+  Y = clean.ro(subset(load.grid(k='hetu',i='dep_o',a10=1,f='ho'),eval(hetc.sub) & ho %in% 0:3 & hx==1))
+  Yi = aggregate(cbind(value=mo)~id+age.10+ho,Y,mean) # model input
+  Yi$value[Yi$id==last(Y$id)] = 1
+  g = ggplot(Y,aes(y=value,x=as.factor(age.10),color=ho,fill=ho,group=ho)) +
+    facet_grid('id',scales='free') +
+    ref.line(data=Yi)
+  g = plot.core(g,'dep_o') + cmap$ho + labs(x=axi(l$age),color=grp(l$ho),fill=grp(l$ho))
+  plot.save.i(g,str('ro.age.all'))
+}
+
 plot.rx.hetc = function(){
   Y = subset(load.grid(k='hetc',i='dep_x',f=c('ho','cov')),eval(hetc.sub) & ho %in% 0:3)
   Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
-  Yi = aggregate(cbind(value=mx)~ho+hx+id+cov,Y,mean) # model input
+  Yi = aggregate(cbind(value=mx)~id+ho+hx+cov,Y,mean) # model input
   g = ggplot(subset(Y,is.na(dep.past)),aes(y=value,x=hx,color=ho,fill=ho)) +
     facet_grid('fup ~ cov',labeller=labeller(.rows=fct(l$fup),.cols=fct(l$cov))) +
-    geom_line(data=Yi,color='#ccc',lty='11')
+    ref.line(data=Yi)
   g = plot.core(g,'dep_x') + cmap$ho + labs(x=axi(l$hx),color=grp(l$ho),fill=grp(l$ho))
   plot.save.i(g,'rx.hetc')
+}
+
+plot.ro.scar = function(){
+  Y = clean.ro(subset(load.grid(k='scar',i='dep_o',f='ho'),eval(scar.sub) & mo %in% 2:4 & ho %in% 0:3))
+  for (t1 in 0:1){ # any,1-year
+    g = ggplot(subset(Y,is.na(sub)==t1),aes(y=value,x=rrp,color=ho,fill=ho)) +
+      facet_grid('id ~ mo',labeller=labeller(.cols=fct(l$mo)),scales='free')
+    g = plot.core(g,'dep_o') + cmap$mo + labs(x=axi(l$rrp),color=grp(l$ho),fill=grp(l$ho))
+    plot.save.i(g,str('ro.scar.',ifelse(t1,'all','t1')))
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -282,4 +309,6 @@ plot.rx.hetc = function(){
 # plot.now.hom()
 # plot.now.hetc()
 # plot.ro.hetc()
+# plot.ro.age()
 # plot.rx.hetc()
+# plot.ro.scar()
