@@ -128,7 +128,7 @@ hash.path = function(info,...,.len=11,.save=TRUE){
 # note: load ggplot2 elsewhere for speed
 
 plot.save = function(g,...,size=NULL,ext='.pdf'){
-  if (missing(size)){ size = plot.size(g) }
+  if (is.null(size)){ size = plot.size(g) }
   if (ext=='.pdf'){ dev = cairo_pdf } else { dev = NULL }
   fname = root.path('out','fig',...,ext=ext,create=TRUE)
   status(3,'save: ',fname)
@@ -155,12 +155,13 @@ clr.map.m = function(x,...){ list(
   ggplot2::scale_fill_manual(values=x,...)) }
 qfun = function(p){ def.args(quantile,p=p) } # e.g. for stat_summary(...,fun=qfun(.5))
 
-str.lab = function(pre='',post=''){
+str.lab = function(pre='',post='',enum=NULL){
   # e.g. facet_*(...,labeller=str.lab('Y = ',' %')) -> 'Y = ... %'
-  ggplot2::as_labeller(function(x){ str(pre,x,post) })
+  ggplot2::as_labeller(function(x){ add.enum(str(pre,x,post),fmt=enum) })
 }
 
 add.enum = function(x,fmt='a',pre='(',post=') '){
+  if (is.null(fmt)){ return(x) }
   i = seqa(x)
   y = set.names(str(pre,list('1'=i,
     'a'=letters[i],
@@ -382,6 +383,7 @@ p2 = c(lo=.025,hi=.975)
 p3 = c(lo=.025,md=.5,hi=.975)
 p5 = c(.025,.25,.5,.75,.975)
 q2 = qnorm(p2)
+m95 = function(x){ c(m=mean(x),quantile(x,p2)) }
 
 fit.beta = function(qs,ps=p2){
   efun = function(par){ e = sum(abs(ps-pbeta(qs,par[1],par[2]))) }
