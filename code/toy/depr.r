@@ -2,7 +2,7 @@ source('utils.r')
 library('ggplot2')
 library('reshape2')
 # config ======================================================================
-uid = '2025-12-01'
+uid = '2025-12-09'
 age = list(max=60,u=.1);  age$vec=seq(age$u,age$max,age$u); age$n=len(age$vec)
 dur = list(max= 5,u=.01); dur$vec=seq(dur$u,dur$max,dur$u); dur$n=len(dur$vec)
 types = list(
