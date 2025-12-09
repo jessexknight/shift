@@ -141,7 +141,7 @@ aggr.srv = function(E,g='g',v='value'){
 }
 plot.srv.refs = function(E,A,dt=1,t0,...){
   E = clean.df(E,c('srv','haz'))
-  A = rbind(A,df.ow(A,type='haz',value=diffe(-A$value,dn=NA)/dt))
+  A = rbind(A,df.ow(A,type='haz',value=diffe(-A$value,dn=NA)/A$value/dt))
   A = clean.df(A,c('srv','haz'))
   g = ggplot(E,aes(x=month/12)) +
     facet_grid('type',scales='free_y') +
