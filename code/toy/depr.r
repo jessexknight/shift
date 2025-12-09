@@ -2,7 +2,7 @@ source('utils.r')
 library('ggplot2')
 library('reshape2')
 # config ======================================================================
-uid = Sys.Date()
+uid = '2025-12-01'
 age = list(max=60,u=.1);  age$vec=seq(age$u,age$max,age$u); age$n=len(age$vec)
 dur = list(max= 5,u=.01); dur$vec=seq(dur$u,dur$max,dur$u); dur$n=len(dur$vec)
 types = list(
@@ -13,8 +13,7 @@ types = list(
   srv='Cumulative survival',
   cum='Cumulative incidence',
   hrr='Apparent frailty HRR')
-plot.1o = list(w1=2.1,h1=1.6,wo=1.3,ho=1)
-.ext = '.png'
+plot.1o = list(w1=1.8,h1=1.2,wo=1.5,ho=1.3) # plot size
 # helpers ---------------------------------------------------------------------
 diffe = function(x,d0=NULL,dn=NULL){ c(d0,diff(x),dn) }
 clean.df = function(X,ys){
@@ -23,6 +22,10 @@ clean.df = function(X,ys){
   y = add.enum(types[ys],'i')
   X$type = factor(X$type,names(y),y)
   return(X) }
+plot.save.i = function(g,...,size=NULL,ext='.png'){
+  g = plot.clean(g,font='Alegreya Sans',legend.spacing=unit(0,'mm'))
+  plot.save(g,'depr',uid,...,ext=ext,size=size)
+}
 # aao =========================================================================
 load.aao = function(plot=0){
   E = load.csv('data','pub','McGrath2023'); m = age$max # HACK
@@ -44,11 +47,12 @@ load.aao = function(plot=0){
   E$sex = factor(E$sex,c('female','male','pooled'))
   E$sv  = factor(E$sv,c('HR','CI'))
   if (plot){
+    levels(E$sex) = add.enum(levels(E$sex)) # HACK
     g = plot.aao(E,ys=c('haz','inc','cum'),f='type~sex',alpha=sk,color=sv) +
       scale_alpha_manual(values=c(1,.2)) +
       labs(alpha='',color='Source') +
       theme(legend.position='top')
-    plot.save(g,'depr',uid,'aao.McGrath2023',ext=.ext,size=c(7,6)) }
+    plot.save.i(g,'aao.McGrath2023') }
   E = df.ow(subset(E,sv=='HR'),src='data',ref='McGrath2023')
 }
 # model -----------------------------------------------------------------------
@@ -78,7 +82,6 @@ plot.aao = function(E,M=NULL,ys=NULL,f='type',...){
     geom_line(data=clean.df(M,ys)) +
     geom_line() +
     lims(x=c(0,age$max),y=c(0,NA))
-  g = plot.clean(g)
 }
 # main ------------------------------------------------------------------------
 main.aao = function(){
@@ -102,8 +105,8 @@ main.aao = function(){
     g = plot.aao(E,M,lty=src,color=factor(cv),f='type~k') +
       clr.map.d(option='rocket',na.value='#0cf',end=.7) +
       scale_linetype_manual(values=c('21','solid')) +
-      labs(lty='Source',color='Onset\nfrailty\nSD (σ)') + lims(x=c(0,age$max))
-    plot.save(g,'depr',uid,str('aao.',s),ext=.ext)
+      labs(lty='Source',color='Onset\nfrailty\nSD, σᵤ') + lims(x=c(0,age$max))
+    plot.save.i(g,str('aao.',s))
   }
 }
 # dur =========================================================================
@@ -125,7 +128,7 @@ prep.dur = function(plot=0){
   A = cbind(aggr.srv(E),ref='*')
   if (plot){
     g = plot.srv.refs(E,A,dt=1/12,t0='onset',shape=epi) + labs(shape='Episode')
-    plot.save(g,'depr',uid,'dur.refs',ext=.ext,size=c(7,5)) }
+    plot.save.i(g,'dur.refs',size=c(6,4)) }
   save.csv(A,'data','pub','dep.edur.aggr')
 }
 aggr.srv = function(E,g='g',v='value'){
@@ -147,16 +150,16 @@ plot.srv.refs = function(E,A,dt=1,t0,...){
     scale_shape_manual(values=c(1,0,2)) +
     scale_x_continuous(breaks=2*0:10) +
     labs(x=str('Time since ',t0,' (years)'),
-         y='Value',color='Reference')
-  g = plot.clean(g) + lims(y=c(0,NA))
+         y='Value',color='Reference') +
+    lims(y=c(0,NA))
 }
 load.dur = function(){
   E = load.csv('data','pub','dep.edur.aggr')
   F = 1-E$value
   E = rbind(
     df.ow(E,type='cum',value=F),
-    df.ow(E,type='inc',value=12*diffe(F,d0=0)),
-    df.ow(E,type='haz',value=12*diffe(F,d0=0)/(1-F)))
+    df.ow(E,type='inc',value=12*diffe(F,dn=NA)),
+    df.ow(E,type='haz',value=12*diffe(F,dn=NA)/(1-F)))
   E = cbind(E,src='data')
 }
 # model -----------------------------------------------------------------------
@@ -184,7 +187,6 @@ plot.dur = function(E,M,ys=NULL,f='type',...){
     labs(x='Time since onset (years)',y='Value') +
     geom_line(data=clean.df(M,ys)) +
     geom_line()
-  g = plot.clean(g)
 }
 # main ------------------------------------------------------------------------
 main.dur = function(prep=0){
@@ -200,9 +202,9 @@ main.dur = function(prep=0){
   })
   g = plot.dur(E,M,lty=src,color=factor(cv),f='type~k') +
     clr.map.d(option='mako',na.value='#f60',end=.7) +
-    scale_linetype_manual(values=c('11','solid')) +
-    labs(lty='Source',color='Recovery\nfrailty\nSD (σ)') + lims(x=c(0,dur$max))
-  plot.save(g,'depr',uid,'dur.main',ext=.ext)
+    scale_linetype_manual(values=c('21','solid')) +
+    labs(lty='Source',color='Recovery\nfrailty\nSD σᵥ') + lims(x=c(0,dur$max))
+  plot.save.i(g,'dur.main')
 }
 # int =========================================================================
 prep.int = function(plot=0){
@@ -226,7 +228,7 @@ prep.int = function(plot=0){
   print(subset(A,month %in% c(6,12,24,60,120,180)))
   if (plot){
     g = plot.srv.refs(E,A,dt=1/2,t0='recovery')
-    plot.save(g,'depr',uid,'int.refs',ext=.ext,size=c(7,5)) }
+    plot.save.i(g,'int.refs',size=c(6,4)) }
   save.csv(A,'data','pub','dep.idur.aggr')
 }
 
