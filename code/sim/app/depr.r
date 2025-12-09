@@ -280,6 +280,18 @@ plot.ro.age = function(){
   plot.save.i(g,str('ro.age.all'))
 }
 
+plot.ro.cov = function(){
+  Y = clean.ro(subset(load.grid(k='hetc',i='dep_o',f=c('ho','hx')), eval(sub.cov)))
+  Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
+  Yi = aggregate(cbind(value=mo)~id+ho+hx+cov,Y,mean) # model input
+  Yi$value[Yi$id==last(Y$id)] = 1
+  g = ggplot(Y,aes(y=value,x=cov,lty=hx,color=ho,fill=ho,group=interac(ho,hx))) +
+    facet_grid('id ~ fup',labeller=labeller(.cols=fct(l$fup,'a')),scales='free') +
+    scale_linetype_manual(values=c('solid','31','11')) + ref.line(data=Yi)
+  g = plot.core(g,'dep_o') + cmap$ho + labs(x=axi(l$cov),color=grp(l$ho),fill=grp(l$ho),lty=grp(l$hx))
+  plot.save.i(g,str('ro.cov'))
+}
+
 plot.rx.hetc = function(){
   Y = subset(load.grid(k='hetc',i='dep_x',f=c('ho','cov')),eval(sub.hetc) & ho %in% 0:3)
   Y$fup = factor(!is.na(Y$sub),fl$fup,names(fl$fup)) # any,1-year
@@ -311,6 +323,7 @@ plot.ro.scar = function(){
 # plot.now.hom()
 # plot.now.hetc()
 # plot.ro.hetc()
+# plot.ro.cov()
 # plot.ro.age()
 # plot.rx.hetc()
 # plot.ro.scar()
