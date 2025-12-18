@@ -11,7 +11,7 @@ uid = '2025-12-09'
 
 P0 = list(
   seed = 1:xdf(7,21),
-  dtz = xdf(15,7),
+  dtz = xdf(7,7),
   n.pop = xdf(3000,10000),
   n.dur = 1,
   dep_o.Ri.my = .01,
