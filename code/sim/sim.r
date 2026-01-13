@@ -41,7 +41,9 @@ init.inds = function(P){
   sex.Ri = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   # create main df of individuals ---------------------------------------------
-  age = runif(n,min=amin-P$n.dur*adur,max=amax)
+  age = switch(P$pop.type,
+    open   = runif(n,min=amin-P$n.dur*adur,max=amax),
+    cohort = runif(n,min=amin-1/P$z1y,max=amin))
   I = data.frame(
     i = seq(n),
     t.born  = -age*P$t1y,
@@ -155,7 +157,7 @@ rate.haz_x = function(P,J,R,aj,z){
 ); return(R) }
 
 rate.ptr_o = function(P,J,R,aj,z){
-  j = which(J$age > J$age.act & J$ptr.nw < J$ptr.max)
+  j = which(J$age >= J$age.act & J$ptr.nw < J$ptr.max)
   R[j] = aggr.rate( # among sex active & avail
       J$ptr_o.Ri[j] # base rate
     , P$aRR.ptr_o[aj[j]] # RR age
@@ -206,7 +208,7 @@ sim.run = function(P,sub='act'){
     I$age = I$age + 1/P$z1y
     # TODO: ? mort
     # select active inds ------------------------------------------------------
-    i = which(I$age > amin & I$age <= amax)
+    i = which(I$age >= amin & I$age < amax)
     J = I[i,] # (mostly) read-only copy of active
     ij = match(J$i,I$i) # maps j -> j
     aj = floor(J$age) # integer age vector for j
@@ -267,8 +269,9 @@ sim.run = function(P,sub='act'){
   # clean-up ------------------------------------------------------------------
   x = c('vio.zr','dep.zo','haz.zo')
   I[gsub('z','t',x)] = P$dtz * I[x]; I[x] = NULL # convert *.z -> *.t
-  g = (I$t.born/P$t1y+amin)/adur # generation for subset below
-  I$sub = factor((g > 0) + (g > P$n.dur-1),0:2,c('dum','obs','act')) # subset
+  I$sub = factor(
+    ifelse(I$t.born < -amin*P$t1y,'dum',
+    ifelse(I$age    <  amax,'act','obs')))
   E = lapply(E,apply,2,rep.int,x=P$dtz*(1:P$zf)) # n mat -> t vecs
   for (e in evts[lens(E)==0]){ E[[e]] = lapply(rep(0,P$n.tot),integer) } # BUGFIX
   M = sim.sub(M=list(P=P,I=I,E=E),sub=sub) # collect

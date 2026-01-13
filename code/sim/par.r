@@ -2,8 +2,8 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL,fun=identity){
-  P = list(case=case,seed=seed) # meta
+get.pars = function(seed=0,...,dtz=7,null=NULL,save=NULL,fun=identity){
+  P = list(case='base',seed=seed) # meta
   P = add.pars.def(P)         # default (upstream)
   P = add.pars.time(P,dtz)    # timestep-related
   P = null.pars(P,null,save)  # null some Ri,RR
@@ -15,8 +15,9 @@ get.pars = function(seed=0,...,dtz=7,case='base',null=NULL,save=NULL,fun=identit
 add.pars.def = function(P=NULL){
   P$run = list(vio=TRUE,dep=TRUE,haz=TRUE,ptr=TRUE,sex=TRUE)
   # pop size & duration
-  P$n.pop = 1000
-  P$n.dur = 1+1
+  P$pop.type = 'open' # open or cohort
+  P$n.dur = 1         # num lifetimes (adur) to simulate if open
+  P$n.pop = 1000      # pop size (exact for cohort, mean for open)
   # base rates (per year)
   P$vio.Ri.my   = 0.67     # (mean) base rate: violence
   P$dep_o.Ri.my =  .02     # (mean) base rate: depression begin
@@ -105,7 +106,7 @@ add.pars.time = function(P,dtz){
 add.pars.cond = function(P){
   P$zf    = P$n.dur*adur*P$z1y # final timestep
   P$tf    = P$zf * P$dtz       # final time (days)
-  P$n.tot = P$n.pop * (1+P$n.dur) # total inds needed
+  P$n.tot = P$n.pop * (P$n.dur + (P$pop.type=='open')) # total inds needed
   P$het   = het.funs[[P$het.distr]] # funs for sampling ind rates
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
