@@ -50,12 +50,13 @@ glm.out = function(...,ctx=identity){
   # run glm & extract outputs = (est.mu, est.se, estim, lower, upper)
   # for first non-intercept coef
   m = glm.run(...)
-  est = summary(m)$coef[2,1:2] # raw coef & std err
+  est = m$coef[2] # coef estimate
+  ese = summary(m)$coef[,2][2] # coef std err
   eci = confint.default(m,2) # transformed coef & 95% CI
   out = list(
-    est.mu = est[1],
-    est.se = est[2],
-    value = ctx(est[1]),
+    est.mu = est,
+    est.se = ese,
+    value = ctx(est),
     lower = ctx(eci[1]),
     upper = ctx(eci[2]))
 }
