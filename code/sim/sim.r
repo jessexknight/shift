@@ -74,6 +74,7 @@ init.inds = function(P){
     sex.Ri = sex.Ri,
     cdm.Pi = cdm.Pi
   )
+  I = P$init.inds(I,P)
 }
 
 init.ptrs = function(P,I,i,z){

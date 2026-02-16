@@ -14,6 +14,7 @@ get.pars = function(seed=0,...,dtz=7,null=NULL,save=NULL,fun=identity){
 
 add.pars.def = function(P=NULL){
   P$run = list(vio=TRUE,dep=TRUE,haz=TRUE,ptr=TRUE,sex=TRUE)
+  P$init.inds = function(I,P){ I }
   # pop size & duration
   P$pop.type = 'open' # open or cohort
   P$n.dur = 1         # num lifetimes (adur) to simulate if open
