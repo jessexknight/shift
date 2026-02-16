@@ -403,21 +403,25 @@ rR2 = function(n,x0,xR,p0=.5){ x = qR2(runif(n),x0,xR,p0) }
 het.funs = list(
   # m = mean; het = CV (sd / mean)
   gamma = list(
+    l = 'Gamma',
     r = function(n,m,het){ cv2 = max(het^2,1e-9); rgamma(n,shape=1/cv2,scale=m*cv2) },
     d = function(x,m,het){ cv2 = max(het^2,1e-9); dgamma(x,shape=1/cv2,scale=m*cv2) },
     p = function(q,m,het){ cv2 = max(het^2,1e-9); pgamma(q,shape=1/cv2,scale=m*cv2) },
     q = function(p,m,het){ cv2 = max(het^2,1e-9); qgamma(p,shape=1/cv2,scale=m*cv2) }),
   weibull = list(
+    l = 'Weibull',
     r = function(n,m,het){ f = fit.weibull(m,het^2); rweibull(n,shape=f$shape,scale=f$scale) },
     d = function(x,m,het){ f = fit.weibull(m,het^2); dweibull(x,shape=f$shape,scale=f$scale) },
     p = function(q,m,het){ f = fit.weibull(m,het^2); pweibull(q,shape=f$shape,scale=f$scale) },
     q = function(p,m,het){ f = fit.weibull(m,het^2); qweibull(p,shape=f$shape,scale=f$scale) }),
   lnorm = list(
+    l = 'Log-Norm',
     r = function(n,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); rlnorm(n,meanlog=u,sdlog=s) },
     d = function(x,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); dlnorm(x,meanlog=u,sdlog=s) },
     p = function(q,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); plnorm(q,meanlog=u,sdlog=s) },
     q = function(p,m,het){ u = log(m/sqrt(1+het^2)); s = sqrt(log(1+het^2)); qlnorm(p,meanlog=u,sdlog=s) }),
   norm = list(
+    l = 'Normal',
     r = function(n,m,het){ rnorm(n,mean=m,sd=m*het) },
     d = function(x,m,het){ dnorm(x,mean=m,sd=m*het) },
     p = function(q,m,het){ pnorm(q,mean=m,sd=m*het) },
