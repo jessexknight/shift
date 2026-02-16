@@ -4,7 +4,7 @@ X = list(
 SCRIPT = 'sim/app/mass.r',
 NAME   = 'mass',
 FLAGS  = '.debug=0 .k=RRo.rev.eR2',
-NR     = 2835,   # num runs (total)
+NR     = 3000,   # num runs (total)
 TPR    = 20,     # time per run (sec)
 MPR    = 2,      # mem per run (GB)
 NB     = 100,    # num batches
