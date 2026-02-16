@@ -3,18 +3,18 @@
 # prep survey data & calculate mass = measures of association
 
 mass.calc = function(ofun,ve,vo,Q1,Q2,
-    va1=NULL,va2=NULL,vs=NULL,by=NULL,sub=NULL,ao1=TRUE){
+    va1=NULL,va2=NULL,strat=NULL,by=NULL,sub=NULL,ao1=FALSE){
   # compute a measure of assoc for vo ~ ve + va1 + va2,
   # stratified by vs, from Q1 & Q2 (2 timepoints)
   if (missing(Q1)){ Q1 = Q2[Q2$t==min(Q2$t),] }
   if (missing(Q2)){ Q2 = Q1[Q1$t==max(Q1$t),] }
   va = c(va1,va2)       # adjust vars
-  vs = c(vs,'seed')     # strat vars
-  by = c(by,'i','seed') # index vars for merging
+  vs = c(strat,'seed')  # strat vars
+  by = c(by,'i',vs)     # index vars for merging
   Q = merge(by=by,suffix=c('.te','.to'),
     Q1[c(by,'t',ve,vo,va1)],
     Q2[c(by,'t',ve,vo,va2)])
-  if (ao1){ va = c(va,str(vo,'.te')) }
+  if (ao1){ va = c(va,str(vo,'.te')) } # adj for vo @ te
   Q = df.sub(Q,sub)
   A = rbind.lapply(split(Q,Q[vs]),function(Qi){ # strata
     out = ofun(Qi,ve,vo,va) # calculate mass
