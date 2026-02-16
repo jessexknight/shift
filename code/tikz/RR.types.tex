@@ -1,0 +1,35 @@
+\newcommand{\teff}[1]{((\t>=#1)*exp(-(\t-#1)/6))}%
+\newcommand{\ceff}[2]{((\t>=#1)*(\t-#1)-(\t>=#2)*(\t-#2))}%
+\newcommand{\eplot}[4]{%
+  \node[#2,lab,right] at (51,#1.5) {#3 effect};
+  \fill[ageplot,fill=#2,fade] plot (\t,{#1+#4}) -- (50,#1);
+  \draw[ageplot,draw=#2]      plot (\t,{#1+#4}); }%
+\newcommand{\class}[2]{%
+  \node[white,fill=black!20,anchor=west,lab,rotate=90,minimum width=18mm]
+    at (-4,#1-.5) {\strut#2}; }%
+\begin{tikzpicture}[x=1.2mm,y=4mm]
+  % ongoing --------------------------------------------------------------------
+  \def\y{-4}
+  \draw[red] node[lab,right] at (51,\y) {exposure}
+    ( 7,\y) edge[o-x] (15,\y)
+    (34,\y) edge[o-]  (50,\y);
+  \eplot{\y+1}{grn}{first-ever}{.67*(\t>=7)}
+  \eplot{\y+2}{blu}{transient} {.67*or(and(\t>=7,\t<=15),and(\t>=34,\t<50))}
+  \eplot{\y+3}{vio}{cumulative}{.67/25*(\ceff{7}{15}+\ceff{34}{50})}
+  \class{\y}{ongoing}
+  % instant --------------------------------------------------------------------
+  \def\y{-9}
+  \draw[red,dash=01] node[lab,right] at (51,\y) {exposure}
+    (21,\y) edge[e-] ++(1,0)
+    (23,\y) edge[e-] ++(1,0)
+    (44,\y) edge[e-] ++(1,0)
+    (49,\y) edge[e-] ++(1,0);
+  \eplot{\y+1}{grn}{first-ever}{0.67*(\t>=21)}
+  \eplot{\y+2}{blu}{transient} {0.50*(\teff{21}+\teff{23}+\teff{44}+\teff{49})}
+  \eplot{\y+3}{vio}{cumulative}{0.67/4*((\t>=21)+(\t>=23)+(\t>=44)+(\t>=49))}
+  \class{\y}{instantaneous}
+  % misc -----------------------------------------------------------------------
+  \draw[gry,dash=44] ( 0,.5) node[lab,above] {\strut time zero} -- ( 0,-10);
+  \draw[yel,dash=44] (50,.5) node[lab,above] {\strut survey}    -- (50,-10);
+  \fill[yel,fade]    (50,.5) rectangle (45,-10);
+\end{tikzpicture}

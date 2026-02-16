@@ -1,0 +1,18 @@
+\begin{tikzpicture}[x=5em,y=5em,
+  arrow/.style={thick},
+  state/.style={var=#1,
+    align=center,
+    minimum height=2.5em,
+    minimum width=2.5em}]
+  \foreach \i in {4,3,2,1,0}{
+    \node[state=gray!100!c1] (xn\i) at (1+\i/20,-\i/20) {\strut{never} \\$a_{10}$};
+    \node[state=gray!000!c1] (xa\i) at (2+\i/20,-\i/20) {\strut{active}\\$a_{10}$};
+    \node[state=gray!050!c1] (xp\i) at (3+\i/20,-\i/20) {\strut{past}  \\$a_{10}$}; }
+  \draw[arrow,->] (xn0.010) -- node[lab,above,pos=.6] {$\onset_i$} (xa0.170);
+  \draw[arrow,->] (xa0.010) -- node[lab,above,pos=.6] {$\recov_i$} (xp0.170);
+  \draw[arrow,<-] (xa0.350) -- node[lab,below,pos=.6] {$\relap_i$} (xp0.190);
+  \foreach \s in {n,a,p}{
+    \draw[arrow,->,dash=22] (x\s4.315) -- ++(+.2,-.2) node[lab,right] {$\varepsilon$};}
+    \draw[arrow,<-,dash=22] (xn0.135)  -- ++(-.2,+.2) node[lab,left]  {$\varepsilon$};
+  \draw[arrow,->,dash=22] (0.6,-.25) -- node[lab,below,rotate=-45]{age ($a$)} ++(.35,-.35);
+\end{tikzpicture}%
