@@ -79,6 +79,19 @@ status = function(lvl,...,id=NULL){
   cat(pre,...,sprintf('%6d',id),end,sep='')
 }
 
+load.txt = function(...,ext='.txt'){
+  fname = root.path(...,ext=ext)
+  status(3,'load: ',fname)
+  readLines(con=fname)
+}
+
+save.txt = function(X,...,ext='.txt'){
+  fname = root.path(...,ext=ext,create=TRUE)
+  status(3,'save: ',fname)
+  cat(X,file=fname,sep='\n')
+}
+
+
 load.csv = function(...,ext='.csv'){
   fname = root.path(...,ext=ext)
   status(3,'load: ',fname)
