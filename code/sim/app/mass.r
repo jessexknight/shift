@@ -44,18 +44,21 @@ Gi = function(i,...){ ulist(G0,lapply(G[i],`[[`,'vg'),...) }
 PG = function(Gk,...){ ulist(P0,set.names(Gk,ids[names(Gk)]),...) }
 
 Gk = list()
-Gk$RRo.fix.base = Gi(ek='fix',c('seed','RRo'))
-Gk$RRo.fix.eRo  = Gi(ek='fix',c('seed','RRo','ep'))
-Gk$RRo.irr.base = Gi(ek='irr',c('seed','RRo'))
-Gk$RRo.irr.eRo  = Gi(ek='irr',c('seed','RRo','eRo','eHo'))
-Gk$RRo.irr.oRo  = Gi(ek='irr',c('seed','RRo','oRo','oHo'))
 Gk$RRo.rev.base = Gi(ek='rev',c('seed','RRo'))
+Gk$RRx.rev.base = Gi(ek='rev',c('seed','RRx'))
+Gk$RR2.rev.base = Gi(ek='rev',c('seed','RRo','RRx'))
 Gk$RRo.rev.eRo  = Gi(ek='rev',c('seed','RRo','eRo','eHo'))
 Gk$RRo.rev.eRx  = Gi(ek='rev',c('seed','RRo','eRx','eHx'))
 Gk$RRo.rev.eR2  = Gi(ek='rev',c('seed','RRo','eRo','eRx','ecv'),eHo=1,eHx=1)
 Gk$RRo.rev.oRo  = Gi(ek='rev',c('seed','RRo','oRo','oHo'))
 Gk$RRo.rev.oRx  = Gi(ek='rev',c('seed','RRo','oRx','oHx'))
 Gk$RRo.rev.oR2  = Gi(ek='rev',c('seed','RRo','oRo','oRx','ocv'),oHo=1,oHx=1)
+Gk$RRo.rev.2Rx  = Gi(ek='rev',c('seed','RRo','eRx','eHx','oRx','oHx'))
+Gk$RRo.fix.base = Gi(ek='fix',c('seed','RRo'))
+Gk$RRo.fix.eRo  = Gi(ek='fix',c('seed','RRo','ep'))
+Gk$RRo.irr.base = Gi(ek='irr',c('seed','RRo'))
+Gk$RRo.irr.eRo  = Gi(ek='irr',c('seed','RRo','eRo','eHo'))
+Gk$RRo.irr.oRo  = Gi(ek='irr',c('seed','RRo','oRo','oHo'))
 # for (k in names(Gk)){ status(3,k,': ',prod(lens(Gk[[k]]))) } # for hpc gen
 
 apply.case = function(P,eps=1e-12){
