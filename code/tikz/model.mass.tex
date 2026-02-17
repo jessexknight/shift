@@ -1,24 +1,24 @@
-\newcommand{\rlab}[1]{#1}%
+\def\eRo{a}\def\eRx{b}\def\oRo{c}\def\oRx{d}\def\RRo{K}\def\RRx{R}% short
 \begin{tikzpicture}[
   x=12ex,dx+/.style={xshift=+.5ex},dx-/.style={xshift=-.5ex},Rx/.style={lwd=4/5},
   y=12ex,dy+/.style={yshift=+.5ex},dy-/.style={yshift=-.5ex},Ro/.style={lwd=4/5},
   rev/.style={densely dotted},
-  arr/.style={text opacity=1},lwd/.style={line width=#1pt},
+  arr/.style={lab,text opacity=1},lwd/.style={line width=#1pt},
   sq/.style={minimum height=#1,minimum width=#1,align=center}]
   \node[var=gry,sq=5ex] (x00) at (0,1) {$X=0$\\$Y=0$};
   \node[var=blu,sq=5ex] (x10) at (1,1) {$X=1$\\$Y=0$};
   \node[var=red,sq=5ex] (x01) at (0,0) {$X=0$\\$Y=1$};
   \node[var=vio,sq=5ex] (x11) at (1,0) {$X=1$\\$Y=1$};
-  \node[lab,rotate=00] at (0.5,1.5) {$X$: exposure = abuse};
-  \node[lab,rotate=90] at (-.5,0.5) {$Y$: outcome = depression};
-  \draw[->,Ro]         ([dy+]x00.east)  -- node[arr,above]  {\rlab{$a$}} ([dy+]x10.west);
-  \draw[->,Ro]         ([dy+]x01.east)  -- node[arr,above]  {\rlab{$a$}} ([dy+]x11.west);
-  \draw[->,Ro]         ([dx+]x00.south) -- node[arr,right]  {\rlab{$c$}} ([dx+]x01.north);
-  \draw[->,Ro,lwd=8/5] ([dx+]x10.south) -- node[arr,right] {\rlab{$cK$}} ([dx+]x11.north);
-  \draw[<-,Rx]         ([dy-]x00.east)  -- node[arr,below]  {\rlab{$b$}} ([dy-]x10.west);
-  \draw[<-,Rx]         ([dy-]x01.east)  -- node[arr,below]  {\rlab{$b$}} ([dy-]x11.west);
-  \draw[<-,Rx]         ([dx-]x00.south) -- node[arr,left]   {\rlab{$d$}} ([dx-]x01.north);
-  \draw[<-,Rx,lwd=2/5] ([dx-]x10.south) -- node[arr,left]  {\rlab{$dR$}} ([dx-]x11.north);
+  \node[sec,rotate=00] at (0.5,1.5) {$X$: exposure = abuse};
+  \node[sec,rotate=90] at (-.5,0.5) {$Y$: outcome = depression};
+  \draw[->,Ro]         ([dy+]x00.east)  -- node[arr,above] {$\eRo$}     ([dy+]x10.west);
+  \draw[->,Ro]         ([dy+]x01.east)  -- node[arr,above] {$\eRo$}     ([dy+]x11.west);
+  \draw[->,Ro]         ([dx+]x00.south) -- node[arr,right] {$\oRo$}     ([dx+]x01.north);
+  \draw[->,Ro,lwd=8/5] ([dx+]x10.south) -- node[arr,right] {$\oRo\RRo$} ([dx+]x11.north);
+  \draw[<-,Rx]         ([dy-]x00.east)  -- node[arr,below] {$\eRx$}     ([dy-]x10.west);
+  \draw[<-,Rx]         ([dy-]x01.east)  -- node[arr,below] {$\eRx$}     ([dy-]x11.west);
+  \draw[<-,Rx]         ([dx-]x00.south) -- node[arr,left]  {$\oRx$}     ([dx-]x01.north);
+  \draw[<-,Rx,lwd=2/5] ([dx-]x10.south) -- node[arr,left]  {$\oRx\RRx$} ([dx-]x11.north);
   \foreach \xij in {x00,x01,x10,x11}{ \draw[->,gry] (\xij.315) -- ++(.15,-.15); }
   \draw[<-,gry] (x00.135) -- ++(-.15,.15);
 \end{tikzpicture}

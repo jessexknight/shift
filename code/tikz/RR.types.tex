@@ -5,8 +5,7 @@
   \fill[ageplot,fill=#2,fade] plot (\t,{#1+#4}) -- (50,#1);
   \draw[ageplot,draw=#2]      plot (\t,{#1+#4}); }%
 \newcommand{\class}[2]{%
-  \node[white,fill=black!20,anchor=west,lab,rotate=90,minimum width=18mm]
-    at (-4,#1-.5) {\strut#2}; }%
+  \node[sec,anchor=west,rotate=90,minimum width=18mm] at (-4,#1-.5) {\strut#2}; }%
 \begin{tikzpicture}[x=1.2mm,y=4mm]
   % ongoing --------------------------------------------------------------------
   \def\y{-4}
