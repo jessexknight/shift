@@ -59,6 +59,8 @@ Gk$RRo.fix.eRo  = Gi(ek='fix',c('seed','RRo','ep'))
 Gk$RRo.irr.base = Gi(ek='irr',c('seed','RRo'))
 Gk$RRo.irr.eRo  = Gi(ek='irr',c('seed','RRo','eRo','eHo'))
 Gk$RRo.irr.oRo  = Gi(ek='irr',c('seed','RRo','oRo','oHo'))
+Gk$RRo.rev.lhs  = Gi(ek='rev',seed=c(1,1e9),lhs=xdf(1e1,1e4),
+  c('RRo','eRo','eRx','eHo','eHx','ecv','oRo','oRx','oHo','oHx','ocv'))
 # for (k in names(Gk)){ status(3,k,': ',prod(lens(Gk[[k]]))) } # for hpc gen
 
 apply.case = function(P,eps=1e-12){
@@ -69,6 +71,16 @@ apply.case = function(P,eps=1e-12){
   if (P$e.case!='rev'){ P$dep_x.Ri.m = eps }
   if (P$o.case!='rev'){ P$haz_x.Ri.m = eps }
   return(P)
+}
+
+get.lhs = function(Gi,seed=666){
+  set.seed(seed)
+  is = lens(Gi) > 1
+  Gi[is] = as.data.frame(qunif(
+    lhs::randomLHS(Gi$lhs,sum(is)),
+    rep(unlist(lapply(Gi[is],min)),each=Gi$lhs),
+    rep(unlist(lapply(Gi[is],max)),each=Gi$lhs) ))
+  return(Gi)
 }
 
 # -----------------------------------------------------------------------------
@@ -107,7 +119,9 @@ run.one = function(...,.par=0){
 }
 
 run.grid = function(k){
-  Y = grid.apply(Gk[[k]],run.one,.rbind=1,.cbind=1,.batch=.b,.nbatch=.nb,.log=3)
+  lhs = len(Gk[[k]]$lhs)
+  Gi = { if (lhs) get.lhs(Gk[[k]]) else Gk[[k]] }
+  Y = grid.apply(Gi,run.one,.grid=!lhs,.rbind=1,.cbind=1,.b=.b,.nb=.nb,.log=3)
   save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
 }
 
