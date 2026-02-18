@@ -121,7 +121,8 @@ run.one = function(...,.par=0){
 run.grid = function(k){
   lhs = len(Gk[[k]]$lhs)
   Gi = { if (lhs) get.lhs(Gk[[k]]) else Gk[[k]] }
-  Y = grid.apply(Gi,run.one,.grid=!lhs,.rbind=1,.cbind=1,.b=.b,.nb=.nb,.log=3)
+  Y = grid.apply(Gi,run.one,.grid=!lhs,.batch=.b,.nbatch=.nb,
+    .rbind=1,.cbind=1,.log=3)
   save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
 }
 
