@@ -1,7 +1,7 @@
 source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
-uid = '2026-02-16'
+uid = '2026-02-26'
 .k     = cli.arg('.k','RRo.rev.base')
 .b     = cli.arg('.b', 1)
 .nb    = cli.arg('.nb',1)
@@ -23,16 +23,16 @@ P0 = list(
 G = name.list(key='i',
   list(i='RRo', id='RR.haz_o.dep_w',v=1,   vg=  c(1,2,3,4,8)),
   list(i='RRx', id='RR.haz_x.dep_w',v=1,   vg=1/c(1,2,3,4,8)),
-  list(i='eRo', id='dep_o.Ri.my',   v=.02, vg=c(.01,.02,.03)),
-  list(i='eRx', id='dep_x.Ri.my',   v=1,   vg=c(0.5,1.0,1.5)),
-  list(i='eHo', id='dep_o.Ri.het',  v=0,   vg=c(0,1,2)),
-  list(i='eHx', id='dep_x.Ri.het',  v=0,   vg=c(0,1,2)),
+  list(i='eRo', id='dep_o.Ri.my',   v=.03, vg=c(.003,.01,.03,.1)),
+  list(i='eRx', id='dep_x.Ri.my',   v=.3,  vg=c(.03,.1,.3,1)),
+  list(i='eHo', id='dep_o.Ri.het',  v=0,   vg=c(0,.3,1,3)),
+  list(i='eHx', id='dep_x.Ri.het',  v=0,   vg=c(0,.3,1,3)),
   list(i='ecv', id='dep.cov',       v=0,   vg=c(-.5,0,+.5)),
-  list(i='ep',  id='dep.prev',      v=.2,  vg=c(.10,.20,.30)),
-  list(i='oRo', id='haz_o.Ri.my',   v=.02, vg=c(.01,.02,.03)),
-  list(i='oRx', id='haz_x.Ri.my',   v=1,   vg=c(0.5,1.0,1.5)),
-  list(i='oHo', id='haz_o.Ri.het',  v=0,   vg=c(0,1,2)),
-  list(i='oHx', id='haz_x.Ri.het',  v=0,   vg=c(0,1,2)),
+  list(i='ep',  id='dep.prev',      v=.1,  vg=c(.03,.10,.30)),
+  list(i='oRo', id='haz_o.Ri.my',   v=.03, vg=c(.003,.01,.03,.1)),
+  list(i='oRx', id='haz_x.Ri.my',   v=.3,  vg=c(.03,.1,.3,1)),
+  list(i='oHo', id='haz_o.Ri.het',  v=0,   vg=c(0,.3,1,3)),
+  list(i='oHx', id='haz_x.Ri.het',  v=0,   vg=c(0,.3,1,3)),
   list(i='ocv', id='haz.cov',       v=0,   vg=c(-.5,0,+.5)),
   list(i='seed',id='seed',          v=NA,  vg=xdf(1:7,1:21)),
   list(i='ek',  id='e.case', v='rev',vg=NA),
@@ -59,6 +59,7 @@ Gk$RRo.fix.eRo  = Gi(ek='fix',c('seed','RRo','ep'))
 Gk$RRo.irr.base = Gi(ek='irr',c('seed','RRo'))
 Gk$RRo.irr.eRo  = Gi(ek='irr',c('seed','RRo','eRo','eHo'))
 Gk$RRo.irr.oRo  = Gi(ek='irr',c('seed','RRo','oRo','oHo'))
+Gk$RRo.irr.2Ro  = Gi(ek='irr',c('seed','RRo','eRo','eHo','oRo','oHo'))
 Gk$RRo.rev.lhs  = Gi(ek='rev',seed=c(1,1e9),lhs=xdf(1e1,1e4),
   c('RRo','eRo','eRx','eHo','eHx','ecv','oRo','oRx','oHo','oHx','ocv'))
 # for (k in names(Gk)){ status(3,k,': ',prod(lens(Gk[[k]]))) } # for hpc gen
