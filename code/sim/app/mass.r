@@ -107,14 +107,14 @@ T = name.list(key='id',
   gen.targ(id='pr.pp', type='PR',  ve='dep.now', vo='haz.past'),
   gen.targ(id='pr.pw', type='PR',  ve='dep.past',vo='haz.now' ),
   gen.targ(id='pr.wp', type='PR',  ve='dep.past',vo='haz.past'),
-  gen.targ(id='aor.ww',type='OR',  ve='dep.now', vo='haz.now' ,va1='age'),
-  gen.targ(id='aor.wp',type='OR',  ve='dep.now', vo='haz.past',va1='age'),
-  gen.targ(id='aor.pw',type='OR',  ve='dep.past',vo='haz.now' ,va1='age'),
-  gen.targ(id='aor.pp',type='OR',  ve='dep.past',vo='haz.past',va1='age'),
-  gen.targ(id='apr.ww',type='PR',  ve='dep.now', vo='haz.now' ,va1='age'),
-  gen.targ(id='apr.pp',type='PR',  ve='dep.now', vo='haz.past',va1='age'),
-  gen.targ(id='apr.pw',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
-  gen.targ(id='apr.wp',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
+  gen.targ(id='or.wwa',type='OR',  ve='dep.now', vo='haz.now' ,va1='age'),
+  gen.targ(id='or.wpa',type='OR',  ve='dep.now', vo='haz.past',va1='age'),
+  gen.targ(id='or.pwa',type='OR',  ve='dep.past',vo='haz.now' ,va1='age'),
+  gen.targ(id='or.ppa',type='OR',  ve='dep.past',vo='haz.past',va1='age'),
+  gen.targ(id='pr.wwa',type='PR',  ve='dep.now', vo='haz.now' ,va1='age'),
+  gen.targ(id='pr.ppa',type='PR',  ve='dep.now', vo='haz.past',va1='age'),
+  gen.targ(id='pr.pwa',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
+  gen.targ(id='pr.wpa',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
