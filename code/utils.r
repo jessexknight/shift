@@ -39,6 +39,8 @@ def.args = function(f,...){
     do.call(f,c(args[u],ulist(args[!u]))) }
 }
 
+str.fun = function(...){ get(str(...)) }
+
 # -----------------------------------------------------------------------------
 # files + i/o
 
