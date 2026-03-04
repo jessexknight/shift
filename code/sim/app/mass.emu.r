@@ -93,6 +93,12 @@ run.lhs = function(k){
   save.rds(Y,data.path(k,.save=1),str('b',.nb),str('Y.',.b))
 }
 
+merge.batch = function(k){
+  Y = rbind.lapply(1:.nb,function(b){
+    Yb = load.rds(data.path(k),str('b',.nb),str('Y.',b)) })
+  save.rds(Y,grid.path(k),'Y')
+}
+
 # -----------------------------------------------------------------------------
 # emulator
 
