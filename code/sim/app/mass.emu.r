@@ -96,7 +96,7 @@ run.lhs = function(k){
 merge.batch = function(k){
   Y = rbind.lapply(1:.nb,function(b){
     Yb = load.rds(data.path(k),str('b',.nb),str('Y.',b)) })
-  save.rds(Y,grid.path(k),'Y')
+  save.rds(Y,data.path(k),'Y')
 }
 
 # -----------------------------------------------------------------------------
