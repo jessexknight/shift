@@ -108,3 +108,4 @@ merge.batch = function(k){
 # main
 
 run.lhs(.k)
+merge.batch(.k)
