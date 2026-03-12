@@ -38,10 +38,10 @@ G = name.list(key='i',
   list(i='ek',  id='e.case', v='rev',vg=NA),
   list(i='ok',  id='o.case', v='rev',vg=NA))
 
-ids = lapply(G,`[[`,'id')
+Gid = lapply(G,`[[`,'id')
 G0 = lapply(G,`[[`,'v')
 Gi = function(i,...){ ulist(G0,lapply(G[c('seed',i)],`[[`,'vg'),...) }
-PG = function(Gk,...){ ulist(P0,set.names(Gk,ids[names(Gk)]),...) }
+PG = function(Gk,...){ ulist(P0,set.names(Gk,Gid[names(Gk)]),...) }
 
 Gk = list()
 # fixed exposure
@@ -116,6 +116,12 @@ T = name.list(key='id',
   gen.targ(id='pr.pwa',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
   gen.targ(id='pr.wpa',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
 
+Tid = list(
+  ORx = filter.names(T,'or...a$'),
+  PRx = filter.names(T,'pr...a$'),
+  XRx = filter.names(T,'.r...a$'),
+  XRw = filter.names(T,'.r.wwa'))
+
 # -----------------------------------------------------------------------------
 # run sims & save/load
 
@@ -148,10 +154,145 @@ merge.batch = function(k){
   save.rds(Y,grid.path(k),'Y')
 }
 
-# -----------------------------------------------------------------------------
-# plots
+load.grid = function(k,i='or.wwa',f=NULL){
+  Y = load.rds(grid.path(k),'Y')
+  Y = subset(Y,id %in% i)
+  v = c('ep','eRo','eRx','oRo','oRx')
+  Y[v] = Y[v] * 100
+  Y$bias     = ifelse(Y$type=='prop',NA,Y$value/(Y$RRo/Y$RRx))
+  Y$bias.adj = ifelse(Y$type=='prop',NA,(Y$value-1)/(Y$RRo/Y$RRx-1))
+  Y$mass = factor(substr(Y$id,1,2),names(fl$mass),fl$mass)
+  Y$erep = factor(substr(Y$id,4,4),names(fl$report),fl$report)
+  Y$orep = factor(substr(Y$id,5,5),names(fl$report),fl$report)
+  Y$ek  = factor(Y$ek,names(fl$case),fl$case)
+  Y$RRx = round(Y$RRx,3)
+  Y[f] = lapply(Y[f],as.factor)
+  return(Y)
+}
 
-# TODO
+fl = list( # factor levels
+  mass = c(or='OR',pr='PR'),
+  report = c(w='current',p='lifetime'),
+  case = c(fix='fixed',irr='irreversible',rev='reversible'))
+
+reps = c('erep','orep')
+
+# -----------------------------------------------------------------------------
+# plot utils
+
+labels = list(
+  mass = 'Measure of~association',
+  bias = 'Bias~vs~HR',
+  OR   = 'OR:~abuse and~depression',
+  PR   = 'PR:~abuse and~depression',
+  RRo  = 'HR:~depression~onset~while~abused',
+  RRx  = 'HR:~depression~recovery~while~abused',
+  iRRx = '1/HR:~depression recovery~while abused',
+  ep   = 'Abuse~prevalence',
+  op   = 'Depression~prevalence',
+  eRo  = 'Abuse~onset rate~(per 100 PY)',
+  eRx  = 'Abuse~recovery rate~(per 100 PY)',
+  oRo  = 'Depression~onset rate~(per 100 PY)',
+  oRx  = 'Depression~recovery rate~(per 100 PY)',
+  eHo  = 'Abuse~onset~frailty SD',
+  eHx  = 'Abuse~recovery~frailty SD',
+  oHo  = 'Depression~onset~frailty SD',
+  oHx  = 'Depression~recovery~frailty SD',
+  erep = 'Abuse~reporting',
+  orep = 'Depression~reporting')
+
+ll = function(i,grp=0){
+  if (is.null(i)) return(i)
+  gsub('~',ifelse(grp,'\n',' '),if.null(labels[[i]],'')) }
+
+fct = function(s,enum=NULL){
+  ss = strsplit(gsub('~',' ',s),' \\(|\\)')[[1]]; ss[len(ss)+1] = '';
+  str.lab(str(' ',ss[1],': '),str(' ',ss[2]),enum=enum) }
+
+fct_grid = function(x='.',y='.',ex=NULL,ey=NULL){
+  facet_grid(str(y,'~',x),labeller=labeller(
+    .cols=fct(labels[[x]],enum=ex),
+    .rows=fct(labels[[y]],enum=ey))) }
+
+sublabs = def.args(add.sublabs,dx=.5,size=3,family='Alegreya Sans',
+  labs=tolower(as.roman(1:99)))
+
+cmap = lapply(list(RRo='viridis',RRx='inferno',ep='mako',
+  eRo='mako',  eHo='mako',  eRx='mako',  eHx='mako',
+  oRo='rocket',oHo='rocket',oRx='rocket',oHx='rocket'),
+  function(o){ clr.map.d(option=o,end=.7) })
+cmap$mass = clr.map.m(c('#c06','#0cc'))
+
+ltys = lapply(list(
+    v2=c('solid','22'),
+    v3=c('solid','31','11'),
+    v4=c('solid','41','21','11')),
+  function(v){ scale_linetype_manual(values=v) })
+
+scales = list(
+  mass = scale_y_continuous(breaks=seq(0,10,2 ),limits=c(0,10)),
+  bias = scale_y_continuous(breaks=seq(0, 2,.5),limits=c(0, 2)),
+  RRo  = scale_x_continuous(breaks=seq(0, 8,2 ),limits=c(0, 8)))
+scales$OR = scales$PR = scales$mass
+
+plot.core = function(x,y,clr=NULL,lty=NULL,da=1,ra=1/5,ci=.95){ list(
+  scales[[x]],scales[[y]],cmap[[clr]],
+  geom_hline(lty='11',color='#999',yintercept=1),
+  geom_abline(lty='11',color='#999',alpha=da),
+  labs(x=ll(x),y=ll(y),lty=ll(lty,1),color=ll(clr,1),fill=ll(clr,1)),
+  stat_summary(geom='ribbon',color=NA,alpha=ra,
+    fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)),
+  stat_summary(geom='line',fun=mean),
+  plot.clean(font='Alegreya Sans')
+)}
+
+add.stats.ci = function(){ list(
+  stat_summary(geom='line',aes(y=lower),lty='22',lwd=1/4,fun=mean),
+  stat_summary(geom='line',aes(y=upper),lty='22',lwd=1/4,fun=mean)
+)}
+
+plot.1o = list(w1=2,h1=1.6,wo=1.5,ho=1)
+
+plot.save.i = function(g,...,size=NULL,ext='.png'){
+  plot.save(g,'mass',uid,...,ext=ext,size=size)
+}
+
+# -----------------------------------------------------------------------------
+# objective plots
+
+plot.obj.1 = function(){
+  Y = load.grid('RR2.rev.base',i=Tid$XRw)
+  g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,color=mass,fill=mass)) +
+    plot.core('RRo','mass','mass')
+  plot.save.i(g,'RRo.base')
+  g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,color=mass,fill=mass)) +
+    plot.core('iRRx','mass','mass')
+  plot.save.i(g,'RRx.base')
+  Y$RRx = as.factor(Y$RRx)
+  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,color=RRx,fill=RRx)) +
+    plot.core('RRo','OR','RRx')
+  plot.save.i(g,'RR2.base')
+}
+
+plot.obj.2 = function(){
+  Y = load.grid('RRo.rev.base',i=Tid$XRx,f=reps)
+  g = ggplot(Y,aes(x=RRo,y=value,color=mass,fill=mass)) +
+    fct_grid('erep','orep') + sublabs(Y[reps]) +
+    plot.core('RRo','mass','mass')
+  plot.save.i(g,'RRo.reps')
+  plot.save.i(g + add.stats.ci(),'RRo.reps.ci')
+}
+
+plot.obj.3 = function(){
+  for (R in c('eRo','eRx','oRo','oRx')){ H = gsub('R','H',R)
+    iH = str('interaction(mass,',H,')')
+    Y = subset(load.grid(str('RRo.rev.',R),i=Tid$XRx,f=c(reps,R,H)),RRo==8)
+    g = ggplot(Y,aes.string(x=R,y='bias.adj',lty='mass',color=H,fill=H,group=iH)) +
+      fct_grid('erep','orep') + sublabs(Y[reps]) + ylab('Bias vs onset HR') +
+      plot.core(R,'bias',H,'mass',da=0)
+    plot.save.i(g,str('RRo.bias.',R))
+  }
+}
 
 # -----------------------------------------------------------------------------
 # main
@@ -159,3 +300,6 @@ merge.batch = function(k){
 # run.grid(.k)
 # merge.batch(.k)
 
+# plot.obj.1()
+# plot.obj.2()
+# plot.obj.3()
