@@ -1,8 +1,8 @@
 source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
-uid = '2026-02-26'
-.k     = cli.arg('.k','RRo.rev.base')
+uid = '2026-03-13'
+.k     = cli.arg('.k','RR2.ad.base')
 .b     = cli.arg('.b', 1)
 .nb    = cli.arg('.nb',1)
 .debug = cli.arg('.debug',0)
@@ -20,23 +20,23 @@ P0 = list(
   het.distr = 'gamma',
   run = get.run.par(c('dep','haz'),u=0))
 
+z = 1e-12
 G = name.list(key='i',
   list(i='RRo', id='RR.haz_o.dep_w',v=1,   vg=  c(1,2,3,4,8)),
   list(i='RRx', id='RR.haz_x.dep_w',v=1,   vg=1/c(1,2,3,4,8)),
-  list(i='eRo', id='dep_o.Ri.my',   v=.03, vg=c(.003,.01,.03,.1)),
-  list(i='eRx', id='dep_x.Ri.my',   v=.3,  vg=c(.03,.1,.3,1)),
-  list(i='eHo', id='dep_o.Ri.het',  v=0,   vg=c(0,.3,1,3)),
-  list(i='eHx', id='dep_x.Ri.het',  v=0,   vg=c(0,.3,1,3)),
-  list(i='ecv', id='dep.cov',       v=0,   vg=c(-.5,0,+.5)),
+  list(i='eRo', id='dep_o.Ri.my',   v=.01, vg=c(.003,.01,.03,.1)),
+  list(i='eRx', id='dep_x.Ri.my',   v=1,   vg=c(z,.03,.1,.3,1,3)),
+  list(i='eHo', id='dep_o.Ri.het',  v=2,   vg=c(0,1,2,3)),
+  list(i='eHx', id='dep_x.Ri.het',  v=1,   vg=c(0,1,2,3)),
+  list(i='ecv', id='dep.cov',       v=-.5, vg=c(-.5,0,+.5)),
   list(i='ep',  id='dep.prev',      v=.1,  vg=c(.03,.1,.2,.3)),
-  list(i='oRo', id='haz_o.Ri.my',   v=.03, vg=c(.003,.01,.03,.1)),
-  list(i='oRx', id='haz_x.Ri.my',   v=.3,  vg=c(.03,.1,.3,1)),
-  list(i='oHo', id='haz_o.Ri.het',  v=0,   vg=c(0,.3,1,3)),
-  list(i='oHx', id='haz_x.Ri.het',  v=0,   vg=c(0,.3,1,3)),
-  list(i='ocv', id='haz.cov',       v=0,   vg=c(-.5,0,+.5)),
+  list(i='oRo', id='haz_o.Ri.my',   v=.01, vg=c(.003,.01,.03,.1)),
+  list(i='oRx', id='haz_x.Ri.my',   v=3,   vg=c(z,.03,.1,.3,1,3)),
+  list(i='oHo', id='haz_o.Ri.het',  v=2,   vg=c(0,1,2,3)),
+  list(i='oHx', id='haz_x.Ri.het',  v=1,   vg=c(0,1,2,3)),
+  list(i='ocv', id='haz.cov',       v=-.5, vg=c(-.5,0,+.5)),
   list(i='seed',id='seed',          v=NA,  vg=xdf(1:7,1:21)),
-  list(i='ek',  id='e.case', v='rev',vg=NA),
-  list(i='ok',  id='o.case', v='rev',vg=NA))
+  list(i='ek',  id='exp.case',v='adult',vg=NA))
 
 Gid = lapply(G,`[[`,'id')
 G0 = lapply(G,`[[`,'v')
@@ -44,40 +44,34 @@ Gi = function(i,...){ ulist(G0,lapply(G[c('seed',i)],`[[`,'vg'),...) }
 PG = function(Gk,...){ ulist(P0,set.names(Gk,Gid[names(Gk)]),...) }
 
 Gk = list()
-# fixed exposure
-Gk$RRo.fix.base = Gi(ek='fix',c('RRo'))
-Gk$RRo.fix.ep   = Gi(ek='fix',c('RRo','ep'))
-Gk$RRo.fix.oRo  = Gi(ek='fix',c('RRo','oRo','oHo'))
-Gk$RRo.fix.oRx  = Gi(ek='fix',c('RRo','oRx','oHx'))
-Gk$RRo.fix.oR2  = Gi(ek='fix',c('RRo','oRo','oRx','ocv'),oHo=1,oHx=1)
-# irreversible exposure
-Gk$RRo.irr.base = Gi(ek='irr',c('RRo'))
-Gk$RRo.irr.eRo  = Gi(ek='irr',c('RRo','eRo','eHo'))
-Gk$RRo.irr.oRo  = Gi(ek='irr',c('RRo','oRo','oHo'))
-Gk$RRo.irr.oRx  = Gi(ek='irr',c('RRo','oRx','oHx'))
-Gk$RRo.irr.oR2  = Gi(ek='irr',c('RRo','oRo','oRx','ocv'),oHo=1,oHx=1)
-# reversible exposure
-Gk$RRo.rev.base = Gi(ek='rev',c('RRo'))
-Gk$RRx.rev.base = Gi(ek='rev',c('RRx'))
-Gk$RR2.rev.base = Gi(ek='rev',c('RRo','RRx'))
-Gk$RRo.rev.eRo  = Gi(ek='rev',c('RRo','eRo','eHo'))
-Gk$RRo.rev.eRx  = Gi(ek='rev',c('RRo','eRx','eHx'))
-Gk$RRo.rev.eR2  = Gi(ek='rev',c('RRo','eRo','eRx','ecv'),eHo=1,eHx=1)
-Gk$RRo.rev.oRo  = Gi(ek='rev',c('RRo','oRo','oHo'))
-Gk$RRo.rev.oRx  = Gi(ek='rev',c('RRo','oRx','oHx'))
-Gk$RRo.rev.oR2  = Gi(ek='rev',c('RRo','oRo','oRx','ocv'),oHo=1,oHx=1)
-Gk$RRo.rev.2Rx  = Gi(ek='rev',c('RRo','eRx','eHx','oRx','oHx'))
-Gk$RRo.rev.lhs  = Gi(ek='rev',seed=c(1,1e9),lhs=xdf(1e1,1e4),
+# childhood exposure
+Gk$RRo.ch.base = Gi(ek='child',c('RRo'))
+Gk$RRx.ch.base = Gi(ek='child',c('RRx'))
+Gk$RR2.ch.base = Gi(ek='child',c('RRo','RRx'))
+Gk$RRo.ch.ep   = Gi(ek='child',c('RRo','ep'))
+Gk$RRo.ch.oRo  = Gi(ek='child',c('RRo','oRo','oHo'))
+Gk$RRo.ch.oRx  = Gi(ek='child',c('RRo','oRx','oHx'))
+Gk$RRo.ch.oR2  = Gi(ek='child',c('RRo','oRo','oRx','ocv'),oHo=2,oHx=1)
+# adulthood exposure
+Gk$RRo.ad.base = Gi(ek='adult',c('RRo'))
+Gk$RRx.ad.base = Gi(ek='adult',c('RRx'))
+Gk$RR2.ad.base = Gi(ek='adult',c('RRo','RRx'))
+Gk$RRo.ad.eRo  = Gi(ek='adult',c('RRo','eRo','eHo'))
+Gk$RRo.ad.eRx  = Gi(ek='adult',c('RRo','eRx','eHx'))
+Gk$RRo.ad.eR2  = Gi(ek='adult',c('RRo','eRo','eRx','ecv'),eHo=2,eHx=1)
+Gk$RRo.ad.oRo  = Gi(ek='adult',c('RRo','oRo','oHo'))
+Gk$RRo.ad.oRx  = Gi(ek='adult',c('RRo','oRx','oHx'))
+Gk$RRo.ad.oR2  = Gi(ek='adult',c('RRo','oRo','oRx','ocv'),oHo=2,oHx=1)
+Gk$RRo.ad.lhs  = Gi(ek='adult',seed=c(1,1e9),lhs=xdf(1e1,1e5),
   c('RRo','eRo','eRx','eHo','eHx','ecv','oRo','oRx','oHo','oHx','ocv'))
 # for (k in names(Gk)){ status(3,k,': ',prod(lens(Gk[[k]]))) } # for hpc gen
 
-apply.case = function(P,eps=1e-12){
-  if (P$e.case=='fix'){
+apply.case = function(P){
+  if (P$exp.case=='child'){
     P$init.inds = function(I,P){
       I$dep_o.Ri = ifelse(runif(P$n.tot) < P$dep.prev,Inf,0)
+      I$dep_x.Ri = 0
       return(I) }}
-  if (P$e.case!='rev'){ P$dep_x.Ri.m = eps }
-  if (P$o.case!='rev'){ P$haz_x.Ri.m = eps }
   return(P)
 }
 
