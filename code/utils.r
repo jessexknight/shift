@@ -168,6 +168,8 @@ clr.map.v = function(...){ list(
 clr.map.m = function(x,...){ list(
   ggplot2::scale_color_manual(values=x,...),
   ggplot2::scale_fill_manual(values=x,...)) }
+scale.x.cts = def.args(scale_x_continuous,oob=scales::oob_keep)
+scale.y.cts = def.args(scale_y_continuous,oob=scales::oob_keep)
 qfun = function(p){ def.args(quantile,p=p) } # e.g. for stat_summary(...,fun=qfun(.5))
 
 str.lab = function(pre='',post='',enum=NULL){
@@ -175,34 +177,35 @@ str.lab = function(pre='',post='',enum=NULL){
   ggplot2::as_labeller(function(x){ add.enum(str(pre,x,post),fmt=enum) })
 }
 
-add.enum = function(x,fmt='a',pre='(',post=') '){
-  if (is.null(fmt)){ return(x) }
-  i = seqa(x)
-  y = set.names(str(pre,list('1'=i,
-    'a'=letters[i],
-    'A'=LETTERS[i],
-    'I'=as.roman(i),
-    'i'=tolower(as.roman(i))
-  )[[fmt]],post,x),names(x))
+enum = function(x,fmt='a'){ i = seqa(x)
+  # e.g. enum(1:3,fmt='i') -> c('i','ii','iii')
+  e = switch(fmt,'1'=i,a=letters[i],A=LETTERS[i],I=as.roman(i),i=tolower(as.roman(i)))
 }
 
-add.sublabs = function(g,X,loc='tl',...,dx=1,dy=1,labs=LETTERS){
+add.enum = function(x,fmt='a',pre='(',post=') '){
+  # e.g. add.enum(c('foo','bar')) -> c('(a) foo','(b) bar')
+  if (is.null(fmt)){ return(x) }
+  y = set.names(str(pre,enum(x),post,x),names(x))
+}
+
+add.sublabs = function(X,loc='tl',...,dx=1,dy=1,fmt='a',pre='(',post=')'){
   X = X[!duplicated(X),]
-  X$label = labs[1:nrow(X)]
+  X$label = str(pre,enum(1:nrow(X),fmt),post)
   geom = def.args(geom_text,data=X,inherit.aes=FALSE)
-  g = g + switch(loc,
+  switch(loc,
     'tl' = geom(aes(x=-Inf,y=+Inf,label=label),hjust=0-dx,vjust=1+dy,...),
     'tr' = geom(aes(x=+Inf,y=+Inf,label=label),hjust=1+dx,vjust=1+dy,...),
     'bl' = geom(aes(x=-Inf,y=-Inf,label=label),hjust=0-dx,vjust=0-dy,...),
     'br' = geom(aes(x=+Inf,y=-Inf,label=label),hjust=1+dx,vjust=0-dy,...))
 }
 
-plot.clean = function(g,font=NULL,...){
-  g = g + theme_light() + theme(...,
+plot.clean = function(font=NULL,...){ list(
+  theme_light(),
+  theme(...,
     text=element_text(family=font),
     strip.background=element_rect(fill='#eee'),
     strip.text.x=element_text(color='black'),
-    strip.text.y=element_text(color='black'))
+    strip.text.y=element_text(color='black')))
 }
 
 # -----------------------------------------------------------------------------
