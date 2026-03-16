@@ -151,7 +151,9 @@ merge.batch = function(k){
 load.grid = function(k,i='or.wwa',f=NULL){
   Y = load.rds(grid.path(k),'Y')
   Y = subset(Y,id %in% i)
-  Y[names(G)][Y[names(G)]<=z] = 0 # HACK
+  Y[c('ve','vo','te','to','dt')] = NULL
+  v = c('eRo','eHo','eRx','eHx','oRo','oHo','oRx','oHx')
+  Y[v][Y[v]<=z] = 0 # HACK
   Y$bias     = ifelse(Y$type=='prop',NA,Y$value/(Y$RRo/Y$RRx))
   Y$bias.adj = ifelse(Y$type=='prop',NA,(Y$value-1)/(Y$RRo/Y$RRx-1))
   Y$mass = factor(substr(Y$id,1,2),names(fl$mass),fl$mass)
