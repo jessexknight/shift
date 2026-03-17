@@ -136,8 +136,8 @@ run.one = function(...,.par=0){
 
 run.grid = function(k){
   lhs = len(Gk[[k]]$lhs)
-  Gi = { if (lhs) get.lhs(Gk[[k]]) else Gk[[k]] }
-  Y = grid.apply(Gi,run.one,.grid=!lhs,.batch=.b,.nbatch=.nb,
+  GR = { if (lhs) get.lhs(Gk[[k]]) else Gk[[k]] }
+  Y = grid.apply(GR,run.one,.grid=!lhs,.batch=.b,.nbatch=.nb,
     .rbind=1,.cbind=1,.log=3)
   save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
 }
@@ -173,6 +173,34 @@ fl = list( # factor levels
 reps = c('erep','orep')
 
 # -----------------------------------------------------------------------------
+# exact math @ ek=ch
+
+avec = seq(.1,adur,.1)
+
+efun = list(
+  prev.age = function(o,x){ k=o+x; p = colMeans((1-exp(-outer(k,avec)))*o/k) },
+  prev = function(o,x){ k=o+x; p = mean((adur-(1-exp(-k*adur))/k)*o/adur/k) },
+  OR = function(p0,p1){ p1*(1-p0)/p0/(1-p1) },
+  PR = function(p0,p1){ p1/p0 })
+
+run.ch.exact = function(Y,n=1e4,age=FALSE){
+  Y = subset(Y,seed==1)
+  qf = het.funs[[P0$het.distr]]$q
+  Ye = rbind.lapply(1:nrow(Y),function(i){ Yi=Y[i,]
+    R = copula(n,covs=Yi$ocv,qfuns=list(o=qf,x=qf),
+      o=list(m=Yi$oRo+z,het=Yi$oHo+z),
+      x=list(m=Yi$oRx+z,het=Yi$oHx+z))
+    R = round(R,12)+z # HACK
+    prev.fun = ifelse(age,efun$prev.age,efun$prev)
+    fx = switch(str(Yi$orep),current=1,lifetime=0)
+    p0 = prev.fun(R[,1],       fx*R[,2])
+    p1 = prev.fun(R[,1]*Yi$RRo,fx*R[,2]*Yi$RRx)
+    if (age){ Yi = df.ow(Yi,a=avec,p0=p0,p1=p1,OR=efun$OR(p0,p1),PR=efun$PR(p0,p1)) }
+    else {    Yi = df.ow(Yi,value=efun[[Yi$type]](p0,p1)) }
+  })
+}
+
+# -----------------------------------------------------------------------------
 # plot utils
 
 labels = list(
@@ -185,6 +213,7 @@ labels = list(
   RRx  = 'HR: depression~recovery~while abused',
   iRRx = '1/HR: depression recovery~while abused',
   ep   = 'Childhood~abuse~prevalence~(%)',
+  op   = 'Depression~prevalence~(%)',
   eRo  = 'Abuse~onset rate~(per 100 PY)',
   eRx  = 'Abuse~recovery rate~(per 100 PY)',
   oRo  = 'Depression~onset rate~(per 100 PY)',
@@ -194,7 +223,8 @@ labels = list(
   oHo  = 'Depression~onset~frailty SD',
   oHx  = 'Depression~recovery~frailty SD',
   erep = 'Abuse~reporting',
-  orep = 'Depression~reporting')
+  orep = 'Depression~reporting',
+  age  = 'Age~(years)')
 
 ll = function(i,grp=0){
   if (is.null(i)) return(i)
@@ -241,6 +271,10 @@ plot.core = function(x,y,clr=NULL,lty=NULL,da=1,ra=1/5,ci=.95){ list(
   stat_summary(geom='line',fun=mean),
   plot.clean(font='Alegreya Sans',legend.spacing.y=unit(-1,'mm'))
 )}
+
+add.ch.exact = function(Y){
+  geom_point(data=run.ch.exact(Y),shape=21,fill='#fc0',size=1)
+}
 
 plot.1o = list(w1=2,h1=1.6,wo=1.5,ho=1)
 
@@ -289,6 +323,51 @@ plot.obj.3 = function(){
   }
 }
 
+plot.ch.valid = function(){
+  # TODO: something funky @ or.wpa & oHo=0
+  Y = load.grid('RRo.ch.oRo',i=Tid$XRw)
+  g = ggplot(Y,aes(x=RRo,y=value,color=as.factor(100*oRo),fill=as.factor(100*oRo))) +
+    fct_grid('oHo','mass') + plot.core('RRo','mass','oRo')
+  plot.save.i(g + add.ch.exact(Y),'valid.ch.oRo')
+  Y = load.grid('RRo.ch.oRx',i=Tid$XRw)
+  g = ggplot(Y,aes(x=RRo,y=value,color=as.factor(100*oRx),fill=as.factor(100*oRx))) +
+    fct_grid('oHx','mass') + plot.core('RRo','mass','oRx')
+  plot.save.i(g + add.ch.exact(Y),'valid.ch.oRx')
+}
+
+plot.ch.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
+  ids = c(p1='exposed',p0='unexposed',OR='OR',PR='PR')
+  GR = Gi(c(clr,fac),ek='child',seed=1,orep=orep,...)
+  Y = run.ch.exact(expand.grid(GR),age=1)
+  Y = melt(Y,m=names(ids),var='id')
+  Y$type = ifelse(Y$id %in% fl$mass,ll('mass'),ll('op'))
+  Y$id   = factor(Y$id,names(ids),ids)
+  Y$oRx[Y$oRx<=z] = 0 # HACK
+  Y[c('oRo','oRx')] = 100*Y[c('oRo','oRx')]
+  Y$value = Y$value * ifelse(Y$type==ll('op'),100,1)
+  Y[[clr]] = as.factor(Y[[clr]])
+  g = ggplot(Y,aes.string(x='a+amin',y='value',lty='id',color=clr)) +
+    facet_grid(str('type~',fac),lab=labeller(.cols=fct(labels[[fac]])),scales='free_y') +
+    scale_linetype_manual(values=c(exposed='31',unexposed='13',OR='solid',PR='22')) +
+    ggh4x::scale_y_facet(type==ll('op'),lim=c(0,100)) +
+    ggh4x::scale_y_facet(type==ll('mass'),lim=mm,trans='log2') +
+    geom_hline(data=subset(Y,id=='OR'),aes(yintercept=RRo/RRx),lty='11',color='#999') +
+    labs(x=ll('age'),y='Value',lty='Variable',color=ll(clr,1)) +
+    cmap[[if.null(clr,'null')]] + plot.clean(font='Alegreya Sans') +
+    geom_line()
+  plot.save.i(g,str('age.',slug))
+}
+
+plot.ch.age = function(){
+  v = list(RR=4,oRo=c(.003,.01,.03),oRx=c(z,.1,1),oHo=c(0,.5,1,1.5))
+  labels$oRx <<- gsub('Depression','Depr',labels$oRx) # HACK
+  plot.ch.age.i('RRo.R2.hom',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
+  plot.ch.age.i('RRo.R2.het',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
+  plot.ch.age.i('RRx.R2.hom',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
+  plot.ch.age.i('RRx.R2.het',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
+  plot.ch.age.i('RRo.oHo',   RRo=v$RR,  clr='oHo',fac='oRx',oRo=.03,  oRx=v$oRx,oHo=v$oHo,oHx=1)
+}
+
 # -----------------------------------------------------------------------------
 # main
 
@@ -298,3 +377,5 @@ plot.obj.3 = function(){
 # plot.obj.1()
 # plot.obj.2()
 # plot.obj.3()
+# plot.ch.valid()
+# plot.ch.age()
