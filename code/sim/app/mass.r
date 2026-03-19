@@ -206,24 +206,22 @@ run.ch.exact = function(Y,n=1e4,age=FALSE){
 labels = list(
   mass = 'Measure of~association',
   bias = 'Bias~vs~HR',
-  ek   = 'Exposure',
-  OR   = 'OR:~abuse and~depression',
-  PR   = 'PR:~abuse and~depression',
-  RRo  = 'HR: depression~onset~while abused',
-  RRx  = 'HR: depression~recovery~while abused',
-  iRRx = '1/HR: depression recovery~while abused',
-  ep   = 'Childhood~abuse~prevalence~(%)',
-  op   = 'Depression~prevalence~(%)',
-  eRo  = 'Abuse~onset rate~(per 100 PY)',
-  eRx  = 'Abuse~recovery rate~(per 100 PY)',
-  oRo  = 'Depression~onset rate~(per 100 PY)',
-  oRx  = 'Depression~recovery rate~(per 100 PY)',
-  eHo  = 'Abuse~onset~frailty SD',
-  eHx  = 'Abuse~recovery~frailty SD',
-  oHo  = 'Depression~onset~frailty SD',
-  oHx  = 'Depression~recovery~frailty SD',
-  erep = 'Abuse~reporting',
-  orep = 'Depression~reporting',
+  ek   = 'Exposure~period',
+  RRo  = 'HR θ:~outcome onset~while exposed',
+  RRx  = 'HR φ:~outcome recovery~while exposed',
+  iRRx = '1/HR 1/φ:~outcome recovery~while exposed',
+  ep   = 'Childhood~exposure~prevalence~(%)',
+  op   = 'Outcome~prevalence~(%)',
+  eRo  = 'Mean~exposure~onset rate λ~(per 100 PY)',
+  eRx  = 'Mean~exposure~recovery rate γ~(per 100 PY)',
+  oRo  = 'Mean~outcome~onset rate μ~(per 100 PY)',
+  oRx  = 'Mean~outcome~recovery rate η~(per 100 PY)',
+  eHo  = 'Exposure~onset~frailty SD~σλ',
+  eHx  = 'Exposure~recovery~frailty SD~σγ',
+  oHo  = 'Outcome~onset~frailty SD~σμ',
+  oHx  = 'Outcome~recovery~frailty SD~ση',
+  erep = 'Exposure~reporting',
+  orep = 'Outcome~reporting',
   age  = 'Age~(years)')
 
 ll = function(i,grp=0){
@@ -241,11 +239,11 @@ fct_grid = function(x='.',y='.',ex=NULL,ey=NULL){
 
 sublabs = def.args(add.sublabs,fmt='i',dx=.5,size=3,family='Alegreya Sans')
 
-cmap = lapply(list(RRo='viridis',RRx='inferno',ep='mako',
-  eRo='mako',  eHo='mako',  eRx='mako',  eHx='mako',
-  oRo='rocket',oHo='rocket',oRx='rocket',oHx='rocket'),
-  function(o){ clr.map.d(option=o,end=.7) })
-cmap$mass = clr.map.m(c('#c06','#0cc'))
+cmap = lapply(list(RRo='cividis',RRx='cividis',ep='viridis',
+  eRo='viridis',eHo='viridis',eRx='mako',  eHx='mako',
+  oRo='inferno',oHo='inferno',oRx='rocket',oHx='rocket'),
+  function(o){ clr.map.d(option=o,end=.8) })
+cmap$ek   = clr.map.m(c('#c06','#0cc'))
 cmap$null = clr.map.m('#000')
 
 ltys = lapply(list(
@@ -255,8 +253,8 @@ ltys = lapply(list(
   function(v){ scale_linetype_manual(values=v) })
 
 scales = list(
-  mass = scale.y.cts(breaks=seq(0,10, 2),limits=c(0,10)),
-  RRo  = scale.x.cts(breaks=seq(0, 8, 2),limits=c(0, 8)),
+  mass = scale.y.cts(breaks=seq(0,8,2),limits=c(0,8)),
+  RRo  = scale.x.cts(breaks=seq(0,8,2),limits=c(0,8)),
   bias = scale.y.cts(breaks=c(.03,.1,.3,1,3),limits=c(.03,3),trans='log10'))
 scales$iRRx = scales$RRo
 scales$OR = scales$PR = scales$mass
@@ -286,27 +284,32 @@ plot.save.i = function(g,...,size=NULL,ext='.png'){
 # objective plots
 
 plot.obj.1 = function(){
-  Y = rbind(load.grid('RR2.ad.base',i=Tid$XRw),
-            load.grid('RR2.ch.base',i=Tid$XRw))
-  g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=ek,color=mass,fill=mass)) +
-    plot.core('RRo','mass','mass','ek')
-  plot.save.i(g,'RRo.base')
-  g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=ek,color=mass,fill=mass)) +
-    plot.core('iRRx','mass','mass','ek')
-  plot.save.i(g,'RRx.base')
+  Y = load.grid('RR2.ad.base',i=Tid$XRw)
+  g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=mass)) +
+    plot.core('RRo','mass',lty='mass')
+  plot.save.i(g,'RRo.ad.base')
+  g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=mass)) +
+    plot.core('iRRx','mass',lty='mass')
+  plot.save.i(g,'RRx.ad.base')
   Y$RRx = as.factor(Y$RRx)
-  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=ek,color=RRx,fill=RRx)) +
-    plot.core('RRo','OR','RRx','ek')
-  plot.save.i(g,'RR2.base')
+  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
+    plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
+  plot.save.i(g,'RR2.ad.base')
+  Y = load.grid('RR2.ch.base',i=Tid$XRw,f='RRx')
+  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
+    plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
+  plot.save.i(g,'RR2.ch.base')
 }
 
 plot.obj.2 = function(){
-  Y = rbind(load.grid('RRo.ad.base',i=Tid$XRx,f=reps),
-            load.grid('RRo.ch.base',i=Tid$XRx,f=reps))
-  g = ggplot(Y,aes(x=RRo,y=value,lty=ek,color=mass,fill=mass)) +
-    fct_grid('erep','orep') + sublabs(Y[reps]) +
-    plot.core('RRo','mass','mass','ek')
-  plot.save.i(g,'RRo.reps')
+  Y.ad = load.grid('RRo.ad.base',i=Tid$XRx,f=reps)
+  Y.ch = load.grid('RRo.ch.base',i=Tid$XRx,f=reps)
+  g = ggplot(Y.ad,aes(x=RRo,y=value,lty=mass)) +
+    fct_grid('erep','orep') + sublabs(Y.ad[reps]) +
+    plot.core('RRo','mass','ek','mass')
+  plot.save.i(g,'RRo.ad.reps')
+  g = g + rbind(Y.ad,Y.ch) + aes(color=ek,fill=ek)
+  plot.save.i(g,'RRo.ch.reps')
 }
 
 plot.obj.3 = function(){
@@ -316,6 +319,7 @@ plot.obj.3 = function(){
     H = gsub('R','H',R); iH = str('interaction(mass,',H,')')
     if (R=='ep'){ H = NULL; iH = 'mass' }
     Y = subset(load.grid(str('RRo.',k),i=Tid$XRx,f=c(reps,H)),RRo==8)
+    if (Y$ek[1]=='childhood'){ Y = subset(Y,erep=='lifetime') }
     g = ggplot(Y,aes.string(x=iR,y='bias.adj',lty='mass',color=H,fill=H,group=iH)) +
       fct_grid('erep','orep') + sublabs(Y[reps]) + ylab('Bias vs onset HR') +
       plot.core(R,'bias',H,'mass',da=0)
@@ -347,7 +351,8 @@ plot.ch.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
   Y$value = Y$value * ifelse(Y$type==ll('op'),100,1)
   Y[[clr]] = as.factor(Y[[clr]])
   g = ggplot(Y,aes.string(x='a+amin',y='value',lty='id',color=clr)) +
-    facet_grid(str('type~',fac),lab=labeller(.cols=fct(labels[[fac]])),scales='free_y') +
+    facet_grid(str('type~',fac),scales='free_y',labeller=labeller(
+      .cols=fct(labels[[fac]]),.rows=def.args(add.enum,fmt='i'))) +
     scale_linetype_manual(values=c(exposed='31',unexposed='13',OR='solid',PR='22')) +
     ggh4x::scale_y_facet(type==ll('op'),lim=c(0,100)) +
     ggh4x::scale_y_facet(type==ll('mass'),lim=mm,trans='log2') +
@@ -360,7 +365,7 @@ plot.ch.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
 
 plot.ch.age = function(){
   v = list(RR=4,oRo=c(.003,.01,.03),oRx=c(z,.1,1),oHo=c(0,.5,1,1.5))
-  labels$oRx <<- gsub('Depression','Depr',labels$oRx) # HACK
+  labels$oRx <<- gsub('Mean~outcome~recovery','Outcome~recov',labels$oRx) # HACK
   plot.ch.age.i('RRo.R2.hom',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
   plot.ch.age.i('RRo.R2.het',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
   plot.ch.age.i('RRx.R2.hom',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
