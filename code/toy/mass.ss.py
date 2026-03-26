@@ -1,4 +1,4 @@
-# here we analytically solve an expression for 2x2 OR at steady state
+# here we analytically solve expressions for 2x2 OR or PR at steady state
 # i.e. among "very old" people / ignoring exposure/outcome status among model entrants
 
 from sympy import symbols,Eq,solve,simplify
@@ -8,7 +8,8 @@ from sympy import symbols,Eq,solve,simplify
 # {base rates}: a: exp.onset | b: exp.recov | c: out.onset | b: out.recov
 # {IRRs}: K: IRR out.onset while exp | R: IRR out.recov while exp
 y00,y10,y01,y11 = symbols('y00 y10 y01 y11',positive=True)
-a,b,c,d,K,R,OR = symbols('a b c d K R OR',positive=True)
+a,b,c,d,K,R,OR,PR = symbols('a b c d K R OR PR',positive=True) # short names
+# a,b,c,d,K,R,OR,PR = symbols('eRo eRx oRo oRx RRo RRx OR PR',positive=True) # long names
 
 eqs = [ # system of equations
   Eq(1, y00+y10+y01+y11),                                 # sum = 1
@@ -21,3 +22,10 @@ eqs = [ # system of equations
 X = solve(eqs,[y00,y10,y01,y11]) # get analytic expressions for y00,y10,y01,y11
 # for y in X: print(y,':',simplify(X[y])) # yikes!
 print('OR :',simplify( (X[y00]*X[y11]) / (X[y10]*X[y01]) )) # luckily, many terms cancel
+print('PR :',simplify( (X[y11]/(X[y11]+X[y10])) / (X[y01]/(X[y01]+X[y00])) ))
+# OR: ((aK + b + cK + dK) (aR + b + cK + dR)) /
+#     ((aK + b + cK + dR) (aR + b + cR + dR))
+#  ~= (b + dK) / (b + dR) # if a,c << b,d
+# PR: (aK + b + cK + dK) /
+#     (aK + b + cK + dR)
+#  ~= (b + dK) / (b + dR) # if a,c << b,d
