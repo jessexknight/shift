@@ -81,8 +81,8 @@ mass.plot = function(A,...,facet=NULL,w=1,ylim=NULL){
     geom(aes(y=upper),lwd=w*3,alpha=1/3) +
     scale_y_continuous(trans='log10') +
     coord_cartesian(ylim=ylim) +
-    labs(y='Value')
-  g = plot.clean(g)
+    labs(y='Value') +
+    plot.clean(g)
 }
 
 mass.add.ref = function(g,value,...){

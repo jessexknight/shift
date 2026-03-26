@@ -23,7 +23,7 @@ clean.df = function(X,ys){
   X$type = factor(X$type,names(y),y)
   return(X) }
 plot.save.i = function(g,...,size=NULL,ext='.png'){
-  g = plot.clean(g,font='Alegreya Sans',legend.spacing=unit(0,'mm'))
+  g = g + plot.clean(font='Alegreya Sans',legend.spacing=unit(0,'mm'))
   plot.save(g,'depr',uid,...,ext=ext,size=size)
 }
 # aao =========================================================================

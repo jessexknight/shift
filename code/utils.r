@@ -185,7 +185,7 @@ enum = function(x,fmt='a'){ i = seqa(x)
 add.enum = function(x,fmt='a',pre='(',post=') '){
   # e.g. add.enum(c('foo','bar')) -> c('(a) foo','(b) bar')
   if (is.null(fmt)){ return(x) }
-  y = set.names(str(pre,enum(x),post,x),names(x))
+  y = set.names(str(pre,enum(x,fmt),post,x),names(x))
 }
 
 add.sublabs = function(X,loc='tl',...,dx=1,dy=1,fmt='a',pre='(',post=')'){
@@ -203,7 +203,7 @@ plot.clean = function(font=NULL,...){ list(
   theme_light(),
   theme(...,
     text=element_text(family=font),
-    strip.background=element_rect(fill='#eee'),
+    strip.background=element_rect(fill='#eeeeee'),
     strip.text.x=element_text(color='black'),
     strip.text.y=element_text(color='black')))
 }

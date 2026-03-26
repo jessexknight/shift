@@ -204,7 +204,7 @@ plot.exact = function(Y){
 plot.1o = list(w1=1.8,h1=1.2,wo=1.5,ho=1.3) # plot size
 
 plot.save.i = function(g,...,size=NULL,ext='.png',leg='right'){
-  g = plot.clean(g,legend.position=leg,font='Alegreya Sans',legend.spacing=unit(0,'mm'))
+  g = g + plot.clean(legend.position=leg,font='Alegreya Sans',legend.spacing=unit(0,'mm'))
   plot.save(g,'depr',uid,...,ext=ext,size=size)
 }
 
