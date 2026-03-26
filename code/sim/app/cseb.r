@@ -131,7 +131,7 @@ lf = function(v,j=' '){ # facet: ~ -> space; insert value before (units)
 
 plot.line = function(g,id='dep.haz.aor',ty='log2',tx='log2',
   ribbon=.1,ci=.95,yi=0,dy=1,ymm=c(.75,8)){
-  g = plot.clean(g,font=font) +
+  g = g + plot.clean(font=font) +
     geom_abline(intercept=yi,slope=dy,color='gray',lty='22') +
     stat_summary(geom='ribbon',color=NA,alpha=ribbon,
       fun.min=qfun((1-ci)/2),fun.max=qfun(1-(1-ci)/2)) +
@@ -143,7 +143,7 @@ plot.line = function(g,id='dep.haz.aor',ty='log2',tx='log2',
 }
 
 plot.tile = function(g,id='dep.haz.aor',ymm=c(NA,NA)){
-  g = plot.clean(g,font=font) +
+  g = g + plot.clean(font=font) +
     stat_summary_2d(fun=mean) +
     labs(fill=lg(id)) +
     coord_fixed()
