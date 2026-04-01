@@ -42,7 +42,8 @@ init.inds = function(P){
   cdm.Pi = rbeta(n=n,shape1=P$cdm.Pi.shapes[1],shape2=P$cdm.Pi.shapes[2])
   # create main df of individuals ---------------------------------------------
   age = switch(P$pop.type,
-    open   = runif(n,min=amin-P$n.dur*adur,max=amax),
+    wash   = runif(n,min=amin-P$n.dur*adur,max=amax),
+    open   = runif(n,min=amin-P$n.dur*adur,max=amin),
     cohort = runif(n,min=amin-1/P$z1y,max=amin))
   I = data.frame(
     i = seq(n),

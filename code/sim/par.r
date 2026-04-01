@@ -16,9 +16,9 @@ add.pars.def = function(P=NULL){
   P$run = list(vio=TRUE,dep=TRUE,haz=TRUE,ptr=TRUE,sex=TRUE)
   P$init.inds = function(I,P){ I }
   # pop size & duration
-  P$pop.type = 'open' # open or cohort
-  P$n.dur = 1         # num lifetimes (adur) to simulate if open
-  P$n.pop = 1000      # pop size (exact for cohort, mean for open)
+  P$pop.type = 'open' # {open, wash, cohort}
+  P$n.dur = 1         # num lifetimes (adur) to simulate
+  P$n.pop = 1000      # expected pop size active in model at any time
   # base rates (per year)
   P$vio.Ri.my   = 0.67     # (mean) base rate: violence
   P$dep_o.Ri.my =  .02     # (mean) base rate: depression begin
@@ -107,7 +107,7 @@ add.pars.time = function(P,dtz){
 add.pars.cond = function(P){
   P$zf    = P$n.dur*adur*P$z1y # final timestep
   P$tf    = P$zf * P$dtz       # final time (days)
-  P$n.tot = P$n.pop * (P$n.dur + (P$pop.type=='open')) # total inds needed
+  P$n.tot = P$n.pop * switch(P$pop.type,cohort=1,open=P$n.dur,wash=P$n.dur+1) # total inds needed
   P$het   = het.funs[[P$het.distr]] # funs for sampling ind rates
   P$sex.Ri.shapes = fit.beta(P$sex.Ri.95) # (shape1,shape2): sex rate
   P$cdm.Pi.shapes = fit.beta(P$cdm.Pi.95) # (shape1,shape2): condom prob
