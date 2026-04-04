@@ -1,14 +1,14 @@
 source('sim/meta.r')
 source('sim/mass.r')
 source('sim/fit.r')
-uid = '2026-03-13'
-.k     = cli.arg('.k','RR2.ad.base')
+uid = '2026-04-04'
+.k     = cli.arg('.k','RR2.pet.base')
 .b     = cli.arg('.b', 1)
 .nb    = cli.arg('.nb',1)
 .debug = cli.arg('.debug',0)
 
-# e = exposure "dep" (abuse)
-# o = outcome  "haz" (depression)
+# e = exposure "dep" {fixed,period} or "vio" {event}
+# o = outcome  "haz"
 
 # -----------------------------------------------------------------------------
 # params & grid
@@ -18,103 +18,184 @@ P0 = list(
   n.pop = xdf(1000,10000),
   n.dur = 1, dtz = 7,
   het.distr = 'gamma',
-  run = get.run.par(c('dep','haz'),u=0))
+  tRR.shape = 'step')
 
 z = 1e-12
 G = name.list(key='i',
-  list(i='RRo', id='RR.haz_o.dep_w',v=1,   vg=  c(1,2,3,4,8)),
-  list(i='RRx', id='RR.haz_x.dep_w',v=1,   vg=1/c(1,2,3,4,8)),
-  list(i='eRo', id='dep_o.Ri.my',   v=.01, vg=c(.003,.01,.03,.1)),
-  list(i='eRx', id='dep_x.Ri.my',   v=1,   vg=c(z,.03,.1,.3,1,3)),
-  list(i='eHo', id='dep_o.Ri.het',  v=2,   vg=c(0,1,2,3)),
-  list(i='eHx', id='dep_x.Ri.het',  v=1,   vg=c(0,1,2,3)),
-  list(i='ecv', id='dep.cov',       v=-.5, vg=c(-.5,0,+.5)),
-  list(i='ep',  id='dep.prev',      v=.1,  vg=c(.03,.1,.2,.3)),
-  list(i='oRo', id='haz_o.Ri.my',   v=.01, vg=c(.003,.01,.03,.1)),
-  list(i='oRx', id='haz_x.Ri.my',   v=3,   vg=c(z,.03,.1,.3,1,3)),
-  list(i='oHo', id='haz_o.Ri.het',  v=2,   vg=c(0,1,2,3)),
-  list(i='oHx', id='haz_x.Ri.het',  v=1,   vg=c(0,1,2,3)),
-  list(i='ocv', id='haz.cov',       v=-.5, vg=c(-.5,0,+.5)),
-  list(i='seed',id='seed',          v=NA,  vg=xdf(1:7,1:21)),
-  list(i='ek',  id='exp.case',v='adult',vg=NA))
+  list(i='exp', id='exp.type',  def='period',grid=NA), # {fixed,period,event}
+  list(i='eff', id='eff.type',  def='trans', grid=NA), # {first,trans}
+  list(i='RRo', id='RR.haz_o.dep_w',def=1,   grid=  c(1,2,3,4,8)),
+  list(i='RRx', id='RR.haz_x.dep_w',def=1,   grid=1/c(1,2,3,4,8)),
+  list(i='eRo', id='dep_o.Ri.my',   def=.01, grid=c(.003,.01,.03,.1)),
+  list(i='eRx', id='dep_x.Ri.my',   def=1,   grid=c(z,.03,.1,.3,1,3)),
+  list(i='eHo', id='dep_o.Ri.het',  def=2,   grid=c(0,1,2,3)),
+  list(i='eHx', id='dep_x.Ri.het',  def=1,   grid=c(0,1,2,3)),
+  list(i='ecv', id='dep.cov',       def=-.5, grid=c(-.5,0,+.5)),
+  list(i='ep',  id='dep.prev',      def=.1,  grid=c(.03,.1,.2,.3)),
+  list(i='oRo', id='haz_o.Ri.my',   def=.01, grid=c(.003,.01,.03,.1)),
+  list(i='oRx', id='haz_x.Ri.my',   def=3,   grid=c(z,.03,.1,.3,1,3)),
+  list(i='oHo', id='haz_o.Ri.het',  def=2,   grid=c(0,1,2,3)),
+  list(i='oHx', id='haz_x.Ri.het',  def=1,   grid=c(0,1,2,3)),
+  list(i='ocv', id='haz.cov',       def=-.5, grid=c(-.5,0,+.5)),
+  list(i='seed',id='seed',          def=NA,  grid=xdf(1:7,1:21)))
 
 Gid = lapply(G,`[[`,'id')
-G0 = lapply(G,`[[`,'v')
-Gi = function(i,...){ ulist(G0,lapply(G[c('seed',i)],`[[`,'vg'),...) }
-PG = function(Gk,...){ ulist(P0,set.names(Gk,Gid[names(Gk)]),...) }
+G0 = lapply(G,`[[`,'def')
+Gi = function(i,...){ ulist(G0,lapply(G[c('seed',i)],`[[`,'grid'),...) }
+PG = function(G1,...){ ulist(P0,set.names(G1,Gid[names(G1)]),...) }
 
 Gk = list()
-# childhood exposure
-Gk$RRo.ch.base = Gi(ek='child',c('RRo'))
-Gk$RRx.ch.base = Gi(ek='child',c('RRx'))
-Gk$RR2.ch.base = Gi(ek='child',c('RRo','RRx'))
-Gk$RRo.ch.ep   = Gi(ek='child',c('RRo','ep'))
-Gk$RRo.ch.oRo  = Gi(ek='child',c('RRo','oRo','oHo'))
-Gk$RRo.ch.oRx  = Gi(ek='child',c('RRo','oRx','oHx'))
-Gk$RRo.ch.oR2  = Gi(ek='child',c('RRo','oRo','oRx','ocv'),oHo=2,oHx=1)
-# adulthood exposure
-Gk$RRo.ad.base = Gi(ek='adult',c('RRo'))
-Gk$RRx.ad.base = Gi(ek='adult',c('RRx'))
-Gk$RR2.ad.base = Gi(ek='adult',c('RRo','RRx'))
-Gk$RRo.ad.eRo  = Gi(ek='adult',c('RRo','eRo','eHo'))
-Gk$RRo.ad.eRx  = Gi(ek='adult',c('RRo','eRx','eHx'))
-Gk$RRo.ad.eR2  = Gi(ek='adult',c('RRo','eRo','eRx','ecv'),eHo=2,eHx=1)
-Gk$RRo.ad.oRo  = Gi(ek='adult',c('RRo','oRo','oHo'))
-Gk$RRo.ad.oRx  = Gi(ek='adult',c('RRo','oRx','oHx'))
-Gk$RRo.ad.oR2  = Gi(ek='adult',c('RRo','oRo','oRx','ocv'),oHo=2,oHx=1)
-Gk$RRo.ad.lhs  = Gi(ek='adult',seed=c(1,1e9),lhs=xdf(1e1,1e5),
-  c('RRo','eRo','eRx','eHo','eHx','ecv','oRo','oRx','oHo','oHx','ocv'))
+# exposure: fixed, effect: {first / transient}
+Gk$RR2.fix.base = Gi(exp='fixed', eff='trans',c('RRo','RRx'))
+Gk$RRo.fix.base = Gi(exp='fixed', eff='trans',c('RRo'))
+Gk$RRx.fix.base = Gi(exp='fixed', eff='trans',c('RRx'))
+Gk$RRo.fix.ep   = Gi(exp='fixed', eff='trans',c('RRo','ep'))
+Gk$RRo.fix.oRo  = Gi(exp='fixed', eff='trans',c('RRo','oRo','oHo'))
+Gk$RRo.fix.oRx  = Gi(exp='fixed', eff='trans',c('RRo','oRx','oHx'))
+# exposure: period, effect: transient
+Gk$RR2.pet.base = Gi(exp='period',eff='trans',c('RRo','RRx'))
+Gk$RRo.pet.base = Gi(exp='period',eff='trans',c('RRo'))
+Gk$RRx.pet.base = Gi(exp='period',eff='trans',c('RRx'))
+Gk$RRo.pet.eRo  = Gi(exp='period',eff='trans',c('RRo','eRo','eHo'))
+Gk$RRo.pet.eRx  = Gi(exp='period',eff='trans',c('RRo','eRx','eHx'))
+Gk$RRo.pet.oRo  = Gi(exp='period',eff='trans',c('RRo','oRo','oHo'))
+Gk$RRo.pet.oRx  = Gi(exp='period',eff='trans',c('RRo','oRx','oHx'))
+# exposure: period, effect: first
+Gk$RR2.pef.base = Gi(exp='period',eff='first',c('RRo','RRx'))
+Gk$RRo.pef.base = Gi(exp='period',eff='first',c('RRo'))
+Gk$RRx.pef.base = Gi(exp='period',eff='first',c('RRx'))
+Gk$RRo.pef.eRo  = Gi(exp='period',eff='first',c('RRo','eRo','eHo'))
+Gk$RRo.pef.eRx  = Gi(exp='period',eff='first',c('RRo','eRx','eHx'))
+Gk$RRo.pef.oRo  = Gi(exp='period',eff='first',c('RRo','oRo','oHo'))
+Gk$RRo.pef.oRx  = Gi(exp='period',eff='first',c('RRo','oRx','oHx'))
+# exposure: event, effect: transient
+Gk$RR2.evt.base = Gi(exp='event', eff='trans',c('RRo','RRx'))
+Gk$RRo.evt.base = Gi(exp='event', eff='trans',c('RRo'))
+Gk$RRx.evt.base = Gi(exp='event', eff='trans',c('RRx'))
+Gk$RRo.evt.eRo  = Gi(exp='event', eff='trans',c('RRo','eRo','eHo'))
+Gk$RRo.evt.eRx  = Gi(exp='event', eff='trans',c('RRo','eRx','eHx'))
+Gk$RRo.evt.oRo  = Gi(exp='event', eff='trans',c('RRo','oRo','oHo'))
+Gk$RRo.evt.oRx  = Gi(exp='event', eff='trans',c('RRo','oRx','oHx'))
 # for (k in names(Gk)){ status(3,k,': ',prod(lens(Gk[[k]]))) } # for hpc gen
 
-apply.case = function(P){
-  if (P$exp.case=='child'){
+apply.types = function(P){
+  P$run = get.run.par(c('dep','haz'),u=0)
+  P$mass.var = switch(P$eff.type,first='dep.past',trans='dep.now')
+  if (P$exp.type=='period'){}
+  if (P$exp.type=='fixed'){
     P$init.inds = function(I,P){
       I$dep_o.Ri = ifelse(runif(P$n.tot) < P$dep.prev,Inf,0)
       I$dep_x.Ri = 0
       return(I) }}
+  if (P$exp.type=='event'){
+    P$run = get.run.par(c('vio','haz'),u=0)
+    tsc = switch(P$eff.type,first=P$t1y*adur,trans=P$t1y/P$dep_x.Ri.my)
+    P$vio.Ri.my        = P$dep_o.Ri.my
+    P$vio.Ri.het       = P$dep_o.Ri.het
+    P$iRR.haz_o.vio_zr = P$RR.haz_o.dep_w
+    P$tsc.haz_o.vio_zr = tsc
+    P$iRR.haz_x.vio_zr = P$RR.haz_x.dep_w
+    P$tsc.haz_x.vio_zr = tsc }
   return(P)
 }
 
-get.lhs = function(Gi,seed=666){
-  set.seed(seed)
-  is = lens(Gi) > 1
-  Gi[is] = as.data.frame(qunif(
-    lhs::randomLHS(Gi$lhs,sum(is)),
-    rep(unlist(lapply(Gi[is],min)),each=Gi$lhs),
-    rep(unlist(lapply(Gi[is],max)),each=Gi$lhs) ))
-  return(Gi)
-}
+# -----------------------------------------------------------------------------
+# customize rate funs
+
+rate.vio = function(P,J,aj,z){
+  R = aggr.rate( # among all
+      J$vio.Ri # base rate
+    # skip: RR age, tRR vio, nRR vio
+); return(R) }
+
+rate.dep_o = function(P,J,R,aj,z){
+  j = which(!J$dep.now)
+  R[j] = aggr.rate( # among not dep
+      J$dep_o.Ri[j] # base rate
+    , map.tRR(P$tRRu.dep_o.vio_zr,J$vio.zr[j],z) # tRR vio
+    # skip: RR age, dep past, nRR vio
+); return(R) }
+
+rate.dep_x = function(P,J,R,aj,z){
+  j = which(J$dep.now)
+  R[j] = aggr.rate( # among dep
+      J$dep_x.Ri[j] # base rate
+    , map.tRR(P$tRRu.dep_x.vio_zr,J$vio.zr[j],z) # tRR vio
+    # skip: RR dep dur
+); return(R) }
+
+rate.haz_o = function(P,J,R,aj,z){
+  j = which(!J$haz.now)
+  R[j] = aggr.rate( # among not haz
+      J$haz_o.Ri[j] # base rate
+    , (1 + P$RRu.haz_o.dep_w * J[[P$mass.var]][j]) # RR dep now
+    , map.tRR(P$tRRu.haz_o.vio_zr,J$vio.zr[j],z) # tRR vio
+    # skip: RR age, RR haz past, nRR vio
+); return(R) }
+
+rate.haz_x = function(P,J,R,aj,z){
+  j = which(J$haz.now)
+  R[j] = aggr.rate( # among haz
+      J$haz_x.Ri[j] # base rate
+    , (1 + P$RRu.haz_x.dep_w * J[[P$mass.var]][j]) # RR dep now
+    , map.tRR(P$tRRu.haz_x.vio_zr,J$vio.zr[j],z) # tRR vio
+    # skip: RR haz dur
+); return(R) }
 
 # -----------------------------------------------------------------------------
 # targets / outcomes
 
 T = name.list(key='id',
-  gen.targ(id='e.w',   type='prop',vo='dep.now' ),
-  gen.targ(id='e.p',   type='prop',vo='dep.past'),
-  gen.targ(id='o.w',   type='prop',vo='haz.now' ),
-  gen.targ(id='o.p',   type='prop',vo='haz.past'),
-  gen.targ(id='or.ww', type='OR',  ve='dep.now', vo='haz.now' ),
-  gen.targ(id='or.wp', type='OR',  ve='dep.now', vo='haz.past'),
-  gen.targ(id='or.pw', type='OR',  ve='dep.past',vo='haz.now' ),
-  gen.targ(id='or.pp', type='OR',  ve='dep.past',vo='haz.past'),
-  gen.targ(id='pr.ww', type='PR',  ve='dep.now', vo='haz.now' ),
-  gen.targ(id='pr.pp', type='PR',  ve='dep.now', vo='haz.past'),
-  gen.targ(id='pr.pw', type='PR',  ve='dep.past',vo='haz.now' ),
-  gen.targ(id='pr.wp', type='PR',  ve='dep.past',vo='haz.past'),
-  gen.targ(id='or.wwa',type='OR',  ve='dep.now', vo='haz.now' ,va1='age'),
-  gen.targ(id='or.wpa',type='OR',  ve='dep.now', vo='haz.past',va1='age'),
-  gen.targ(id='or.pwa',type='OR',  ve='dep.past',vo='haz.now' ,va1='age'),
-  gen.targ(id='or.ppa',type='OR',  ve='dep.past',vo='haz.past',va1='age'),
-  gen.targ(id='pr.wwa',type='PR',  ve='dep.now', vo='haz.now' ,va1='age'),
-  gen.targ(id='pr.ppa',type='PR',  ve='dep.now', vo='haz.past',va1='age'),
-  gen.targ(id='pr.pwa',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
-  gen.targ(id='pr.wpa',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
+  gen.targ(id='px:ew',    type='prop',vo='dep.now' ),
+  gen.targ(id='px:ep',    type='prop',vo='dep.past'),
+  gen.targ(id='px:ow',    type='prop',vo='haz.now' ),
+  gen.targ(id='px:op',    type='prop',vo='haz.past'),
+  gen.targ(id='or:ew.ow', type='OR',  ve='dep.now', vo='haz.now' ),
+  gen.targ(id='or:ew.op', type='OR',  ve='dep.now', vo='haz.past'),
+  gen.targ(id='or:ep.ow', type='OR',  ve='dep.past',vo='haz.now' ),
+  gen.targ(id='or:ep.op', type='OR',  ve='dep.past',vo='haz.past'),
+  gen.targ(id='pr:ew.ow', type='PR',  ve='dep.now', vo='haz.now' ),
+  gen.targ(id='pr:ew.op', type='PR',  ve='dep.now', vo='haz.past'),
+  gen.targ(id='pr:ep.ow', type='PR',  ve='dep.past',vo='haz.now' ),
+  gen.targ(id='pr:ep.op', type='PR',  ve='dep.past',vo='haz.past'),
+  gen.targ(id='aor:ew.ow',type='OR',  ve='dep.now', vo='haz.now' ,va1='age'),
+  gen.targ(id='aor:ew.op',type='OR',  ve='dep.now', vo='haz.past',va1='age'),
+  gen.targ(id='aor:ep.ow',type='OR',  ve='dep.past',vo='haz.now' ,va1='age'),
+  gen.targ(id='aor:ep.op',type='OR',  ve='dep.past',vo='haz.past',va1='age'),
+  gen.targ(id='apr:ew.ow',type='PR',  ve='dep.now', vo='haz.now' ,va1='age'),
+  gen.targ(id='apr:ew.op',type='PR',  ve='dep.now', vo='haz.past',va1='age'),
+  gen.targ(id='apr:ep.ow',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
+  gen.targ(id='apr:ep.op',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
 
-Tid = list(
-  ORx = filter.names(T,'or...a$'),
-  PRx = filter.names(T,'pr...a$'),
-  XRx = filter.names(T,'.r...a$'),
-  XRw = filter.names(T,'.r.wwa'))
+Tid = list()
+Tid$aOR.xx = filter.names(T,'aor:e..o.')
+Tid$aPR.xx = filter.names(T,'apr:e..o.')
+Tid$aXR.xx = filter.names(T,'a.r:e..o.')
+Tid$aXR.ww = filter.names(T,'a.r:ew.ow')
+
+srv.event = function(P,Q,E,t){
+  Q$vio.tf = sapply(E$vio,any.dt,t=t,dt=P$tsc.haz_o.vio_zr)
+  Q$vio.1y = sapply(E$vio,any.dt,t=t,dt=P$t1y)
+  Q$vio.6m = sapply(E$vio,any.dt,t=t,dt=P$t1y/2)
+  Q$vio.3m = sapply(E$vio,any.dt,t=t,dt=P$t1y/4)
+  Q$vio.1m = sapply(E$vio,any.dt,t=t,dt=P$t1y/12)
+  return(Q)
+}
+
+targs.event = function(T){
+  recs = c('tf','1y','6m','3m','1m')
+  T = unlist(rec=0,lapply(T,function(Ti){
+    Ti$arg = lapply(Ti$arg,sub,pat='dep',rep='vio')
+    if (grepl('ew',Ti$id)){
+      Ts = lapply(recs,function(rec){
+        Ti$arg = lapply(Ti$arg,sub,pat='vio.now',rep=str('vio.',rec))
+        Ti$id  = sub('ew',str('e',rec),Ti$id)
+        return(Ti)
+      })}
+    else { Ts = list(Ti) }
+  }))
+  T = set.names(T,lapply(T,`[[`,'id'))
+}
 
 # -----------------------------------------------------------------------------
 # run sims & save/load
@@ -124,10 +205,11 @@ grid.path = function(k,.save=FALSE){
 }
 
 run.one = function(...,.par=0){
-  P1 = PG(list(...),fun=apply.case)
+  P1 = PG(list(...),fun.pre=apply.types)
   Ps = get.pars.grid(P1,.par=.par)
   Ms = sim.runs(Ps,sub='act',.par=.par)
-  Q  = srv.apply(Ms,.par=.par)
+  Q  = srv.apply(Ms,srvs=srv.event,.par=.par)
+  if (P1$exp.type=='event') { T = targs.event(T) }
   Y  = srv.targs(Q,T)
   Y[c('seed','targ.mu','targ.se','ll')] = NULL
   row.names(Y) = NULL
@@ -135,9 +217,7 @@ run.one = function(...,.par=0){
 }
 
 run.grid = function(k){
-  lhs = len(Gk[[k]]$lhs)
-  GR = { if (lhs) get.lhs(Gk[[k]]) else Gk[[k]] }
-  Y = grid.apply(GR,run.one,.grid=!lhs,.batch=.b,.nbatch=.nb,
+  Y = grid.apply(Gk[[k]],run.one,.grid=1,.batch=.b,.nbatch=.nb,
     .rbind=1,.cbind=1,.log=3)
   save.rds(Y,grid.path(k,.save=TRUE),str('b',.nb),str('Y.',.b))
 }
@@ -148,7 +228,7 @@ merge.batch = function(k){
   save.rds(Y,grid.path(k),'Y')
 }
 
-load.grid = function(k,i='or.wwa',f=NULL){
+load.grid = function(k,i='aor:ew.ow',f=NULL){
   Y = load.rds(grid.path(k),'Y')
   Y = subset(Y,id %in% i)
   Y[c('ve','vo','te','to','dt')] = NULL
@@ -156,24 +236,27 @@ load.grid = function(k,i='or.wwa',f=NULL){
   Y[v][Y[v]<=z] = 0 # HACK
   Y$bias     = ifelse(Y$type=='prop',NA,Y$value/(Y$RRo/Y$RRx))
   Y$bias.adj = ifelse(Y$type=='prop',NA,(Y$value-1)/(Y$RRo/Y$RRx-1))
-  Y$mass = factor(substr(Y$id,1,2),names(fl$mass),fl$mass)
-  Y$erep = factor(substr(Y$id,4,4),names(fl$rep),fl$rep)
-  Y$orep = factor(substr(Y$id,5,5),names(fl$rep),fl$rep)
-  Y$ek   = factor(Y$ek,names(fl$ek),fl$ek)
+  Y$mass = factor(Y$type,names(fl$mass),fl$mass)
+  Y$erep = factor(gsub('.*\\:e|\\.o.','',Y$id),names(fl$rep),fl$rep)
+  Y$orep = factor(gsub('.*\\:e.*\\.o','',Y$id),names(fl$rep),fl$rep)
+  Y$exp = factor(Y$exp,names(fl$exp),fl$exp)
+  Y$eff = factor(Y$eff,names(fl$eff),fl$eff)
   Y$RRx = round(Y$RRx,3)
   Y[f] = lapply(Y[f],as.factor)
   return(Y)
 }
 
-fl = list( # factor levels
-  mass = c(or='OR',pr='PR'),
-  rep = c(w='current',p='lifetime'),
-  ek = c(adult='adulthood',child='childhood'))
+fl = list() # factor levels
+fl$mass = c(OR='OR',PR='PR')
+fl$exp  = c(fixed='fixed',period='period',event='event')
+fl$eff  = c(trans='transient',first='first-ever')
+fl$rep  = c(w='current',p='lifetime',tf='effect duration',
+  '1y'='past year','6m'='past 6 months','3m'='past 3 months','1m'='past month')
 
 reps = c('erep','orep')
 
 # -----------------------------------------------------------------------------
-# exact math @ ek=ch
+# exact math @ exp.type=fixed
 
 avec = seq(.1,adur,.1)
 
@@ -183,7 +266,7 @@ efun = list(
   OR = function(p0,p1){ p1*(1-p0)/p0/(1-p1) },
   PR = function(p0,p1){ p1/p0 })
 
-run.ch.exact = function(Y,n=1e4,age=FALSE){
+run.fix.exact = function(Y,n=1e4,age=FALSE){
   Y = subset(Y,seed==1)
   qf = het.funs[[P0$het.distr]]$q
   Ye = rbind.lapply(1:nrow(Y),function(i){ Yi=Y[i,]
@@ -206,11 +289,12 @@ run.ch.exact = function(Y,n=1e4,age=FALSE){
 labels = list(
   mass = 'Measure of~association',
   bias = 'Bias~vs~HR',
-  ek   = 'Exposure~period',
+  exp  = 'Exposure~type',
+  eff  = 'Effect~type',
   RRo  = 'HR θ:~outcome onset~while exposed',
   RRx  = 'HR φ:~outcome recovery~while exposed',
   iRRx = '1/HR 1/φ:~outcome recovery~while exposed',
-  ep   = 'Childhood~exposure~prevalence~(%)',
+  ep   = 'Fixed~exposure~prevalence~(%)',
   op   = 'Outcome~prevalence~(%)',
   eRo  = 'Mean~exposure~onset rate λ~(per 100 PY)',
   eRx  = 'Mean~exposure~recovery rate γ~(per 100 PY)',
@@ -243,7 +327,7 @@ cmap = lapply(list(RRo='cividis',RRx='cividis',ep='viridis',
   eRo='viridis',eHo='viridis',eRx='mako',  eHx='mako',
   oRo='inferno',oHo='inferno',oRx='rocket',oHx='rocket'),
   function(o){ clr.map.d(option=o,end=.8) })
-cmap$ek   = clr.map.m(c('#c06','#0cc'))
+cmap$exp  = clr.map.m(c('#c06','#0cc','#f90'))
 cmap$null = clr.map.m('#000')
 
 ltys = lapply(list(
@@ -270,8 +354,8 @@ plot.core = function(x,y,clr=NULL,lty=NULL,da=1,ra=1/5,ci=.95){ list(
   plot.clean(font='Alegreya Sans',legend.spacing.y=unit(-1,'mm'))
 )}
 
-add.ch.exact = function(Y){
-  geom_point(data=run.ch.exact(Y),shape=21,fill='#fc0',size=1)
+add.fix.exact = function(Y){
+  geom_point(data=run.fix.exact(Y),shape=21,fill='#fc0',size=1)
 }
 
 plot.1o = list(w1=2,h1=1.6,wo=1.5,ho=1)
@@ -284,33 +368,37 @@ plot.save.i = function(g,...,size=NULL,ext='.png'){
 # objective plots
 
 plot.obj.1 = function(){
-  Y = load.grid('RR2.ad.base',i=Tid$XRw)
+  Y = load.grid('RR2.pet.base',i=Tid$aXR.ww)
   g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=mass)) +
     plot.core('RRo','mass',lty='mass')
-  plot.save.i(g,'RRo.ad.base')
+  plot.save.i(g,'RRo.pet.base')
   g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=mass)) +
     plot.core('iRRx','mass',lty='mass')
-  plot.save.i(g,'RRx.ad.base')
+  plot.save.i(g,'RRx.pet.base')
   Y$RRx = as.factor(Y$RRx)
   g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
     plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
-  plot.save.i(g,'RR2.ad.base')
-  Y = load.grid('RR2.ch.base',i=Tid$XRw,f='RRx')
+  plot.save.i(g,'RR2.pet.base')
+  Y = load.grid('RR2.fix.base',i=Tid$aXR.ww,f='RRx')
   g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
     plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
-  plot.save.i(g,'RR2.ch.base')
+  plot.save.i(g,'RR2.fix.base')
 }
 
 plot.obj.2 = function(){
-  Y.ad = load.grid('RRo.ad.base',i=Tid$XRx,f=reps)
-  Y.ch = load.grid('RRo.ch.base',i=Tid$XRx,f=reps)
-  g = ggplot(Y.ad,aes(x=RRo,y=value,lty=mass)) +
-    fct_grid('erep','orep') + sublabs(Y.ad[reps]) +
-    plot.core('RRo','mass','ek','mass')
-  plot.save.i(g,'RRo.ad.reps')
-  g = g + rbind(Y.ad,Y.ch) + aes(color=ek,fill=ek)
-  plot.save.i(g,'RRo.ch.reps')
+  Y.pet = load.grid('RRo.pet.base',i=Tid$aXR.xx,f=reps)
+  Y.fix = load.grid('RRo.fix.base',i=Tid$aXR.xx,f=reps)
+  Y.evt = load.grid('RRo.evt.base',i=gsub('ew','etf',Tid$aXR.xx),f=reps)
+  Y.all = rbind(Y.pet,Y.fix,Y.evt)
+  g = ggplot(Y.pet,aes(x=RRo,y=value,lty=mass)) +
+    fct_grid('erep','orep') +
+    plot.core('RRo','mass','exp','mass')
+  plot.save.i(g + sublabs(Y.pet[reps]),'RRo.pet.reps')
+  g = g + Y.all + aes(color=exp,fill=exp)
+  plot.save.i(g + sublabs(Y.all[reps]),'RRo.exp.reps')
 }
+
+# TODO: update below
 
 plot.obj.3 = function(){
   for (k in c('ch.ep','ch.oRo','ch.oRx',

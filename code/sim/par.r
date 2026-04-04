@@ -2,14 +2,16 @@
 # =============================================================================
 # pars
 
-get.pars = function(seed=0,...,dtz=7,null=NULL,save=NULL,fun=identity){
+get.pars = function(seed=0,...,dtz=7,null=NULL,save=NULL,
+    fun.pre=identity,fun.cond=identity){
   P = list(case='base',seed=seed) # meta
   P = add.pars.def(P)         # default (upstream)
   P = add.pars.time(P,dtz)    # timestep-related
   P = null.pars(P,null,save)  # null some Ri,RR
   P = ulist(P,...)            # overwrite any (upstream)
+  P = fun.pre(P)              # anything pre-conditional
   P = add.pars.cond(P)        # conditional (downstream)
-  P = fun(P)                  # anything else
+  P = fun.cond(P)             # anything post-conditional
 }
 
 add.pars.def = function(P=NULL){
