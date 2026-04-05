@@ -398,16 +398,17 @@ plot.obj.2 = function(){
   plot.save.i(g + sublabs(Y.all[reps]),'RRo.exp.reps')
 }
 
-# TODO: update below
-
 plot.obj.3 = function(){
-  for (k in c('ch.ep','ch.oRo','ch.oRx',
-    'ad.eRo','ad.eRx','ad.oRo','ad.oRx')){
-    R = substr(k,4,6);   iR = str('as.factor(100*',R,')')
+  for (k in c('fix.ep','fix.oRo','fix.oRx',
+    'evt.eRo','evt.eRx','evt.oRo','evt.oRx',
+    'pet.eRo','pet.eRx','pet.oRo','pet.oRx')){
+    exp = substr(k,1,3); ids = Tid$aXR.xx
+    R = substr(k,5,7);   iR = str('as.factor(100*',R,')')
     H = gsub('R','H',R); iH = str('interaction(mass,',H,')')
     if (R=='ep'){ H = NULL; iH = 'mass' }
-    Y = subset(load.grid(str('RRo.',k),i=Tid$XRx,f=c(reps,H)),RRo==8)
-    if (Y$ek[1]=='childhood'){ Y = subset(Y,erep=='lifetime') }
+    if (exp=='evt'){ ids = gsub('ew','etf',ids) }
+    Y = subset(load.grid(str('RRo.',k),i=ids,f=c(reps,H)),RRo==8)
+    if (Y$exp[1]=='fixed'){ Y = subset(Y,erep=='lifetime') }
     g = ggplot(Y,aes.string(x=iR,y='bias.adj',lty='mass',color=H,fill=H,group=iH)) +
       fct_grid('erep','orep') + sublabs(Y[reps]) + ylab('Bias vs onset HR') +
       plot.core(R,'bias',H,'mass',da=0)
@@ -415,22 +416,22 @@ plot.obj.3 = function(){
   }
 }
 
-plot.ch.valid = function(){
-  # TODO: something funky @ or.wpa & oHo=0
-  Y = load.grid('RRo.ch.oRo',i=Tid$XRw)
+plot.fix.valid = function(){
+  # TODO: something funky @ aor.wp & oHo=0
+  Y = load.grid('RRo.fix.oRo',i=Tid$aXR.ww)
   g = ggplot(Y,aes(x=RRo,y=value,color=as.factor(100*oRo),fill=as.factor(100*oRo))) +
     fct_grid('oHo','mass') + plot.core('RRo','mass','oRo')
-  plot.save.i(g + add.ch.exact(Y),'valid.ch.oRo')
-  Y = load.grid('RRo.ch.oRx',i=Tid$XRw)
+  plot.save.i(g + add.fix.exact(Y),'valid.fix.oRo')
+  Y = load.grid('RRo.fix.oRx',i=Tid$aXR.ww)
   g = ggplot(Y,aes(x=RRo,y=value,color=as.factor(100*oRx),fill=as.factor(100*oRx))) +
     fct_grid('oHx','mass') + plot.core('RRo','mass','oRx')
-  plot.save.i(g + add.ch.exact(Y),'valid.ch.oRx')
+  plot.save.i(g + add.fix.exact(Y),'valid.fix.oRx')
 }
 
-plot.ch.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
+plot.fix.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
   ids = c(p1='exposed',p0='unexposed',OR='OR',PR='PR')
-  GR = Gi(c(clr,fac),ek='child',seed=1,orep=orep,...)
-  Y = run.ch.exact(expand.grid(GR),age=1)
+  GR = Gi(c(clr,fac),exp='fixed',seed=1,orep=orep,...)
+  Y = run.fix.exact(expand.grid(GR),age=1)
   Y = melt(Y,m=names(ids),var='id')
   Y$type = ifelse(Y$id %in% fl$mass,ll('mass'),ll('op'))
   Y$id   = factor(Y$id,names(ids),ids)
@@ -451,14 +452,14 @@ plot.ch.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16)){
   plot.save.i(g,str('age.',slug))
 }
 
-plot.ch.age = function(){
+plot.fix.age = function(){
   v = list(RR=4,oRo=c(.003,.01,.03),oRx=c(z,.1,1),oHo=c(0,.5,1,1.5))
   labels$oRx <<- gsub('Mean~outcome~recovery','Outcome~recov',labels$oRx) # HACK
-  plot.ch.age.i('RRo.R2.hom',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
-  plot.ch.age.i('RRo.R2.het',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
-  plot.ch.age.i('RRx.R2.hom',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
-  plot.ch.age.i('RRx.R2.het',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
-  plot.ch.age.i('RRo.oHo',   RRo=v$RR,  clr='oHo',fac='oRx',oRo=.03,  oRx=v$oRx,oHo=v$oHo,oHx=1)
+  plot.fix.age.i('RRo.R2.hom',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
+  plot.fix.age.i('RRo.R2.het',RRo=v$RR,  clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
+  plot.fix.age.i('RRx.R2.hom',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=0,    oHx=0)
+  plot.fix.age.i('RRx.R2.het',RRx=1/v$RR,clr='oRo',fac='oRx',oRo=v$oRo,oRx=v$oRx,oHo=1,    oHx=1)
+  plot.fix.age.i('RRo.oHo',   RRo=v$RR,  clr='oHo',fac='oRx',oRo=.03,  oRx=v$oRx,oHo=v$oHo,oHx=1)
 }
 
 # -----------------------------------------------------------------------------
@@ -470,5 +471,5 @@ plot.ch.age = function(){
 # plot.obj.1()
 # plot.obj.2()
 # plot.obj.3()
-# plot.ch.valid()
-# plot.ch.age()
+# plot.fix.valid()
+# plot.fix.age()
