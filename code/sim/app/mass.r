@@ -89,7 +89,7 @@ apply.types = function(P){
       return(I) }}
   if (P$exp.type=='event'){
     P$run = get.run.par(c('vio','haz'),u=0)
-    tsc = switch(P$eff.type,first=P$t1y*adur,trans=P$t1y/P$dep_x.Ri.my)
+    tsc = P$t1y*switch(P$eff.type,first=adur,trans=min(adur,1/P$dep_x.Ri.my))
     P$vio.Ri.my        = P$dep_o.Ri.my
     P$vio.Ri.het       = P$dep_o.Ri.het
     P$iRR.haz_o.vio_zr = P$RR.haz_o.dep_w
