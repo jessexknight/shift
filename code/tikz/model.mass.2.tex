@@ -1,0 +1,18 @@
+\input{cfg.mass}%
+\begin{tikzpicture}
+  \node[sec,fill=c20,rotate=00,minimum width=25mm] at (.5,-.8) {$X$: exposure = abuse};
+  \node[sec,fill=c02,rotate=90,minimum width=25mm] at (-.8,.5) {$Y$: outcome = depression};
+  \foreach \x/\vx in {0/0,1/1}{
+    \foreach \y/\vy in {0/0,1/1}{
+      \node[var=c\x\y,sq=9mm] (x\x\y) at (\x,\y) {$X\eq\vx$\\$Y\eq\vy$};
+      \draw[->,gry] (x\x\y.315) -- ++(.15,.15); }}
+  \foreach \k/\vk in {0/not,1/currently}{
+    \exposure{\k1}
+    \draw[->,  Ro] ([dy+]x0\k.east)  -- node[arr,above] {$\eRo$}      ([dy+]x1\k.west);
+    \draw[<-,  Rx] ([dy-]x0\k.east)  -- node[arr,below] {$\eRx$}      ([dy-]x1\k.west);
+    \draw[->,\tRo] ([dx-]x\k0.south) -- node[arr,left]  {$\oRo\tRRo$} ([dx-]x\k1.north);
+    \draw[<-,\tRx] ([dx+]x\k0.south) -- node[arr,right] {$\oRx\tRRx$} ([dx+]x\k1.north);
+    \node[lab,rotate=00,c\k0] at (\k,-.5) {\strut\vk};
+    \node[lab,rotate=90,c0\k] at (-.5,\k) {\strut\vk}; }
+  \draw[<-,gry] (x00.135) -- ++(-.15,-.15);
+\end{tikzpicture}%

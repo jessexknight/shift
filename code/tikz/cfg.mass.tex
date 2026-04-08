@@ -1,0 +1,26 @@
+\def\i{_i}%
+\if01% letters
+  \def\eRo{a\i}\def\eRx{b\i}%
+  \def\oRo{c\i}\def\oRx{d\i}%
+  \def\RRo{K}\def\RRx{R}%
+\else% greek
+  \def\eRo{\lambda\i}\def\eRx{\gamma\i}%
+  \def\oRo{\mu\i}\def\oRx{\eta\i}%
+  \def\RRo{\theta}\def\RRx{\phi}%
+\fi%
+\colorlet{c00}       {gry}\colorlet{c10}       {blu}\colorlet{c20}{c00!50!c10}%
+\colorlet{c01}       {red}\colorlet{c11}{c10!50!c01}\colorlet{c21}{c20!50!c01}%
+\colorlet{c02}{c00!50!c01}\colorlet{c12}{c02!50!c10}\colorlet{c22}{c20!50!c02}%
+\tikzset{
+  x=+16mm,dx+/.style={xshift=+.5ex},dx-/.style={xshift=-.5ex},
+  y=-16mm,dy+/.style={yshift=+.5ex},dy-/.style={yshift=-.5ex},
+  lwd/.style={line width=#1pt},
+  arr/.style={lab,text opacity=1},
+  Rx/.style={lwd=4/5},RRx/.style={lwd=3/5},
+  Ro/.style={lwd=4/5},RRo/.style={lwd=5/5},
+  sq/.style={minimum height=#1,minimum width=#1,align=left}}%
+\newcommand{\exposure}[1]{\if#1
+  \def\tRRo{\hl{\RRo}}\def\tRo{RRo}
+  \def\tRRx{\hl{\RRx}}\def\tRx{RRx}\else
+  \def\tRRo{}\def\tRo{Ro}
+  \def\tRRx{}\def\tRx{Rx}\fi}%

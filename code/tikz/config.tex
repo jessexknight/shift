@@ -44,12 +44,14 @@
   e/.tip = {Turned Square[length=1mm]}
 }
 \newcommand{\shift}[3]{\begin{scope}[xshift=#1,yshift=#2]#3\end{scope}}
+\newcommand{\hl}[2][yel]{\textcolor{#1}{#2}}
 % -----------------------------------------------------------------------------
 % symbols
 \renewcommand{\d}{\textit{\dj}}
 \newcommand  {\h}{\ensuremath{{\hbar}}}
 \newcommand  {\p}[1][\tiny]{\raisebox{1ex}{\rotatebox{180}{#1\textit{\dj}}}}
 \renewcommand{\ss}[3]{\ensuremath{{#1}^{\,#2}_{#3}}}
+\newcommand{\eq}{\,{=}\,}
 \newcommand{\RR} [2]{\ss{RR} {#1}{#2}}\newcommand{\RP} [2]{\ss{RP} {#1}{#2}}
 \newcommand{\nRR}[2]{\ss{nRR}{#1}{#2}}\newcommand{\nRP}[2]{\ss{nRP}{#1}{#2}}
 \newcommand{\tRR}[2]{\ss{tRR}{#1}{#2}}\newcommand{\tRP}[2]{\ss{tRP}{#1}{#2}}
