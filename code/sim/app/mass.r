@@ -23,7 +23,7 @@ P0 = list(
 z = 1e-12
 G = name.list(key='i',
   list(i='exp', id='exp.type',  def='period',grid=NA), # {fixed,period,event}
-  list(i='eff', id='eff.type',  def='trans', grid=NA), # {first,trans}
+  list(i='eff', id='eff.type',  def='trans', grid=NA), # {life,trans}
   list(i='RRo', id='RR.haz_o.dep_w',def=1,   grid=  c(1,2,3,4,8)),
   list(i='RRx', id='RR.haz_x.dep_w',def=1,   grid=1/c(1,2,3,4,8)),
   list(i='eRo', id='dep_o.Ri.my',   def=.01, grid=c(.003,.01,.03,.1)),
@@ -45,13 +45,21 @@ Gi = function(i,...){ ulist(G0,lapply(G[c('seed',i)],`[[`,'grid'),...) }
 PG = function(G1,...){ ulist(P0,set.names(G1,Gid[names(G1)]),...) }
 
 Gk = list()
-# exposure: fixed, effect: {first / transient}
-Gk$RR2.fix.base = Gi(exp='fixed', eff='trans',c('RRo','RRx'))
-Gk$RRo.fix.base = Gi(exp='fixed', eff='trans',c('RRo'))
-Gk$RRx.fix.base = Gi(exp='fixed', eff='trans',c('RRx'))
-Gk$RRo.fix.ep   = Gi(exp='fixed', eff='trans',c('RRo','ep'))
-Gk$RRo.fix.oRo  = Gi(exp='fixed', eff='trans',c('RRo','oRo','oHo'))
-Gk$RRo.fix.oRx  = Gi(exp='fixed', eff='trans',c('RRo','oRx','oHx'))
+# exposure: fixed, effect: life
+Gk$RR2.fix.base = Gi(exp='fixed', eff='life', c('RRo','RRx'))
+Gk$RRo.fix.base = Gi(exp='fixed', eff='life', c('RRo'))
+Gk$RRx.fix.base = Gi(exp='fixed', eff='life', c('RRx'))
+Gk$RRo.fix.ep   = Gi(exp='fixed', eff='life', c('RRo','ep'))
+Gk$RRo.fix.oRo  = Gi(exp='fixed', eff='life', c('RRo','oRo','oHo'))
+Gk$RRo.fix.oRx  = Gi(exp='fixed', eff='life', c('RRo','oRx','oHx'))
+# exposure: period, effect: life
+Gk$RR2.pel.base = Gi(exp='period',eff='life', c('RRo','RRx'))
+Gk$RRo.pel.base = Gi(exp='period',eff='life', c('RRo'))
+Gk$RRx.pel.base = Gi(exp='period',eff='life', c('RRx'))
+Gk$RRo.pel.eRo  = Gi(exp='period',eff='life', c('RRo','eRo','eHo'))
+Gk$RRo.pel.eRx  = Gi(exp='period',eff='life', c('RRo','eRx','eHx'))
+Gk$RRo.pel.oRo  = Gi(exp='period',eff='life', c('RRo','oRo','oHo'))
+Gk$RRo.pel.oRx  = Gi(exp='period',eff='life', c('RRo','oRx','oHx'))
 # exposure: period, effect: transient
 Gk$RR2.pet.base = Gi(exp='period',eff='trans',c('RRo','RRx'))
 Gk$RRo.pet.base = Gi(exp='period',eff='trans',c('RRo'))
@@ -60,14 +68,6 @@ Gk$RRo.pet.eRo  = Gi(exp='period',eff='trans',c('RRo','eRo','eHo'))
 Gk$RRo.pet.eRx  = Gi(exp='period',eff='trans',c('RRo','eRx','eHx'))
 Gk$RRo.pet.oRo  = Gi(exp='period',eff='trans',c('RRo','oRo','oHo'))
 Gk$RRo.pet.oRx  = Gi(exp='period',eff='trans',c('RRo','oRx','oHx'))
-# exposure: period, effect: first
-Gk$RR2.pef.base = Gi(exp='period',eff='first',c('RRo','RRx'))
-Gk$RRo.pef.base = Gi(exp='period',eff='first',c('RRo'))
-Gk$RRx.pef.base = Gi(exp='period',eff='first',c('RRx'))
-Gk$RRo.pef.eRo  = Gi(exp='period',eff='first',c('RRo','eRo','eHo'))
-Gk$RRo.pef.eRx  = Gi(exp='period',eff='first',c('RRo','eRx','eHx'))
-Gk$RRo.pef.oRo  = Gi(exp='period',eff='first',c('RRo','oRo','oHo'))
-Gk$RRo.pef.oRx  = Gi(exp='period',eff='first',c('RRo','oRx','oHx'))
 # exposure: event, effect: transient
 Gk$RR2.evt.base = Gi(exp='event', eff='trans',c('RRo','RRx'))
 Gk$RRo.evt.base = Gi(exp='event', eff='trans',c('RRo'))
@@ -80,7 +80,7 @@ Gk$RRo.evt.oRx  = Gi(exp='event', eff='trans',c('RRo','oRx','oHx'))
 
 apply.types = function(P){
   P$run = get.run.par(c('dep','haz'),u=0)
-  P$mass.var = switch(P$eff.type,first='dep.past',trans='dep.now')
+  P$mass.var = switch(P$eff.type,life='dep.past',trans='dep.now')
   if (P$exp.type=='period'){}
   if (P$exp.type=='fixed'){
     P$init.inds = function(I,P){
@@ -89,7 +89,7 @@ apply.types = function(P){
       return(I) }}
   if (P$exp.type=='event'){
     P$run = get.run.par(c('vio','haz'),u=0)
-    tsc = P$t1y*switch(P$eff.type,first=adur,trans=min(adur,1/P$dep_x.Ri.my))
+    tsc = P$t1y*switch(P$eff.type,life=adur,trans=min(adur,1/P$dep_x.Ri.my))
     P$vio.Ri.my        = P$dep_o.Ri.my
     P$vio.Ri.het       = P$dep_o.Ri.het
     P$iRR.haz_o.vio_zr = P$RR.haz_o.dep_w
@@ -167,11 +167,10 @@ T = name.list(key='id',
   gen.targ(id='apr:ep.ow',type='PR',  ve='dep.past',vo='haz.now' ,va1='age'),
   gen.targ(id='apr:ep.op',type='PR',  ve='dep.past',vo='haz.past',va1='age'))
 
-Tid = list()
-Tid$aOR.xx = filter.names(T,'aor:e..o.')
-Tid$aPR.xx = filter.names(T,'apr:e..o.')
-Tid$aXR.xx = filter.names(T,'a.r:e..o.')
-Tid$aXR.ww = filter.names(T,'a.r:ew.ow')
+Tid = function(m='.',e='.',o='.',adj='a',evt=0){
+  ids = filter.names(T,sprintf('%s%sr\\:e%s\\.o%s',adj,m,e,o))
+  ids = gsub('ew',ifelse(evt,'etf','ew'),ids)
+}
 
 srv.event = function(P,Q,E,t){
   Q$vio.tf = sapply(E$vio,any.dt,t=t,dt=P$tsc.haz_o.vio_zr)
@@ -236,23 +235,25 @@ load.grid = function(k,i='aor:ew.ow',f=NULL){
   Y[v][Y[v]<=z] = 0 # HACK
   Y$bias     = ifelse(Y$type=='prop',NA,Y$value/(Y$RRo/Y$RRx))
   Y$bias.adj = ifelse(Y$type=='prop',NA,(Y$value-1)/(Y$RRo/Y$RRx-1))
-  Y$mass = factor(Y$type,names(fl$mass),fl$mass)
+  Y$mass = factor(Y$type,fl$mass,fl$mass)
   Y$erep = factor(gsub('.*\\:e|\\.o.','',Y$id),names(fl$rep),fl$rep)
   Y$orep = factor(gsub('.*\\:e.*\\.o','',Y$id),names(fl$rep),fl$rep)
-  Y$exp = factor(Y$exp,names(fl$exp),fl$exp)
+  Y$exp = factor(Y$exp,fl$exp,fl$exp)
   Y$eff = factor(Y$eff,names(fl$eff),fl$eff)
+  Y$ee  = factor(str(Y$exp,': ',Y$eff),fl$ee,fl$ee)
+  Y$emat = ifelse(fl$emat[char(Y$erep)]==Y$eff,'matched','mismatched')
   Y$RRx = round(Y$RRx,3)
   Y[f] = lapply(Y[f],as.factor)
   return(Y)
 }
 
 fl = list() # factor levels
-fl$mass = c(OR='OR',PR='PR')
-fl$exp  = c(fixed='fixed',period='period',event='event')
-fl$eff  = c(trans='transient',first='first-ever')
-fl$rep  = c(w='current',p='lifetime',tf='effect duration',
-  '1y'='past year','6m'='past 6 months','3m'='past 3 months','1m'='past month')
-
+fl$mass = c('OR','PR')
+fl$exp  = c('fixed','period','event')
+fl$eff  = c(trans='transient',life='lifetime')
+fl$rep  = c(w='current',p='lifetime',tf='recent*')
+fl$ee   = c('fixed: lifetime','period: lifetime','period: transient','event: transient')
+fl$emat = list('lifetime'='lifetime','current'='transient','recent*'='transient')
 reps = c('erep','orep')
 
 # -----------------------------------------------------------------------------
@@ -290,7 +291,9 @@ labels = list(
   mass = 'Measure of~association',
   bias = 'Bias~vs~HR',
   exp  = 'Exposure~type',
-  eff  = 'Effect~type',
+  eff  = 'True~effect~type',
+  ee   = 'Exposure type:~effect type',
+  emat = 'Exposure~reporting period~matches~true effect',
   RRo  = 'HR θ:~outcome onset~while exposed',
   RRx  = 'HR φ:~outcome recovery~while exposed',
   iRRx = '1/HR 1/φ:~outcome recovery~while exposed',
@@ -327,7 +330,7 @@ cmap = lapply(list(RRo='cividis',RRx='cividis',ep='viridis',
   eRo='viridis',eHo='viridis',eRx='mako',  eHx='mako',
   oRo='inferno',oHo='inferno',oRx='rocket',oHx='rocket'),
   function(o){ clr.map.d(option=o,end=.8) })
-cmap$exp  = clr.map.m(c('#c06','#0cc','#f90'))
+cmap$ee   = clr.map.m(c('#f90','#09c','#0c9','#c06'))
 cmap$null = clr.map.m('#000')
 
 ltys = lapply(list(
@@ -368,48 +371,55 @@ plot.save.i = function(g,...,size=NULL,ext='.png'){
 # objective plots
 
 plot.obj.1 = function(){
-  Y = load.grid('RR2.pet.base',i=Tid$aXR.ww)
-  g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=mass)) +
-    plot.core('RRo','mass',lty='mass')
-  plot.save.i(g,'RRo.pet.base')
-  g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=mass)) +
-    plot.core('iRRx','mass',lty='mass')
-  plot.save.i(g,'RRx.pet.base')
-  Y$RRx = as.factor(Y$RRx)
-  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
-    plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
-  plot.save.i(g,'RR2.pet.base')
-  Y = load.grid('RR2.fix.base',i=Tid$aXR.ww,f='RRx')
-  g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
-    plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
-  plot.save.i(g,'RR2.fix.base')
+  Yk = list(
+    fix = load.grid('RR2.fix.base',i=Tid(e='p',o='w')),
+    pel = load.grid('RR2.pel.base',i=Tid(e='p',o='w')),
+    pet = load.grid('RR2.pet.base',i=Tid(e='w',o='w')), # main
+    evt = load.grid('RR2.evt.base',i=Tid(e='w',o='w',evt=1)))
+  for (k in c('fix','pel','pet','evt')){ Y = Yk[[k]]
+    g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=mass)) +
+      plot.core('RRo','mass',lty='mass')
+    plot.save.i(g,str('base.RRo.',k))
+    g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=mass)) +
+      plot.core('iRRx','mass',lty='mass')
+    plot.save.i(g,str('base.RRx.',k))
+    Y$RRx = as.factor(Y$RRx)
+    g = ggplot(subset(Y,RRx!=.333),aes(x=RRo,y=value,lty=mass,color=RRx,fill=RRx)) +
+      plot.core('RRo','mass','RRx','mass') + labs(lty='Measure')
+    plot.save.i(g,str('base.RR2.',k))
+  }
 }
 
 plot.obj.2 = function(){
-  Y.pet = load.grid('RRo.pet.base',i=Tid$aXR.xx,f=reps)
-  Y.fix = load.grid('RRo.fix.base',i=Tid$aXR.xx,f=reps)
-  Y.evt = load.grid('RRo.evt.base',i=gsub('ew','etf',Tid$aXR.xx),f=reps)
-  Y.all = rbind(Y.pet,Y.fix,Y.evt)
-  g = ggplot(Y.pet,aes(x=RRo,y=value,lty=mass)) +
-    fct_grid('erep','orep') +
-    plot.core('RRo','mass','exp','mass')
-  plot.save.i(g + sublabs(Y.pet[reps]),'RRo.pet.reps')
-  g = g + Y.all + aes(color=exp,fill=exp)
-  plot.save.i(g + sublabs(Y.all[reps]),'RRo.exp.reps')
+  Y = rbind(
+    load.grid('RR2.fix.base',i=Tid(m='o',e='p'),f=reps),
+    load.grid('RR2.pel.base',i=Tid(m='o'),      f=reps),
+    load.grid('RR2.pet.base',i=Tid(m='o'),      f=reps),
+    load.grid('RR2.evt.base',i=Tid(m='o',evt=1),f=reps))
+  # TODO: fix sublabs
+  g = ggplot(subset(Y,RRx==1),aes(x=RRo,y=value,lty=emat,color=ee,fill=ee)) +
+    fct_grid('erep','orep') + ltys$v2 + sublabs(Y[reps]) +
+    plot.core('RRo','mass','ee','emat')
+  plot.save.i(g,'RRo.reps')
+  g = ggplot(subset(Y,RRo==1),aes(x=1/RRx,y=value,lty=emat,color=ee,fill=ee)) +
+    fct_grid('erep','orep') + ltys$v2 + sublabs(Y[reps]) +
+    plot.core('iRRx','mass','ee','emat')
+  plot.save.i(g,'RRx.reps')
 }
 
 plot.obj.3 = function(){
   for (k in c('fix.ep','fix.oRo','fix.oRx',
-    'evt.eRo','evt.eRx','evt.oRo','evt.oRx',
-    'pet.eRo','pet.eRx','pet.oRo','pet.oRx')){
-    exp = substr(k,1,3); ids = Tid$aXR.xx
+    'pel.eRo','pel.eRx','pel.oRo','pel.oRx',
+    'pet.eRo','pet.eRx','pet.oRo','pet.oRx', # main
+    'evt.eRo','evt.eRx','evt.oRo','evt.oRx')){
+    exp = substr(k,1,3); ids = Tid(evt=(exp=='evt'))
     R = substr(k,5,7);   iR = str('as.factor(100*',R,')')
     H = gsub('R','H',R); iH = str('interaction(mass,',H,')')
     if (R=='ep'){ H = NULL; iH = 'mass' }
     if (exp=='evt'){ ids = gsub('ew','etf',ids) }
     Y = subset(load.grid(str('RRo.',k),i=ids,f=c(reps,H)),RRo==8)
     if (Y$exp[1]=='fixed'){ Y = subset(Y,erep=='lifetime') }
-    g = ggplot(Y,aes.string(x=iR,y='bias.adj',lty='mass',color=H,fill=H,group=iH)) +
+    g = ggplot(Y,aes.str(x=iR,y='bias.adj',lty='mass',color=H,fill=H,group=iH)) +
       fct_grid('erep','orep') + sublabs(Y[reps]) + ylab('Bias vs onset HR') +
       plot.core(R,'bias',H,'mass',da=0)
     plot.save.i(g,str('bias.',k))
@@ -439,7 +449,7 @@ plot.fix.age.i = function(slug,orep='current',fac='RRo',clr=NULL,...,mm=c(1,16))
   Y[c('oRo','oRx')] = 100*Y[c('oRo','oRx')]
   Y$value = Y$value * ifelse(Y$type==ll('op'),100,1)
   Y[[clr]] = as.factor(Y[[clr]])
-  g = ggplot(Y,aes.string(x='a+amin',y='value',lty='id',color=clr)) +
+  g = ggplot(Y,aes.str(x='a+amin',y='value',lty='id',color=clr)) +
     facet_grid(str('type~',fac),scales='free_y',labeller=labeller(
       .cols=fct(labels[[fac]]),.rows=def.args(add.enum,fmt='i'))) +
     scale_linetype_manual(values=c(exposed='31',unexposed='13',OR='solid',PR='22')) +

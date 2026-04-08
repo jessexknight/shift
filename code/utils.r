@@ -20,6 +20,7 @@ lens = lengths
 seqn = seq_len
 seqa = seq_along
 str = paste0
+char = as.character
 set.names = setNames
 col.split = reshape2::colsplit
 no.warn = suppressWarnings
